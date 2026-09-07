@@ -1021,6 +1021,8 @@ body.dark .ps-coch svg .park-wallpiece{fill:rgba(30,32,30,.55)}
 <body>
 <div id="app"></div>
 <div id="ntf-root"></div>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 <script>
 // ═══════════════ DATOS DE REFERENCIA ═══════════════
 const GEN_FILTERS=[
@@ -1111,6 +1113,7 @@ function saveRDOverride(num,val){
   try{o=JSON.parse(localStorage.getItem("ch_rdx")||"{}");}catch(e){}
   o[num]=val;
   localStorage.setItem("ch_rdx",JSON.stringify(o));
+  cloudPush("ch_rdx");
 }
 const LR=["101","112","113","114","201","210","212","213","301","309","310","312","313"];
 const MR=["103","105","107","108","109","111","203","205","207","208","209","211","303","305","307","308","311","314","316"];
@@ -1124,7 +1127,7 @@ try{
   const _sg=JSON.parse(localStorage.getItem("ch_speedguide")||"null");
   if(_sg)SPEED_GUIDE=_sg;
 }catch(e){}
-function saveSpeedGuide(){localStorage.setItem("ch_speedguide",JSON.stringify(SPEED_GUIDE));}
+function saveSpeedGuide(){localStorage.setItem("ch_speedguide",JSON.stringify(SPEED_GUIDE));cloudPush("ch_speedguide");}
 const ROOM_CATS_DEFAULT=[
   {key:"SUITE",label:"Suite"},
   {key:"STD",label:"Standard"},
@@ -1137,7 +1140,7 @@ try{
   const _rc=JSON.parse(localStorage.getItem("ch_roomcats")||"null");
   if(_rc&&_rc.length)ROOM_CATS=_rc;
 }catch(e){}
-function saveRoomCats(){localStorage.setItem("ch_roomcats",JSON.stringify(ROOM_CATS));}
+function saveRoomCats(){localStorage.setItem("ch_roomcats",JSON.stringify(ROOM_CATS));cloudPush("ch_roomcats");}
 const ct=n=>{
   if(SPEED_GUIDE.lenta.rooms.includes(n)){const m=SPEED_GUIDE.lenta.mins;return{l:m.L,r:m.R,c:m.C};}
   if(SPEED_GUIDE.intermedia.rooms.includes(n)){const m=SPEED_GUIDE.intermedia.mins;return{l:m.L,r:m.R,c:m.C};}
@@ -1252,9 +1255,71 @@ const MANT_CHK=[
 // ═══════════════ STORAGE / SYNC ═══════════════
 const K={rooms:"ch_r",mu:"ch_mu",issues:"ch_iss",bl:"ch_bl",coch:"ch_co",cons:"ch_cn",consAg:"ch_consag",comunicados:"ch_comu",muPerf:"ch_muperf",mchk:"ch_mc",mantChkCfg:"ch_mccfg",emp:"ch_em",ver:"ch_v",park:"ch_pk",areas:"ch_ar",hist:"ch_hist",lastDay:"ch_lastday",users:"ch_users",informeSnap:"ch_infsnap",roomSep:"ch_roomsep",roomCats:"ch_roomcats"};
 const lsG=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}};
-const lsS=(k,v)=>{try{const t=Date.now();localStorage.setItem(k,JSON.stringify(v));localStorage.setItem(K.ver,t);lastV=t;}catch{}};
+const lsS=(k,v)=>{try{const t=Date.now();localStorage.setItem(k,JSON.stringify(v));localStorage.setItem(K.ver,t);lastV=t;cloudPush(k);}catch{}};
 const uid=()=>"i"+Date.now()+Math.random().toString(36).slice(2,5);
 const today=()=>new Date().toISOString().slice(0,10);
+
+// ═══════════════ SINCRONIZACIÓN EN LA NUBE (Firebase Firestore) ═══════════════
+// Replica el estado guardado en localStorage hacia Firestore, y aplica en vivo los
+// cambios que lleguen desde otros dispositivos/usuarios. Si Firebase no carga (sin
+// internet, bloqueado, etc.) la app sigue funcionando solo en local como antes.
+const firebaseConfig={apiKey:"AIzaSyAno1K0dY3DpcTzkt1oiVLsAtW8rfqEocU",authDomain:"limpiezas-e3e75.firebaseapp.com",projectId:"limpiezas-e3e75",storageBucket:"limpiezas-e3e75.firebasestorage.app",messagingSenderId:"384513876047",appId:"1:384513876047:web:0371f79309f6232c8e4a3a"};
+let fsDB=null;
+try{
+  firebase.initializeApp(firebaseConfig);
+  fsDB=firebase.firestore();
+}catch(e){console.warn("Firebase no disponible, la app sigue funcionando solo en este dispositivo:",e);}
+const CLOUD_KEYS=[...Object.values(K).filter(k=>k!==K.ver),"ch_rdx","ch_speedguide"];
+const _pendingLocal={};
+let _pendingRemoteRefresh=false;
+function cloudPush(key){
+  if(!fsDB||!CLOUD_KEYS.includes(key))return;
+  try{
+    const raw=localStorage.getItem(key);
+    if(raw==null)return;
+    const t=Date.now();
+    _pendingLocal[key]=t;
+    fsDB.collection("estado").doc(key).set({v:raw,t:t}).catch(e=>console.warn("cloudPush",key,e));
+  }catch(e){}
+}
+function applyRemoteRefresh(){
+  try{
+    const _rdx=JSON.parse(localStorage.getItem("ch_rdx")||"{}");
+    Object.entries(_rdx).forEach(([num,val])=>{ if(val===null) delete RD[num]; else RD[num]=val; });
+  }catch(e){}
+  try{const _sg=JSON.parse(localStorage.getItem("ch_speedguide")||"null"); if(_sg)SPEED_GUIDE=_sg;}catch(e){}
+  try{const _rc=JSON.parse(localStorage.getItem("ch_roomcats")||"null"); if(_rc&&_rc.length)ROOM_CATS=_rc;}catch(e){}
+  loadD();
+  detectNotifs();
+  if(typeof ROLE!=="undefined"&&ROLE==="rec")detectIssueNotifsForRec();
+  if(typeof ROLE!=="undefined"&&ROLE!=="sel")render();
+}
+function attachCloudListener(key){
+  if(!fsDB)return;
+  fsDB.collection("estado").doc(key).onSnapshot(snap=>{
+    if(!snap.exists){
+      // Todavía no hay nada en la nube para esta clave: si este dispositivo ya tiene
+      // datos reales guardados localmente, los sube como base inicial.
+      if(localStorage.getItem(key)!=null)cloudPush(key);
+      return;
+    }
+    const data=snap.data();
+    if(!data||typeof data.v!=="string")return;
+    if(_pendingLocal[key]&&data.t<=_pendingLocal[key])return; // eco de nuestra propia escritura
+    if(localStorage.getItem(key)===data.v)return; // sin cambios reales
+    localStorage.setItem(key,data.v);
+    const ae=document.activeElement,tag=ae&&ae.tagName;
+    if(ae&&(tag==="TEXTAREA"||tag==="INPUT")){_pendingRemoteRefresh=true;return;}
+    applyRemoteRefresh();
+  },err=>console.warn("onSnapshot",key,err));
+}
+setInterval(()=>{
+  if(!_pendingRemoteRefresh)return;
+  const ae=document.activeElement,tag=ae&&ae.tagName;
+  if(ae&&(tag==="TEXTAREA"||tag==="INPUT"))return;
+  _pendingRemoteRefresh=false;
+  applyRemoteRefresh();
+},3000);
 
 // ═══════════════ STATE ═══════════════
 let ROLE=sessionStorage.getItem("ch_role")||"sel";
@@ -1285,6 +1350,8 @@ function loadD(){
   D.coch=lsG(K.coch,D.coch);D.cons=lsG(K.cons,D.cons);D.consAg=lsG(K.consAg,D.consAg);D.comunicados=lsG(K.comunicados,D.comunicados);D.muPerf=lsG(K.muPerf,D.muPerf);D.roomSep=lsG(K.roomSep,D.roomSep);
   D.mantChk=lsG(K.mantChkCfg,D.mantChk);
   D.emp=lsG(K.emp,D.emp);
+  D.park=lsG(K.park,D.park);D.areas=lsG(K.areas,D.areas);D.hist=lsG(K.hist,D.hist);
+  D.users=lsG(K.users,D.users);D.informeSnap=lsG(K.informeSnap,D.informeSnap);
 }
 let lastV=0;
 // ══ NOTIFICACIONES (mantenimiento / recepción) ═════════════════════════════════════════
@@ -6269,6 +6336,7 @@ setInterval(syncCheck,3000);
 setInterval(function(){if(ROLE==="mu")render();},1000);
 lastV=+lsG(K.ver,0);
 render();
+CLOUD_KEYS.forEach(attachCloudListener);
 setTimeout(parkFitToScreen,50);
 </script>
 </body>
