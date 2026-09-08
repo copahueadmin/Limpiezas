@@ -1455,6 +1455,11 @@ let MANT_NOTIFS=[];
 let REC_NOTIFS=[];
 let DONE_TOASTS=[];
 let ISS_TOASTS=[];
+// Ítem 4 (tanda 11): una vez cerrado con la X, un aviso de problema no debe reaparecer
+// aunque el problema siga abierto — se guarda localmente (por dispositivo) qué problemas
+// ya fueron vistos/cerrados, para que el chequeo periódico no vuelva a crear el toast.
+let ISS_DISMISSED=(()=>{try{return JSON.parse(localStorage.getItem("ch_issdismissed")||"[]");}catch(e){return [];}})();
+function saveIssDismissed(){try{localStorage.setItem("ch_issdismissed",JSON.stringify(ISS_DISMISSED.slice(-500)));}catch(e){}}
 let MU_OCUP_NOTIFS=[];
 let MU_CHANGE_NOTIFS=[];
 let MU_ROOM_NOTIFS=[]; // avisos a la mucama de que le quitaron una habitación o se la intercambiaron por otra
@@ -1463,8 +1468,6 @@ let CAMA_TOASTS=[];
 let REOPEN_TOASTS=[];
 let MANT_CO_TOASTS=[];
 let CO_READY_TOASTS=[];
-let AREAS_REMINDER_TOASTS=[];
-let _areasReminderState={date:"",dismissed:false,snoozeUntil:0};
 let REC_REMINDER_TOASTS=[];
 let _recRecordatorioRuntime={};
 function camaEstadoLbl(v){return v==="MAT"?"Matrimonial (unida)":v==="TWIN"?"Separadas (twin)":"sin dato";}
@@ -1588,7 +1591,7 @@ function detectIssueNotifsForRec(){
     if(!(REC_NOTIFS||[]).some(n=>n.kind==="issue"&&n.issId===i.id)){
       REC_NOTIFS=[...REC_NOTIFS,{id:uid(),issId:i.id,room:i.room,label:"Problema",sub:i.quién||"Mucama",ts:Date.now(),hideUntil:0,kind:"issue",closing:false}];
     }
-    if(!(ISS_TOASTS||[]).some(n=>n.issId===i.id)){
+    if(!(ISS_TOASTS||[]).some(n=>n.issId===i.id)&&!ISS_DISMISSED.includes(i.id)){
       const nid=uid();
       ISS_TOASTS=[...ISS_TOASTS,{id:nid,issId:i.id,room:i.room,titulo:i.titulo,desc:i.desc,quien:i.quién||"Sin especificar",ts:Date.now(),dismissed:false,closing:false}];
       logNotif("problema",i.room,i.quién||"Sin especificar",(i.titulo||"Problema reportado")+(i.desc?(": "+i.desc):""));
@@ -1619,13 +1622,17 @@ window.doneToastAction=(id,action)=>{
   },220);
 };
 window.issToastAction=(id,action)=>{
+  const t=(ISS_TOASTS||[]).find(n=>n.id===id);
   ISS_TOASTS=ISS_TOASTS.map(n=>n.id===id?{...n,closing:true}:n);
   render();
   setTimeout(()=>{
     if(action==="snooze10")ISS_TOASTS=ISS_TOASTS.map(n=>n.id===id?{...n,hideUntil:Date.now()+10*60000,closing:false}:n);
     else if(action==="snooze30")ISS_TOASTS=ISS_TOASTS.map(n=>n.id===id?{...n,hideUntil:Date.now()+30*60000,closing:false}:n);
     else if(action==="snooze60")ISS_TOASTS=ISS_TOASTS.map(n=>n.id===id?{...n,hideUntil:Date.now()+60*60000,closing:false}:n);
-    else ISS_TOASTS=ISS_TOASTS.filter(n=>n.id!==id);
+    else{
+      if(t&&t.issId&&!ISS_DISMISSED.includes(t.issId)){ISS_DISMISSED=[...ISS_DISMISSED,t.issId];saveIssDismissed();}
+      ISS_TOASTS=ISS_TOASTS.filter(n=>n.id!==id);
+    }
     render();
   },220);
 };
@@ -1635,23 +1642,11 @@ function doneToastHtml(){
   const camaList=(CAMA_TOASTS||[]).filter(n=>!n.dismissed&&(!n.hideUntil||Date.now()>n.hideUntil)).map(n=>({...n,_k:"cama"}));
   const reopList=(REOPEN_TOASTS||[]).filter(n=>!n.dismissed&&(!n.hideUntil||Date.now()>n.hideUntil)).map(n=>({...n,_k:"reopen"}));
   const coList=(ROLE==="rec"?(CO_READY_TOASTS||[]):[]).filter(n=>!n.dismissed&&(!n.hideUntil||Date.now()>n.hideUntil)).map(n=>({...n,_k:"coaudit"}));
-  const areasList=(ROLE==="rec"?(AREAS_REMINDER_TOASTS||[]):[]).filter(n=>!n.dismissed).map(n=>({...n,_k:"areas"}));
   const recList=(ROLE==="rec"?(REC_REMINDER_TOASTS||[]):[]).filter(n=>!n.dismissed).map(n=>({...n,_k:"recordatorio"}));
-  const all=[...doneList,...issList,...camaList,...reopList,...coList,...areasList,...recList].sort((a,b)=>a.ts-b.ts);
+  const all=[...doneList,...issList,...camaList,...reopList,...coList,...recList].sort((a,b)=>a.ts-b.ts);
   if(!all.length)return"";
   return `<div class="done-toast-stack">
-    ${all.slice(-6).map(n=>n._k==="areas"?`<div class="done-toast k-areas${n.closing?" closing":""}">
-      <div class="dt-head"><span class="dt-ic">⏰</span><span class="dt-kicker">Recordatorio</span><button class="dt-x" onclick="areasReminderAction('${n.id}','del')">✕</button></div>
-      <div class="dt-body">
-      <div class="dt-main">Asignar áreas comunes a las chicas.</div>
-      <div class="dt-btns">
-        <button class="dt-btn" onclick="UI.v='plan';UI.planOpen={...UI.planOpen,areas:true};areasReminderAction('${n.id}','del')">Ver áreas</button>
-        <button class="dt-btn dt-btn-gh" onclick="areasReminderAction('${n.id}','snooze10')">10min</button>
-        <button class="dt-btn dt-btn-gh" onclick="areasReminderAction('${n.id}','snooze30')">30min</button>
-        <button class="dt-btn dt-btn-gh" onclick="areasReminderAction('${n.id}','snooze60')">1h</button>
-      </div>
-      </div>
-    </div>`:n._k==="recordatorio"?`<div class="done-toast k-areas${n.closing?" closing":""}">
+    ${all.slice(-6).map(n=>n._k==="recordatorio"?`<div class="done-toast k-areas${n.closing?" closing":""}">
       <div class="dt-head"><span class="dt-ic">⏰</span><span class="dt-kicker">Recordatorio</span><button class="dt-x" onclick="recReminderAction('${n.id}','del')">✕</button></div>
       <div class="dt-body">
       <div class="dt-main">${(n.texto||"").replace(/</g,"&lt;")}</div>
@@ -1688,8 +1683,8 @@ function doneToastHtml(){
     </div>`:n._k==="issue"?`<div class="done-toast k-issue${n.closing?" closing":""}">
       <div class="dt-head"><span class="dt-ic dt-ic-big">❗</span><span class="dt-kicker">PROBLEMA REPORTADO</span><button class="dt-x" onclick="issToastAction('${n.id}')">✕</button></div>
       <div class="dt-body">
-      <div class="dt-main">${n.room?"Habitación "+n.room+" — ":""}${n.titulo||"Problema reportado"}</div>
-      ${n.desc?`<div class="dt-sub">${n.desc}</div>`:""}
+      <div class="dt-main">${n.room?"Habitación "+n.room:"Problema reportado"}</div>
+      ${(n.desc||n.titulo)?`<div class="dt-sub" style="font-weight:700">${n.desc||n.titulo}</div>`:""}
       <div class="dt-status" style="color:#92400e">Reportó: ${n.quien}</div>
       <div class="dt-btns">
         <button class="dt-btn dt-btn-gh" onclick="issToastAction('${n.id}','snooze10')">10min</button>
@@ -2028,37 +2023,6 @@ window.coReadyToastAction=(id,action)=>{
     else if(action==="snooze30")CO_READY_TOASTS=CO_READY_TOASTS.map(n=>n.id===id?{...n,hideUntil:Date.now()+30*60000,closing:false}:n);
     else if(action==="snooze60")CO_READY_TOASTS=CO_READY_TOASTS.map(n=>n.id===id?{...n,hideUntil:Date.now()+60*60000,closing:false}:n);
     else CO_READY_TOASTS=CO_READY_TOASTS.filter(n=>n.id!==id);
-    render();
-  },220);
-};
-// Ítem 3 (tanda 5): recordatorio a Recepción, entre las 7 y las 15hs, de asignar las áreas
-// comunes a las mucamas que correspondan (solo si hay alguna sin asignar).
-function checkAreasReminder(){
-  if(ROLE!=="rec")return;
-  const h=hoyISO();
-  if(_areasReminderState.date!==h)_areasReminderState={date:h,dismissed:false,snoozeUntil:0};
-  const hora=new Date().getHours();
-  if(hora<7||hora>=15)return;
-  if(_areasReminderState.dismissed)return;
-  if(_areasReminderState.snoozeUntil&&Date.now()<_areasReminderState.snoozeUntil)return;
-  if((AREAS_REMINDER_TOASTS||[]).some(n=>!n.dismissed))return;
-  const sinAsignar=(D.areas||[]).filter(a=>!a.mucId);
-  if(!sinAsignar.length)return;
-  const nid=uid();
-  AREAS_REMINDER_TOASTS=[...(AREAS_REMINDER_TOASTS||[]),{id:nid,count:sinAsignar.length,ts:Date.now(),dismissed:false,closing:false}];
-  logNotif("areas",null,"Sistema","Asignar áreas comunes a las chicas");
-  setTimeout(()=>{AREAS_REMINDER_TOASTS=AREAS_REMINDER_TOASTS.map(n=>n.id===nid?{...n,closing:true}:n);if(ROLE==="rec")render();},119700);
-  setTimeout(()=>{AREAS_REMINDER_TOASTS=AREAS_REMINDER_TOASTS.map(n=>n.id===nid?{...n,dismissed:true}:n);if(ROLE==="rec")render();},120000);
-}
-window.areasReminderAction=(id,action)=>{
-  AREAS_REMINDER_TOASTS=AREAS_REMINDER_TOASTS.map(n=>n.id===id?{...n,closing:true}:n);
-  render();
-  setTimeout(()=>{
-    if(action==="del")_areasReminderState.dismissed=true;
-    else if(action==="snooze10")_areasReminderState.snoozeUntil=Date.now()+10*60000;
-    else if(action==="snooze30")_areasReminderState.snoozeUntil=Date.now()+30*60000;
-    else if(action==="snooze60")_areasReminderState.snoozeUntil=Date.now()+60*60000;
-    AREAS_REMINDER_TOASTS=AREAS_REMINDER_TOASTS.filter(n=>n.id!==id);
     render();
   },220);
 };
@@ -2727,7 +2691,7 @@ function rRec(){
         <button class="btn btn-g btn-sm" onclick="openHist()" title="Historial de cambios">\ud83d\udd50</button>
         <button class="btn btn-g btn-sm" onclick="openNotifLog()" title="Notificaciones">\ud83d\udd14${(D.notifLog||[]).filter(n=>["inicio","fin","reopen","cama","problema"].includes(n.tipo)&&Date.now()-n.ts<86400000).length?`<span class="pp-badge" style="margin-left:4px">${(D.notifLog||[]).filter(n=>["inicio","fin","reopen","cama","problema"].includes(n.tipo)&&Date.now()-n.ts<86400000).length}</span>`:""}</button>
         ${UI.v==="blancos"?`<button class="btn btn-p btn-sm" onclick="openBlMod()"><i class="ti ti-plus"></i> Programar blancos</button>`:""}
-        ${UI.v==="muv"?`<button class="btn btn-p btn-sm" onclick="openNewMu()">Agregar mucama</button>${sessionStorage.getItem("ch_admin_auth")==="1"?`<button class="btn btn-g btn-sm" style="margin-left:6px" onclick="openRendimiento()"><i class="ti ti-chart-bar"></i> Rendimiento</button>`:""}`:""}
+        ${UI.v==="muv"?`${sessionStorage.getItem("ch_admin_auth")==="1"?`<button class="btn btn-g btn-sm" onclick="openRendimiento()"><i class="ti ti-chart-bar"></i> Rendimiento</button>`:""}`:""}
         ${UI.v==="mant"?`<button class="btn btn-p btn-sm" onclick="openNewIss()"><i class="ti ti-plus"></i> Reportar problema</button>`:""}
         ${UI.v==="cons"?`<button class="btn btn-p btn-sm" onclick="openNewCons()"><i class="ti ti-plus"></i> Nueva entrada</button>`:""}
         ${UI.v==="coch"?`<button class="btn btn-p btn-sm" onclick="openNewCo()"><i class="ti ti-plus"></i> Nuevo abonado</button>`:""}
@@ -2803,8 +2767,8 @@ function rcCard(r){
   const sC=ocupada?'#334155':'#1e7e46';const sL=ocupada?'Ocupada':'Libre';
   const id2=r._merged?r._id2:null;
   const id2Arg=id2?`,'${id2}'`:"";
-  const PILLW=58;
-  const pillSt='flex-shrink:0;color:#fff;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.2px;padding:3px 4px;border-radius:20px;text-align:center';
+  const PILLW=66;
+  const pillSt='flex-shrink:0;color:#fff;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.2px;padding:3px 6px;border-radius:20px;text-align:center';
   const p1=`<div style="width:${PILLW}px;${pillSt};background:${tlC};cursor:pointer" onclick="cycleTarea('${r.id}',event${id2Arg})" title="Click para cambiar estado">${tl}</div>`;
   const p3=`<div style="width:${PILLW}px;${pillSt};background:${sC};cursor:pointer" onclick="setOccState('${r.id}','${ocupada?"libre":"ocupada"}',event${id2Arg})" title="Estado real de ocupación (click para cambiar)">${sL}</div>`;
   const p4=reserva?`<div style="width:${PILLW}px;${pillSt};background:#b45309;cursor:pointer" onclick="togPaxCheckin('${r.id}',event${id2Arg})" title="Doble click en pax para marcar llegada">Rva</div>`:"";
@@ -2828,7 +2792,7 @@ function rcCard(r){
     <div class="rc-flag-slot">${flagEl}</div>
     <div class="rc-order-slot">${coOrder?`<span class="rc-order-badge" title="Orden en que la mucama inició esta habitación (tiene varias en proceso a la vez)">${coOrder}</span>`:""}</div>
     <div class="rc-num-slot"><div style="${nSt};font-family:'Outfit',sans-serif;font-weight:800;color:#111827">${r.num}</div></div>
-    <div class="rc-num-slot" style="width:16px">${issOpen.length?`<div style="font-size:8px;background:#ef4444;color:#fff;border-radius:3px;padding:0 2px;font-weight:700">🔧</div>`:""}</div>
+    <div class="rc-num-slot" style="width:18px">${issOpen.length?`<div title="Problema reportado" style="width:17px;height:17px;border-radius:50%;background:#ef4444;color:#fff;font-size:12px;font-weight:900;line-height:17px;text-align:center;box-shadow:0 0 0 2px #fff,0 1px 3px rgba(0,0,0,.45)">!</div>`:""}</div>
     <div class="rc-pill-slot"><div style="display:flex;gap:4px;flex-shrink:0">${p1}${p3}${p4}${p5}</div></div>
     <div class="rc-mu-slot">${muSlotTxt}</div>
     <div class="rc-bl-slot" style="${blancosAsgName?"width:auto;flex:0 1 auto;justify-content:flex-start;padding-right:6px":""}">${blEl}</div>
@@ -2863,8 +2827,8 @@ function rcCardSimple(r,tabIdx){
   const sC=ocupada?'#334155':'#1e7e46';const sL=ocupada?'Ocupada':'Libre';
   const id2=r._merged?r._id2:null;
   const id2Arg=id2?`,'${id2}'`:"";
-  const PILLW=64; // ancho fijo de cada flotante, equivalente al de "Limpieza"
-  const pillSt='flex-shrink:0;color:#fff;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.2px;padding:3px 4px;border-radius:20px;text-align:center';
+  const PILLW=72; // ancho fijo de cada flotante, equivalente al de "Limpieza"
+  const pillSt='flex-shrink:0;color:#fff;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.2px;padding:3px 6px;border-radius:20px;text-align:center';
   const p1=`<div style="width:${PILLW}px;${pillSt};background:${tlC};cursor:pointer" onclick="cycleTarea('${r.id}',event${id2Arg})" title="Click para cambiar estado">${tl}</div>`;
   const p3=`<div style="width:${PILLW}px;${pillSt};background:${sC};cursor:pointer" onclick="setOccState('${r.id}','${ocupada?"libre":"ocupada"}',event${id2Arg})" title="Estado real de ocupación (click para cambiar)">${sL}</div>`;
   const p4=reserva?`<div style="width:${PILLW}px;${pillSt};background:#b45309;cursor:pointer" onclick="togPaxCheckin('${r.id}',event${id2Arg})" title="Doble click en pax para marcar llegada">Rva</div>`:"";
@@ -2879,6 +2843,7 @@ function rcCardSimple(r,tabIdx){
     <div class="rc-flag-slot"></div>
     <div class="rc-order-slot">${coOrder?`<span class="rc-order-badge" title="Orden en que la mucama inició esta habitación (tiene varias en proceso a la vez)">${coOrder}</span>`:""}</div>
     <div class="rc-num-slot"><div style="${nSt};font-family:'Outfit',sans-serif;font-weight:800;color:#111827">${r.num}</div></div>
+    <div class="rc-num-slot" style="width:18px">${issOpen.length?`<div title="Problema reportado" style="width:17px;height:17px;border-radius:50%;background:#ef4444;color:#fff;font-size:12px;font-weight:900;line-height:17px;text-align:center;box-shadow:0 0 0 2px #fff,0 1px 3px rgba(0,0,0,.45)">!</div>`:""}</div>
     <div class="rc-pill-slot"><div style="display:flex;gap:4px;flex-shrink:0">${p1}${p3}${p4}${p5}</div></div>
     <div class="rc-mu-slot" title="${m?m.nombre:''}" style="text-align:center;font-weight:800;flex:0 0 20px;min-width:20px">${m?m.nombre.trim().charAt(0).toUpperCase():"—"}</div>
     <div class="rc-bl-slot"></div>
@@ -3236,8 +3201,8 @@ function issCard(i){
   return `<div class="iss-card">
     <div class="iss-room" style="background:${i.prio==="urgente"?"#a32d2d":i.prio==="normal"?"#854f0b":"#3b6d11"}">${i.room}</div>
     <div style="flex:1">
-      <div style="font-size:11px;font-weight:500">${i.titulo}<span class="badge b-${i.prio==="urgente"?"urg":i.prio==="normal"?"nor":"ok"}">${i.prio}</span></div>
-      ${i.desc?`<div style="font-size:10px;color:var(--text2);margin-top:1px">${i.desc}</div>`:""}
+      <div style="font-size:11px;font-weight:500">${i.room?"Habitación "+i.room:"Problema reportado"}<span class="badge b-${i.prio==="urgente"?"urg":i.prio==="normal"?"nor":"ok"}">${i.prio}</span></div>
+      <div style="font-size:10.5px;color:var(--text);font-weight:700;margin-top:2px">${i.desc||i.titulo||""}</div>
       <div style="font-size:9px;color:var(--text3);margin-top:2px">${i.quién?"Rep.: "+i.quién+" · ":""}${i.fecha||""}</div>
     </div>
     <div style="display:flex;gap:3px">
@@ -4104,7 +4069,7 @@ function vPlan(){
   const coActionBtn=coEditing
     ?`<button class="btn btn-g btn-sm" style="padding:3px 8px;font-size:10px" onclick="coMarcarAuditado()">\u2713 Marcar auditado</button>`
     :`<button class="btn btn-g btn-sm" style="padding:3px 8px;font-size:10px" onclick="UI.coEditing=true;render()">\ud83d\udcdd ${coHoy.audited?"Editar":"Auditar"}</button>`;
-  const rightPanel=`<div style="width:250px;flex-shrink:0;display:flex;flex-direction:column;gap:10px;margin-top:21px">
+  const rightPanel=`<div style="width:250px;flex-shrink:0;display:flex;flex-direction:column;gap:10px;margin-top:21px;position:sticky;top:14px;max-height:calc(100vh - 100px);overflow-y:auto;padding-right:2px">
     <div class="pp-card">
       <button class="pp-head" onclick="togPlanPanel('checkout')">
         <span>\ud83d\udeaa Check-outs de hoy ${pendL.length?`<span class="pp-badge">${pendL.length}</span>`:""}</span>
@@ -4142,7 +4107,7 @@ function vPlan(){
             <button onclick="delArea('${a.id}')" style="background:transparent;border:none;color:var(--red);cursor:pointer"><i class="ti ti-x"></i></button>
           </div>`).join("")}
           <button class="btn btn-g btn-sm" onclick="addArea()"><i class="ti ti-plus"></i> Agregar área</button>
-        </div>`:`<div class="ag">${D.areas.map(acCard).join("")}</div>`}
+        </div>`:`<div class="ag" style="max-height:260px;overflow-y:auto;padding-right:2px">${D.areas.map(acCard).join("")}</div>`}
       </div></div>
     </div>
     <div class="pp-card" style="padding:11px 14px">
@@ -4504,8 +4469,8 @@ function issCard(i){
   return `<div class="iss-card">
     <div class="iss-room" style="background:${i.prio==="urgente"?"#a32d2d":i.prio==="normal"?"#854f0b":"#3b6d11"}">${i.room}</div>
     <div style="flex:1">
-      <div style="font-size:11px;font-weight:500">${i.titulo}<span class="badge b-${i.prio==="urgente"?"urg":i.prio==="normal"?"nor":"ok"}">${i.prio}</span></div>
-      ${i.desc?`<div style="font-size:10px;color:var(--text2);margin-top:1px">${i.desc}</div>`:""}
+      <div style="font-size:11px;font-weight:500">${i.room?"Habitación "+i.room:"Problema reportado"}<span class="badge b-${i.prio==="urgente"?"urg":i.prio==="normal"?"nor":"ok"}">${i.prio}</span></div>
+      <div style="font-size:10.5px;color:var(--text);font-weight:700;margin-top:2px">${i.desc||i.titulo||""}</div>
       <div style="font-size:9px;color:var(--text3);margin-top:2px">${i.quién?"Rep.: "+i.quién+" · ":""}${i.fecha||""}</div>
     </div>
     <div style="display:flex;gap:3px">
@@ -4920,8 +4885,8 @@ function rMant(){
       <div class="mt-num">${i.room}</div>
       <div class="prio-pill ${pp[i.prio]||"pp-nor"}" style="margin-top:8px">${pl[i.prio]||i.prio}</div>
     </div>
-    <div class="mt-tit">${i.titulo}</div>
-    ${i.desc?`<div style="font-size:15px;color:var(--text2);margin-bottom:8px">${i.desc}</div>`:""}
+    <div class="mt-tit">${i.room?"Hab. "+i.room:"Problema"}</div>
+    <div style="font-size:21px;font-weight:800;color:var(--text);margin-bottom:8px">${i.desc||i.titulo||""}</div>
     <div class="mt-met">${i.qui\u00e9n?"Report\u00f3: "+i.qui\u00e9n+" \u00b7 ":""}${i.fecha||""}</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <button class="mt-btn mb-res" onclick="mantRes('${i.id}')"><i class="ti ti-check"></i> RESUELTO</button>
@@ -4942,16 +4907,16 @@ function rMant(){
       <div class="prio-pill ${b.estado==="libre"?"pp-bl":"pp-esp"}" style="margin-top:8px">${b.estado==="libre"?"\u2705 PUEDE ENTRAR":"\u23f3 ESPERANDO LLAVE"}</div>
     </div>
     <div class="mt-tit">SACAR BLANCOS</div>
-    ${b.nota?`<div style="font-size:15px;color:var(--text2);margin-bottom:12px">${b.nota}</div>`:""}
+    ${b.nota?`<div style="font-size:19px;font-weight:600;color:var(--text2);margin-bottom:12px">${b.nota}</div>`:""}
     ${b.estado==="libre"?`<button class="mt-btn mb-bln" onclick="mtBlListo('${b.id}')"><i class="ti ti-shirt"></i> BLANCOS LISTOS</button>`
     :`<div style="font-size:18px;color:#6d28d9;font-weight:800;padding:10px 0">Recepci\u00f3n a\u00fan no liber\u00f3 la habitaci\u00f3n</div>`}
   </div>`;
   const tareasHtml=()=>D.mantChk.map(sec=>`<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:14px">
-    <div style="background:var(--navy);color:#fff;padding:14px 18px;font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">${sec.s}</div>
+    <div style="background:var(--navy);color:#fff;padding:14px 18px;font-size:21px;font-weight:700;text-transform:uppercase;letter-spacing:.4px">${sec.s}</div>
     ${sec.i.map(item=>{const k=sec.s+"_"+item,ch=((D.mchk[today()])||{})[k];
       return `<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 18px;border-bottom:1px solid var(--border)">
-        <span style="font-size:20px;font-weight:600;${ch?"color:var(--text3);text-decoration:line-through":""}">${item}</span>
-        <button onclick="togMC('${today()}','${k.replace(/'/g,"\\\\'")}',${ch?"false":"true"})" style="flex-shrink:0;padding:12px 20px;border-radius:12px;border:none;cursor:pointer;font-size:16px;font-weight:700;display:inline-flex;align-items:center;gap:8px;background:${ch?"#10b981":"#f3f4f6"};color:${ch?"#fff":"#374151"}">\u2705 LISTO</button>
+        <span style="font-size:23px;font-weight:600;${ch?"color:var(--text3);text-decoration:line-through":""}">${item}</span>
+        <button onclick="togMC('${today()}','${k.replace(/'/g,"\\\\'")}',${ch?"false":"true"})" style="flex-shrink:0;padding:12px 20px;border-radius:12px;border:none;cursor:pointer;font-size:18px;font-weight:700;display:inline-flex;align-items:center;gap:8px;background:${ch?"#10b981":"#f3f4f6"};color:${ch?"#fff":"#374151"}">\u2705 LISTO</button>
       </div>`;}).join("")}
   </div>`).join("");
   document.getElementById("app").innerHTML=`
@@ -7075,10 +7040,10 @@ window.checkShift=function(){
   } else removeShiftPopup();
 };
 setInterval(function(){try{checkShift();}catch(e){}},20000);
-try{checkResetDiario();checkCheckoutAutoRefresh();checkAreasReminder();checkRecordatorios();}catch(e){}
+try{checkResetDiario();checkCheckoutAutoRefresh();checkRecordatorios();}catch(e){}
 try{checkInformeSnap();}catch(e){}
 setInterval(function(){try{checkInformeSnap();}catch(e){}},60000);
-setInterval(function(){try{checkResetDiario();checkCheckoutAutoRefresh();checkAreasReminder();checkRecordatorios();render();}catch(e){}},60000);
+setInterval(function(){try{checkResetDiario();checkCheckoutAutoRefresh();checkRecordatorios();render();}catch(e){}},60000);
 
 // ══ LIQUID GLASS — destello de agua siguiendo el cursor ══════════════════════
 (function(){
