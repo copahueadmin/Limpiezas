@@ -329,7 +329,7 @@ textarea.fc{resize:vertical;min-height:60px}
 .rc-num-slot{width:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:0 2px}
 .rc-order-slot{width:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .rc-order-badge{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:#dc2626;color:#fff;font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;line-height:1;box-shadow:0 0 0 1px rgba(255,255,255,.6)}
-.rc-pill-slot{flex-shrink:0;display:flex;align-items:center;padding:0 3px}
+.rc-pill-slot{flex-shrink:0;display:flex;align-items:center;padding:0 1px}
 .rc-mu-slot{flex:1;min-width:40px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:11px;font-weight:600;color:#6b7280;padding:0 2px}
 .rc-bl-slot{width:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .rc-pax-slot{width:40px;flex-shrink:0;display:flex;align-items:center;justify-content:flex-end;padding-right:3px;margin-left:auto}
@@ -505,6 +505,9 @@ body.dark .btn.btn-danger-solid:hover{background:#3d0808!important;color:#ff7a7a
   backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
   border-left:1px solid var(--glass-bd)!important;
 }
+/* Ítem 1 (tanda 13): efecto de desplazamiento al mostrar el panel de cocheras */
+@keyframes parkSlideIn{from{transform:translateX(36px);opacity:0}to{transform:translateX(0);opacity:1}}
+.park-wrap{animation:parkSlideIn .32s cubic-bezier(.16,1,.3,1)}
 
 /* Espacios de cochera — vidrio líquido */
 .ps.pub{background:rgba(255,255,255,.42)!important;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
@@ -625,7 +628,8 @@ input::placeholder,textarea::placeholder{color:#7a8494!important}
 .sb.collapsed .sb-grp{font-size:0;height:1px;padding:0;margin:8px 12px;background:rgba(255,255,255,.12);overflow:hidden}
 .sb.collapsed .nb{justify-content:center;padding:10px 0;margin:4px 6px}
 .sb.collapsed .nb-lbl{display:none}
-.sb.collapsed .nb .ti{font-size:24px}
+.sb.collapsed .nb .ti{font-size:30px}
+.sb.collapsed .nb .nb-ico{font-size:22px;line-height:1;display:block}
 .sb.collapsed .nb-n{position:absolute;top:4px;right:4px;font-size:8px;padding:0 4px}
 .sb.collapsed .sb-foot span,.sb.collapsed .sb-foot{font-size:0}
 .sb.collapsed .sb-foot{justify-content:center;padding:12px 0}
@@ -926,21 +930,21 @@ body:not(.dark){color:#0a0a0a}
   box-shadow:inset 0 1px 2px rgba(0,0,0,.15),inset 0 0 0 1px rgba(255,255,255,.2)!important;
 }
 
-/* ===== [APP] Sidebar contraído: íconos más grandes y botones mucho más oscuros que expandido ===== */
+/* ===== [APP] Sidebar contraído: íconos mucho más grandes y botones más claros que expandido ===== */
 .sb.collapsed .nb{
-  background:rgba(10,20,15,.62)!important;
-  border-color:rgba(10,20,15,.75)!important;
-  box-shadow:none!important;
+  background:rgba(255,255,255,.92)!important;
+  border-color:rgba(0,0,0,.08)!important;
+  box-shadow:0 1px 3px rgba(0,0,0,.1)!important;
 }
-.sb.collapsed .nb:hover{background:rgba(10,20,15,.78)!important}
+.sb.collapsed .nb:hover{background:rgba(255,255,255,1)!important}
 .sb.collapsed .nb.on{
-  background:rgba(6,14,10,.92)!important;
+  background:rgba(224,247,242,.98)!important;
   border-color:#1d7a6b!important;
 }
-.sb.collapsed .nb i{color:#5eead4!important}
-body.dark .sb.collapsed .nb{background:rgba(0,0,0,.6)!important;border-color:rgba(0,0,0,.8)!important}
-body.dark .sb.collapsed .nb:hover{background:rgba(0,0,0,.75)!important}
-body.dark .sb.collapsed .nb.on{background:rgba(0,0,0,.92)!important}
+.sb.collapsed .nb i{color:#0f766e!important}
+body.dark .sb.collapsed .nb{background:rgba(255,255,255,.16)!important;border-color:rgba(255,255,255,.24)!important}
+body.dark .sb.collapsed .nb:hover{background:rgba(255,255,255,.26)!important}
+body.dark .sb.collapsed .nb.on{background:rgba(94,234,212,.24)!important;border-color:#5eead4!important}
 .sb .nb:active{background:rgba(0,0,0,.1)!important}
 
 
@@ -1022,7 +1026,6 @@ body.dark .sb.collapsed .nb.on{background:rgba(0,0,0,.92)!important}
 .done-toast .dt-ic-big{font-size:19px;font-weight:800}
 .done-toast.k-cama{--dt-a1:#1d7a6b;--dt-a2:#57c3ab;--dt-glow:rgba(29,122,107,.45)}
 .done-toast.k-reopen{--dt-a1:#5b3aa0;--dt-a2:#9068d6;--dt-glow:rgba(91,58,160,.45)}
-.done-toast.k-coaudit{--dt-a1:#a32d2d;--dt-a2:#d95d5a;--dt-glow:rgba(163,45,45,.5)}
 .done-toast.k-areas{--dt-a1:#6b4e12;--dt-a2:#c9a04a;--dt-glow:rgba(156,125,46,.5)}
 .done-toast.k-areas .dt-head{background:linear-gradient(120deg,#5c4310 0%,#7d5f1a 40%,#93752a 70%,#a9822f 100%)}
 .ntf-card{position:relative;background:#fff;border-radius:22px;padding:26px 22px 20px;max-width:300px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);animation:ntfFadeIn .4s cubic-bezier(.22,.7,.32,1)}
@@ -1121,28 +1124,28 @@ const RD={
   "101":{cat:"SUITE",sub:"King 2x1.90m",cap:"DBL",tv:true,caja:true},
   "102":{cat:"STD",sub:"Queen 2x1.60m",cap:"DBL",tv:true},
   "103":{cat:"STD",sub:"1 MAT+1 IND",cap:"TPL",tv:true},
-  "104":{cat:"MINI",sub:"2 IND",cap:"DBL",tv:true},
+  "104":{cat:"MINI",sub:"2 IND",cap:"DBL",tv:true,camaTipo:"Twin"},
   "105":{cat:"STD",sub:"1 MAT+1 IND",cap:"TPL",tv:true},
-  "106":{cat:"MINI",sub:"2 IND",cap:"DBL",tv:true},
+  "106":{cat:"MINI",sub:"2 IND",cap:"DBL",tv:true,camaTipo:"Twin"},
   "107":{cat:"STD",sub:"1 MAT+1 IND",cap:"TPL",tv:true},
-  "108":{cat:"STD",sub:"3 IND",cap:"TPL",tv:true},
-  "109":{cat:"STD",sub:"3 IND",cap:"TPL",tv:true},
-  "111":{cat:"STD",sub:"3 IND",cap:"TPL",tv:true},
+  "108":{cat:"STD",sub:"3 IND",cap:"TPL",tv:true,camaTipo:"Twin"},
+  "109":{cat:"STD",sub:"3 IND",cap:"TPL",tv:true,camaTipo:"Twin"},
+  "111":{cat:"STD",sub:"3 IND",cap:"TPL",tv:true,camaTipo:"Twin"},
   "112":{cat:"STD",sub:"2 MAT",cap:"CPL",tv:true},
   "113":{cat:"STD",sub:"1 MAT",cap:"DBL",tv:true},
   "114":{cat:"SUITE",sub:"Queen 2x1.80m",cap:"DBL",tv:true,caja:true},
-  "115":{cat:"ECO",sub:"2 IND",cap:"DBL",tv:false},
-  "116":{cat:"ECO",sub:"2 IND",cap:"DBL",tv:false},
-  "117":{cat:"ECO",sub:"2 IND",cap:"DBL",tv:false},
-  "118":{cat:"ECO",sub:"2 IND",cap:"DBL",tv:false},
+  "115":{cat:"ECO",sub:"2 IND",cap:"DBL",tv:false,camaTipo:"Twin"},
+  "116":{cat:"ECO",sub:"2 IND",cap:"DBL",tv:false,camaTipo:"Twin"},
+  "117":{cat:"ECO",sub:"2 IND",cap:"DBL",tv:false,camaTipo:"Twin"},
+  "118":{cat:"ECO",sub:"2 IND",cap:"DBL",tv:false,camaTipo:"Twin"},
   "119":{cat:"ECO",sub:"1 MAT+1 IND",cap:"TPL",tv:false},
   "120":{cat:"ECO",sub:"1 MAT+1 IND",cap:"TPL",tv:false},
   "201":{cat:"SUITE",sub:"King 2x1.90m",cap:"DBL",tv:true,caja:true},
   "202":{cat:"STD",sub:"1 MAT",cap:"DBL",tv:true},
   "203":{cat:"STD",sub:"1 MAT+1 IND",cap:"TPL",tv:true},
-  "204":{cat:"MINI",sub:"2 IND",cap:"DBL",tv:true},
+  "204":{cat:"MINI",sub:"2 IND",cap:"DBL",tv:true,camaTipo:"Twin"},
   "205":{cat:"STD",sub:"2 MAT",cap:"CPL",tv:true},
-  "206":{cat:"MINI",sub:"2 IND",cap:"DBL",tv:true},
+  "206":{cat:"MINI",sub:"2 IND",cap:"DBL",tv:true,camaTipo:"Twin"},
   "207":{cat:"STD",sub:"1 MAT+1 IND",cap:"TPL",tv:true},
   "208":{cat:"STD",sub:"1 QUEEN+1 IND",cap:"TPL",tv:true},
   "209":{cat:"STD",sub:"1 QUEEN+1 IND",cap:"TPL",tv:true},
@@ -1160,9 +1163,9 @@ const RD={
   "301":{cat:"STD",sub:"2 MAT",cap:"CPL",tv:true},
   "302":{cat:"STD",sub:"1 MAT",cap:"DBL",tv:true},
   "303":{cat:"STD",sub:"2 MAT",cap:"CPL",tv:true},
-  "304":{cat:"MINI",sub:"2 IND",cap:"DBL",tv:true},
+  "304":{cat:"MINI",sub:"2 IND",cap:"DBL",tv:true,camaTipo:"Twin"},
   "305":{cat:"STD",sub:"2 MAT",cap:"CPL",tv:true},
-  "306":{cat:"MINI",sub:"2 IND",cap:"DBL",tv:true},
+  "306":{cat:"MINI",sub:"2 IND",cap:"DBL",tv:true,camaTipo:"Twin"},
   "307":{cat:"STD",sub:"2 MAT",cap:"CPL",tv:true},
   "308":{cat:"STD",sub:"2 MAT",cap:"CPL",tv:true},
   "309":{cat:"STD",sub:"2 MAT",cap:"CPL",tv:true},
@@ -1174,8 +1177,8 @@ const RD={
   "316":{cat:"STD",sub:"1 MAT+1 IND",cap:"TPL",tv:true},
   "318":{cat:"DEPTO",sub:"1 MAT",cap:"DBL",tv:true},
   "319":{cat:"DEPTO",sub:"1 MAT",cap:"DBL",tv:true},
-  "320":{cat:"DEPTO",sub:"3 IND",cap:"TPL",tv:true},
-  "321":{cat:"DEPTO",sub:"2 IND",cap:"DBL",tv:true},
+  "320":{cat:"DEPTO",sub:"3 IND",cap:"TPL",tv:true,camaTipo:"Twin"},
+  "321":{cat:"DEPTO",sub:"2 IND",cap:"DBL",tv:true,camaTipo:"Twin"},
 };
 // Overrides de administrador: agregar/editar/eliminar habitaciones (persistido aparte de RD)
 try{
@@ -1220,16 +1223,13 @@ const ct=n=>{
   if(SPEED_GUIDE.intermedia.rooms.includes(n)){const m=SPEED_GUIDE.intermedia.mins;return{l:m.L,r:m.R,c:m.C};}
   const m=SPEED_GUIDE.rapida.mins;return{l:m.L,r:m.R,c:m.C};
 };
-const CAMA_UNIBLE=new Set([...Object.keys(RD).filter(n=>(RD[n].sub||"")==="2 IND"),"108","109","111","320"]);
+// Ítem 5 (tanda 12): "cama unible" ahora es 100% dinámico según el campo "Tipo de cama" (Twin)
+// editado en Habitaciones -- ya no depende de una lista fija. RD se mantiene actualizado en vivo
+// por saveEditRD(), así que esta función siempre refleja el estado actual sin recargar la página.
+function isCamaUnible(num){return !!(RD[num]&&RD[num].camaTipo==="Twin");}
 
-const DEF_MU=[
-  {id:"m1",nombre:"Yamila",   cod:"Y", color:"#0f2744",entrada:"08:00",salida:"14:00",mpH:30},
-  {id:"m2",nombre:"Alejandra",cod:"AL",color:"#1d7a6b",entrada:"08:00",salida:"14:00",mpH:30},
-  {id:"m3",nombre:"Anabel",   cod:"AN",color:"#854f0b",entrada:"08:00",salida:"14:00",mpH:30},
-  {id:"m4",nombre:"Valeria",  cod:"V", color:"#a32d2d",entrada:"08:00",salida:"14:00",mpH:30},
-  {id:"m5",nombre:"Ximena",   cod:"X", color:"#3b6d11",entrada:"08:00",salida:"14:00",mpH:30},
-];
-const CM={"Y":"m1","AL":"m2","AN":"m3","V":"m4","X":"m5","o":null};
+const DEF_MU=[]; // sin mucamas de prueba: solo quedan las que se creen desde Gestión de personal
+const CM={}; // sin asignaciones de prueba: las habitaciones inician sin mucama asignada
 function mkR(n,cod,est,cam,pax,notas,flag){
   return{id:"r"+n,num:String(n),mucId:CM[cod]||null,estado:est||"sucio",cama:cam||"",
     pax:pax||0,notas:notas||"",flag:flag||false,tasks:{L:false,R:false,C:false},
@@ -1327,7 +1327,7 @@ const MANT_CHK=[
 ];
 
 // ═══════════════ STORAGE / SYNC ═══════════════
-const K={rooms:"ch_r",mu:"ch_mu",issues:"ch_iss",bl:"ch_bl",coch:"ch_co",cons:"ch_cn",consAg:"ch_consag",comunicados:"ch_comu",muPerf:"ch_muperf",mchk:"ch_mc",mantChkCfg:"ch_mccfg",emp:"ch_em",ver:"ch_v",park:"ch_pk",areas:"ch_ar",hist:"ch_hist",lastDay:"ch_lastday",users:"ch_users",informeSnap:"ch_infsnap",roomSep:"ch_roomsep",roomCats:"ch_roomcats",muLogins:"ch_mulogins",checkoutHoy:"ch_cohoy",notifLog:"ch_nlog",recordatorios:"ch_record"};
+const K={rooms:"ch_r",mu:"ch_mu",issues:"ch_iss",bl:"ch_bl",coch:"ch_co",cons:"ch_cn",consAg:"ch_consag",comunicados:"ch_comu",muPerf:"ch_muperf",mchk:"ch_mc",mantChkCfg:"ch_mccfg",emp:"ch_em",ver:"ch_v",park:"ch_pk",areas:"ch_ar",hist:"ch_hist",lastDay:"ch_lastday",users:"ch_users",informeSnap:"ch_infsnap",roomSep:"ch_roomsep",roomCats:"ch_roomcats",muLogins:"ch_mulogins",checkoutHoy:"ch_cohoy",notifLog:"ch_nlog",recordatorios:"ch_record",personnelWipedV1:"ch_pwipev1"};
 const lsG=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}};
 const lsS=(k,v)=>{try{const t=Date.now();localStorage.setItem(k,JSON.stringify(v));localStorage.setItem(K.ver,t);lastV=t;cloudPush(k);}catch{}};
 const uid=()=>"i"+Date.now()+Math.random().toString(36).slice(2,5);
@@ -1428,6 +1428,7 @@ let D={
   checkoutHoy:lsG(K.checkoutHoy,{date:"",ids:[],refreshed5am:false,audited:false,notified:false}),
   notifLog:lsG(K.notifLog,[]),
   recordatorios:lsG(K.recordatorios,[]),
+  personnelWipedV1:lsG(K.personnelWipedV1,false),
 };
 function loadD(){
   D.rooms=lsG(K.rooms,D.rooms);D.mu=lsG(K.mu,D.mu);
@@ -1441,6 +1442,26 @@ function loadD(){
   D.checkoutHoy=lsG(K.checkoutHoy,D.checkoutHoy);
   D.notifLog=lsG(K.notifLog,D.notifLog);
   D.recordatorios=lsG(K.recordatorios,D.recordatorios);
+  D.personnelWipedV1=lsG(K.personnelWipedV1,D.personnelWipedV1);
+}
+// Limpieza única de usuarios de prueba (Recepción/Mucamas/Mantenimiento): esta app se usó para
+// probar logins de recepción, mucamas y mantenimiento durante el desarrollo, y esos usuarios de
+// prueba quedaron guardados en localStorage/Firebase -- actualizar el archivo publicado NO los
+// borra solo, porque D.users/D.mu se cargan desde lo ya persistido, no desde el default del
+// código. Esta función corre UNA sola vez (queda marcada con `personnelWipedV1`, sincronizado
+// como el resto de D, así que corre una sola vez en total, no una vez por dispositivo) y borra
+// D.mu por completo más las cuentas de D.users de área "rec" y "mant" (deja intactas las cuentas
+// de área "admin", que no son de prueba). De ahí en más, cualquier mucama/usuario que se cree
+// desde Gestión de personal queda como está, sin que este chequeo vuelva a tocarlo.
+function wipeTestPersonnelOnce(){
+  if(D.personnelWipedV1)return;
+  const hadMu=D.mu.length,hadUsers=D.users.filter(u=>u.area==="rec"||u.area==="mant").length;
+  D.mu=[];
+  D.users=D.users.filter(u=>u.area!=="rec"&&u.area!=="mant");
+  D.rooms=D.rooms.map(r=>r.mucId?{...r,mucId:null}:r);
+  D.personnelWipedV1=true;
+  lsS(K.mu,D.mu);lsS(K.users,D.users);lsS(K.rooms,D.rooms);lsS(K.personnelWipedV1,true);
+  if(hadMu||hadUsers)logChange("Limpieza única de usuarios de prueba: se borraron "+hadMu+" mucama(s) y "+hadUsers+" usuario(s) de recepción/mantenimiento existentes");
 }
 // Ítem 4 (tanda 5): registro persistente de notificaciones para el campanita de Recepción
 // (independiente de los toasts efímeros, que se autodescartan).
@@ -1467,7 +1488,6 @@ let _muRoomRemovals={}; // {muId: [{room, ts}, ...]} quitas pendientes de un pos
 let CAMA_TOASTS=[];
 let REOPEN_TOASTS=[];
 let MANT_CO_TOASTS=[];
-let CO_READY_TOASTS=[];
 let REC_REMINDER_TOASTS=[];
 let _recRecordatorioRuntime={};
 function camaEstadoLbl(v){return v==="MAT"?"Matrimonial (unida)":v==="TWIN"?"Separadas (twin)":"sin dato";}
@@ -1495,7 +1515,7 @@ function detectNotifs(){
   D.rooms.forEach(r=>{
     const prev=_prevRoomState[r.id];
     if(!prev){_prevRoomState[r.id]={estado:r.estado,mucId:r.mucId,ocupada:!!r.ocupada,pax:r.pax,prio:r.prio,cama:r.cama};return;}
-    const camaChanged=CAMA_UNIBLE.has(r.num)&&prev.cama&&r.cama&&prev.cama!==r.cama;
+    const camaChanged=isCamaUnible(r.num)&&prev.cama&&r.cama&&prev.cama!==r.cama;
     let camaHandledInDone=false;
     if(prev.estado!==r.estado&&r.mucId){
       const mu=muO(r.mucId);
@@ -1641,9 +1661,8 @@ function doneToastHtml(){
   const issList=(ISS_TOASTS||[]).filter(n=>!n.dismissed&&(!n.hideUntil||Date.now()>n.hideUntil)).map(n=>({...n,_k:"issue"}));
   const camaList=(CAMA_TOASTS||[]).filter(n=>!n.dismissed&&(!n.hideUntil||Date.now()>n.hideUntil)).map(n=>({...n,_k:"cama"}));
   const reopList=(REOPEN_TOASTS||[]).filter(n=>!n.dismissed&&(!n.hideUntil||Date.now()>n.hideUntil)).map(n=>({...n,_k:"reopen"}));
-  const coList=(ROLE==="rec"?(CO_READY_TOASTS||[]):[]).filter(n=>!n.dismissed&&(!n.hideUntil||Date.now()>n.hideUntil)).map(n=>({...n,_k:"coaudit"}));
   const recList=(ROLE==="rec"?(REC_REMINDER_TOASTS||[]):[]).filter(n=>!n.dismissed).map(n=>({...n,_k:"recordatorio"}));
-  const all=[...doneList,...issList,...camaList,...reopList,...coList,...recList].sort((a,b)=>a.ts-b.ts);
+  const all=[...doneList,...issList,...camaList,...reopList,...recList].sort((a,b)=>a.ts-b.ts);
   if(!all.length)return"";
   return `<div class="done-toast-stack">
     ${all.slice(-6).map(n=>n._k==="recordatorio"?`<div class="done-toast k-areas${n.closing?" closing":""}">
@@ -1655,17 +1674,6 @@ function doneToastHtml(){
         <button class="dt-btn dt-btn-gh" onclick="recReminderAction('${n.id}','snooze30')">30min</button>
         <button class="dt-btn dt-btn-gh" onclick="recReminderAction('${n.id}','snooze60')">1h</button>
       </div>`:""}
-      </div>
-    </div>`:n._k==="coaudit"?`<div class="done-toast k-coaudit${n.closing?" closing":""}">
-      <div class="dt-head"><span class="dt-ic">🚪</span><span class="dt-kicker">Check-outs de hoy</span><button class="dt-x" onclick="coReadyToastAction('${n.id}')">✕</button></div>
-      <div class="dt-body">
-      <div class="dt-main">Ya está listo el listado de check-outs de hoy (${n.count} habitación(es)). Auditor/conserje nocturno: revisalo y editalo antes de terminar el turno.</div>
-      <div class="dt-btns">
-        <button class="dt-btn" onclick="UI.v='plan';UI.planOpen={...UI.planOpen,checkout:true};coReadyToastAction('${n.id}','del')">Ver listado</button>
-        <button class="dt-btn dt-btn-gh" onclick="coReadyToastAction('${n.id}','snooze10')">10min</button>
-        <button class="dt-btn dt-btn-gh" onclick="coReadyToastAction('${n.id}','snooze30')">30min</button>
-        <button class="dt-btn dt-btn-gh" onclick="coReadyToastAction('${n.id}','snooze60')">1h</button>
-      </div>
       </div>
     </div>`:n._k==="done"?`<div class="done-toast k-done${n.closing?" closing":""}">
       <div class="dt-head"><span class="dt-ic">🧹</span><span class="dt-kicker">Habitación lista</span><button class="dt-x" onclick="doneToastAction('${n.id}','del')">✕</button></div>
@@ -1974,13 +1982,7 @@ function checkCheckoutAutoRefresh(force){
     D.checkoutHoy={...D.checkoutHoy,ids:Array.from(cur),refreshed5am:true,notified:true};
     lsS(K.checkoutHoy,D.checkoutHoy);
     if(added>0)logChange("Check-outs de hoy: actualización automática, "+added+" habitación(es) incorporada(s)");
-    const nid=uid();
-    CO_READY_TOASTS=[...(CO_READY_TOASTS||[]),{id:nid,ts:Date.now(),count:(D.checkoutHoy.ids||[]).length,dismissed:false,closing:false}];
     logNotif("checkout",null,"Sistema","Listado de check-outs de hoy actualizado: "+(D.checkoutHoy.ids||[]).length+" habitación(es)");
-    if(ROLE==="rec"){
-      setTimeout(()=>{CO_READY_TOASTS=CO_READY_TOASTS.map(n=>n.id===nid?{...n,closing:true}:n);if(ROLE==="rec")render();},119700);
-      setTimeout(()=>{CO_READY_TOASTS=CO_READY_TOASTS.map(n=>n.id===nid?{...n,dismissed:true}:n);if(ROLE==="rec")render();},120000);
-    }
   }
 }
 window.coAddRoom=(id)=>{
@@ -2003,7 +2005,6 @@ window.coMarcarAuditado=()=>{
   D.checkoutHoy={...D.checkoutHoy,audited:true};
   lsS(K.checkoutHoy,D.checkoutHoy);
   logChange("Check-outs de hoy: lista auditada por conserje/auditor nocturno");
-  CO_READY_TOASTS=CO_READY_TOASTS.map(n=>({...n,dismissed:true}));
   UI.coEditing=false;
   render();
 };
@@ -2014,17 +2015,6 @@ window.coForceRefresh=()=>{
 window.coAddFromSelect=()=>{
   const s=document.getElementById("coAddSel");
   if(s&&s.value)coAddRoom(s.value);
-};
-window.coReadyToastAction=(id,action)=>{
-  CO_READY_TOASTS=CO_READY_TOASTS.map(n=>n.id===id?{...n,closing:true}:n);
-  render();
-  setTimeout(()=>{
-    if(action==="snooze10")CO_READY_TOASTS=CO_READY_TOASTS.map(n=>n.id===id?{...n,hideUntil:Date.now()+10*60000,closing:false}:n);
-    else if(action==="snooze30")CO_READY_TOASTS=CO_READY_TOASTS.map(n=>n.id===id?{...n,hideUntil:Date.now()+30*60000,closing:false}:n);
-    else if(action==="snooze60")CO_READY_TOASTS=CO_READY_TOASTS.map(n=>n.id===id?{...n,hideUntil:Date.now()+60*60000,closing:false}:n);
-    else CO_READY_TOASTS=CO_READY_TOASTS.filter(n=>n.id!==id);
-    render();
-  },220);
 };
 // Recordatorios personalizados creados por Recepción (crear/editar/eliminar en el
 // panel de notificaciones): cada uno tiene hora, si se puede posponer, y a quién
@@ -2196,6 +2186,18 @@ function taskLabel(r){
   if(r.tasks.L&&!r.tasks.R)return"REPASAR";
   if(r.tasks.L&&r.tasks.R&&!r.tasks.C)return"CONTROLAR";
   return"LISTO";
+}
+// Ítem 3 (tanda 13): única fuente de verdad para "en qué etapa está la habitación" (Limpieza/
+// Repaso/Control/Listo), replicando EXACTO el mismo criterio que ya usan las tarjetas de
+// habitación (rcCard/rcCardSimple) para pintar la pill de estado. Los contadores de la vista
+// Limpiezas usaban un criterio distinto (miraban solo r.estado, ignorando que cycleTarea() solo
+// toca r.tarea) y por eso no coincidían con lo que se veía en pantalla.
+function roomStateLbl(r){
+  if(r.tasks.L&&r.tasks.R&&r.tasks.C)return"Listo";
+  if(r.tarea&&r.tarea!=="blancos")return{limpiar:"Limpieza",repasar:"Repaso",controlar:"Control"}[r.tarea]||"Limpieza";
+  if(["sucio","reservado","blancos-prog","blancos-libre"].includes(r.estado))return"Limpieza";
+  if(r.estado==="en-proceso")return"Repaso";
+  return"Control";
 }
 
 // ══ COCHERAS ══════════════════════════════════════════════════════════════
@@ -2699,6 +2701,7 @@ function rRec(){
         <span style="font-size:10px;color:var(--text3)">${pend()} pend.</span>
       </div>
     </div>
+    ${UI.v==="gen"&&UI.parkHidden?`<div style="display:flex;justify-content:flex-end;padding:6px 24px 0"><button class="btn btn-g btn-sm" onclick="UI.parkHidden=false;render()" title="Mostrar el panel de cocheras"><i class="ti ti-car"></i> Mostrar cocheras</button></div>`:""}
     <div class="content">
       ${UI.v==="dash"?vDash():UI.v==="plan"?vPlan():UI.v==="gen"?vGen():
         UI.v==="audit"?vAuditView():UI.v==="det"?vDet():UI.v==="inf"?vInf():UI.v==="blancos"?vBlancos():UI.v==="muv"?vMuv():
@@ -2716,7 +2719,7 @@ function rRec(){
   ${UI.mod==="recordatorios"?modRecordatorios():""}
   ${UI.mod==="det"?modDet():""}
   ${UI.mod==="park"?modPark():""}
-  ${UI.v==="gen"?`<div class="col-resizer" onmousedown="startColResize(event,'.park-sb',1,240,700,'parkWidth','ch_parkw')" ontouchstart="startColResize(event,'.park-sb',1,240,700,'parkWidth','ch_parkw')" title="Arrastrar para cambiar el ancho"></div><div class="park-wrap"><aside class="park-sb" style="width:${UI.parkWidth||parkDefaultWidth()}px">${vParking()}</aside></div>`:""}
+  ${UI.v==="gen"&&!UI.parkHidden?`<div class="col-resizer" onmousedown="startColResize(event,'.park-sb',1,240,700,'parkWidth','ch_parkw')" ontouchstart="startColResize(event,'.park-sb',1,240,700,'parkWidth','ch_parkw')" title="Arrastrar para cambiar el ancho"></div><div class="park-wrap"><aside class="park-sb" style="width:${UI.parkWidth||parkDefaultWidth()}px"><div style="display:flex;justify-content:flex-end;margin-bottom:6px"><button class="btn btn-g btn-sm" onclick="UI.parkHidden=true;render()" title="Ocultar cocheras" style="padding:3px 9px;font-size:10px"><i class="ti ti-x"></i> Ocultar</button></div>${vParking()}</aside></div>`:""}
 </div>`;
 }
 const nb=(v,ic,l)=>`<div class="nb ${UI.v===v?"on":""}" onclick="sv('${v}')" title="${typeof l==="string"?l.replace(/<[^>]+>/g,""):""}"><span class="nb-ico">${ic.indexOf("ti-")===0?`<i class="ti ${ic}"></i>`:ic}</span><span class="nb-lbl">${l}</span></div>`;
@@ -2764,15 +2767,16 @@ function rcCard(r){
   const ocupada=!!r.ocupada;
   const isNum=typeof r.pax==="number"&&r.pax>0;
   const reserva=isNum&&!r.paxCheckin;
-  const sC=ocupada?'#334155':'#1e7e46';const sL=ocupada?'Ocupada':'Libre';
+  const sC=ocupada?'#1f2937':'#1e7e46';const sL=ocupada?'Ocupada':'Libre';const sIco=ocupada?'🔒':'🔓';
   const id2=r._merged?r._id2:null;
   const id2Arg=id2?`,'${id2}'`:"";
-  const PILLW=66;
-  const pillSt='flex-shrink:0;color:#fff;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.2px;padding:3px 6px;border-radius:20px;text-align:center';
+  const PILLW=70; // único con ancho fijo (estado de limpieza) -- medida justa para que entre "LIMPIEZA" (la palabra más larga del ciclo), no cambia según la palabra
+  const pillSt='flex-shrink:0;color:#fff;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.2px;padding:3px 6px;border-radius:20px;text-align:center;white-space:nowrap;display:flex;align-items:center;justify-content:center';
+  const pillStAuto='flex-shrink:0;color:#fff;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.2px;padding:1px 4px;border-radius:20px;text-align:center;white-space:nowrap;display:flex;align-items:center;justify-content:center';
   const p1=`<div style="width:${PILLW}px;${pillSt};background:${tlC};cursor:pointer" onclick="cycleTarea('${r.id}',event${id2Arg})" title="Click para cambiar estado">${tl}</div>`;
-  const p3=`<div style="width:${PILLW}px;${pillSt};background:${sC};cursor:pointer" onclick="setOccState('${r.id}','${ocupada?"libre":"ocupada"}',event${id2Arg})" title="Estado real de ocupación (click para cambiar)">${sL}</div>`;
-  const p4=reserva?`<div style="width:${PILLW}px;${pillSt};background:#b45309;cursor:pointer" onclick="togPaxCheckin('${r.id}',event${id2Arg})" title="Doble click en pax para marcar llegada">Rva</div>`:"";
-  const p5=CAMA_UNIBLE.has(r.num)?`<div style="width:${PILLW}px;${pillSt};background:${r.cama==="MAT"?"#0f766e":r.cama==="TWIN"?"#475569":"#6b7280"}" title="Estado de camas unibles">${r.cama==="MAT"?"MAT":r.cama==="TWIN"?"TWIN":"—"}</div>`:"";
+  const p3=`<div style="${pillStAuto};background:${sC};cursor:pointer;font-size:13px" onclick="setOccState('${r.id}','${ocupada?"libre":"ocupada"}',event${id2Arg})" title="${sL} (click para cambiar)">${sIco}</div>`;
+  const p4=reserva?`<div style="${pillStAuto};background:#b45309;cursor:pointer" onclick="togPaxCheckin('${r.id}',event${id2Arg})" title="Doble click en pax para marcar llegada">Rva</div>`:"";
+  const p5=isCamaUnible(r.num)?`<div style="${pillStAuto};background:${r.cama==="MAT"?"#0f766e":r.cama==="TWIN"?"#475569":"#6b7280"}" title="Estado de camas unibles">${r.cama==="MAT"?"MAT":r.cama==="TWIN"?"TWIN":"—"}</div>`:"";
   const fc=r.prio?{baja:"#ffffff",normal:"#f59e0b",importante:"#ef4444",urgente:"#1a1a1a"}[r.prio]||null:null;
   const flagEl=fc?`<div style="display:inline-flex;align-items:flex-start;width:9px;height:11px"><div style="width:1.5px;height:11px;background:#bbb"></div><div class="flag-pin" style="width:7px;height:6px;background:${fc};border-radius:0 2px 2px 0;border:1px solid rgba(0,0,0,.25)"></div></div>`:"";
   const blancosAsgName=(()=>{
@@ -2791,9 +2795,9 @@ function rcCard(r){
   return `<div class="rc ${working?'rc-working':''}" style="background:${bg};border-left:${lb}" onclick="rcClick('${r.id}',event)" ondblclick="rcDbl('${r.id}',event)">
     <div class="rc-flag-slot">${flagEl}</div>
     <div class="rc-order-slot">${coOrder?`<span class="rc-order-badge" title="Orden en que la mucama inició esta habitación (tiene varias en proceso a la vez)">${coOrder}</span>`:""}</div>
-    <div class="rc-num-slot"><div style="${nSt};font-family:'Outfit',sans-serif;font-weight:800;color:#111827">${r.num}</div></div>
-    <div class="rc-num-slot" style="width:18px">${issOpen.length?`<div title="Problema reportado" style="width:17px;height:17px;border-radius:50%;background:#ef4444;color:#fff;font-size:12px;font-weight:900;line-height:17px;text-align:center;box-shadow:0 0 0 2px #fff,0 1px 3px rgba(0,0,0,.45)">!</div>`:""}</div>
-    <div class="rc-pill-slot"><div style="display:flex;gap:4px;flex-shrink:0">${p1}${p3}${p4}${p5}</div></div>
+    <div class="rc-num-slot" style="width:30px;padding:0 1px"><div style="${nSt};font-family:'Outfit',sans-serif;font-weight:800;color:#111827">${r.num}</div></div>
+    <div class="rc-num-slot" style="width:${issOpen.length?18:3}px;padding:0">${issOpen.length?`<div title="Problema reportado" style="width:17px;height:17px;border-radius:50%;background:#ef4444;color:#fff;font-size:12px;font-weight:900;line-height:17px;text-align:center;box-shadow:0 0 0 2px #fff,0 1px 3px rgba(0,0,0,.45)">!</div>`:""}</div>
+    <div class="rc-pill-slot" style="padding:0 1px"><div style="display:flex;gap:1px;flex-shrink:0">${p1}${p3}${p5}${p4}</div></div>
     <div class="rc-mu-slot">${muSlotTxt}</div>
     <div class="rc-bl-slot" style="${blancosAsgName?"width:auto;flex:0 1 auto;justify-content:flex-start;padding-right:6px":""}">${blEl}</div>
     ${(r.lcoClearedTs&&r.lcoSeenDate===hoyISO()&&isNum&&r.doneTs&&r.doneTs>r.lcoClearedTs&&isTodayTs(r.doneTs))?`<div style="font-size:9px;font-style:italic;color:#7c3aed;margin-right:3px;white-space:nowrap" title="Tuvo LCO esta jornada; se limpió y se vendió de nuevo">LCO</div>`:""}
@@ -2824,15 +2828,16 @@ function rcCardSimple(r,tabIdx){
   const hasPax=isNum||r.pax==="LCO";
   const green=hasPax&&(tl==="Repaso"||!!r.paxCheckin);
   const reserva=hasPax&&!green;
-  const sC=ocupada?'#334155':'#1e7e46';const sL=ocupada?'Ocupada':'Libre';
+  const sC=ocupada?'#1f2937':'#1e7e46';const sL=ocupada?'Ocupada':'Libre';const sIco=ocupada?'🔒':'🔓';
   const id2=r._merged?r._id2:null;
   const id2Arg=id2?`,'${id2}'`:"";
-  const PILLW=72; // ancho fijo de cada flotante, equivalente al de "Limpieza"
-  const pillSt='flex-shrink:0;color:#fff;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.2px;padding:3px 6px;border-radius:20px;text-align:center';
+  const PILLW=70; // único con ancho fijo (estado de limpieza) -- medida justa para que entre "LIMPIEZA" (la palabra más larga del ciclo), no cambia según la palabra
+  const pillSt='flex-shrink:0;color:#fff;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.2px;padding:3px 6px;border-radius:20px;text-align:center;white-space:nowrap;display:flex;align-items:center;justify-content:center';
+  const pillStAuto='flex-shrink:0;color:#fff;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.2px;padding:1px 4px;border-radius:20px;text-align:center;white-space:nowrap;display:flex;align-items:center;justify-content:center';
   const p1=`<div style="width:${PILLW}px;${pillSt};background:${tlC};cursor:pointer" onclick="cycleTarea('${r.id}',event${id2Arg})" title="Click para cambiar estado">${tl}</div>`;
-  const p3=`<div style="width:${PILLW}px;${pillSt};background:${sC};cursor:pointer" onclick="setOccState('${r.id}','${ocupada?"libre":"ocupada"}',event${id2Arg})" title="Estado real de ocupación (click para cambiar)">${sL}</div>`;
-  const p4=reserva?`<div style="width:${PILLW}px;${pillSt};background:#b45309;cursor:pointer" onclick="togPaxCheckin('${r.id}',event${id2Arg})" title="Doble click en pax para marcar llegada">Rva</div>`:"";
-  const p5=CAMA_UNIBLE.has(r.num)?`<div style="width:${PILLW}px;${pillSt};background:${r.cama==="MAT"?"#0f766e":r.cama==="TWIN"?"#475569":"#6b7280"}" title="Estado de camas unibles">${r.cama==="MAT"?"MAT":r.cama==="TWIN"?"TWIN":"—"}</div>`:"";
+  const p3=`<div style="${pillStAuto};background:${sC};cursor:pointer;font-size:13px" onclick="setOccState('${r.id}','${ocupada?"libre":"ocupada"}',event${id2Arg})" title="${sL} (click para cambiar)">${sIco}</div>`;
+  const p4=reserva?`<div style="${pillStAuto};background:#b45309;cursor:pointer" onclick="togPaxCheckin('${r.id}',event${id2Arg})" title="Doble click en pax para marcar llegada">Rva</div>`:"";
+  const p5=isCamaUnible(r.num)?`<div style="${pillStAuto};background:${r.cama==="MAT"?"#0f766e":r.cama==="TWIN"?"#475569":"#6b7280"}" title="Estado de camas unibles">${r.cama==="MAT"?"MAT":r.cama==="TWIN"?"TWIN":"—"}</div>`:"";
   const repasoVacio=tl==="Repaso"&&!hasPax;
   const pb=repasoVacio?'#fef3c7':(!hasPax?'#f9fafb':(green?'#dcfce7':'#fee2e2'));
   const pbd=repasoVacio?'#f59e0b':(!hasPax?'#e5e7eb':(green?'#22c55e':'#ef4444'));
@@ -2842,9 +2847,9 @@ function rcCardSimple(r,tabIdx){
   return `<div class="rc ${working?'rc-working':''}" style="background:${bg};border-left:${lb}" onclick="rcClick('${r.id}',event)" ondblclick="rcDbl('${r.id}',event)">
     <div class="rc-flag-slot"></div>
     <div class="rc-order-slot">${coOrder?`<span class="rc-order-badge" title="Orden en que la mucama inició esta habitación (tiene varias en proceso a la vez)">${coOrder}</span>`:""}</div>
-    <div class="rc-num-slot"><div style="${nSt};font-family:'Outfit',sans-serif;font-weight:800;color:#111827">${r.num}</div></div>
-    <div class="rc-num-slot" style="width:18px">${issOpen.length?`<div title="Problema reportado" style="width:17px;height:17px;border-radius:50%;background:#ef4444;color:#fff;font-size:12px;font-weight:900;line-height:17px;text-align:center;box-shadow:0 0 0 2px #fff,0 1px 3px rgba(0,0,0,.45)">!</div>`:""}</div>
-    <div class="rc-pill-slot"><div style="display:flex;gap:4px;flex-shrink:0">${p1}${p3}${p4}${p5}</div></div>
+    <div class="rc-num-slot" style="width:30px;padding:0 1px"><div style="${nSt};font-family:'Outfit',sans-serif;font-weight:800;color:#111827">${r.num}</div></div>
+    <div class="rc-num-slot" style="width:${issOpen.length?18:3}px;padding:0">${issOpen.length?`<div title="Problema reportado" style="width:17px;height:17px;border-radius:50%;background:#ef4444;color:#fff;font-size:12px;font-weight:900;line-height:17px;text-align:center;box-shadow:0 0 0 2px #fff,0 1px 3px rgba(0,0,0,.45)">!</div>`:""}</div>
+    <div class="rc-pill-slot" style="padding:0 1px"><div style="display:flex;gap:1px;flex-shrink:0">${p1}${p3}${p5}${p4}</div></div>
     <div class="rc-mu-slot" title="${m?m.nombre:''}" style="text-align:center;font-weight:800;flex:0 0 20px;min-width:20px">${m?m.nombre.trim().charAt(0).toUpperCase():"—"}</div>
     <div class="rc-bl-slot"></div>
     ${lcoResold?`<div style="font-size:9px;font-style:italic;color:#7c3aed;margin-right:3px;white-space:nowrap" title="Tuvo LCO esta jornada; se limpió y se vendió de nuevo">LCO</div>`:""}
@@ -2940,12 +2945,12 @@ function vPlan(){
   const occ=r=>r.ocupada||r.paxCheckin||(r.audit==="ocup-cont");
   const allDone=r=>r.tasks.L&&r.tasks.R&&r.tasks.C;
   const cAsig=D.rooms.filter(r=>r.mucId).length;
-  const cSinAsig=D.rooms.filter(r=>!r.mucId&&!allDone(r)&&["sucio","en-proceso","reservado"].includes(r.estado)).length;
+  const cSinAsig=D.rooms.filter(r=>!r.mucId&&roomStateLbl(r)!=="Listo").length;
   const cListas=D.rooms.filter(allDone).length;
   const cMant=D.issues.filter(i=>i.estado==="abierto").length;
-  const cSucias=D.rooms.filter(r=>r.estado==="sucio"&&!allDone(r)).length;
-  const cProceso=D.rooms.filter(r=>r.estado==="en-proceso").length;
-  const cBlancos=D.rooms.filter(r=>r.needsBlancos).length;
+  const cSucias=D.rooms.filter(r=>roomStateLbl(r)==="Limpieza").length;
+  const cProceso=D.rooms.filter(r=>{const l=roomStateLbl(r);return l==="Repaso"||l==="Control";}).length;
+  const cBlancos=D.bl.filter(b=>b.estado!=="completado").length;
   const statBox=(n,l,c)=>`<div style="flex:1;min-width:72px;background:rgba(255,255,255,.5);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.6);border-radius:14px;padding:7px 9px;text-align:center">
     <div style="font-size:19px;font-weight:800;color:${c};font-family:'Outfit',sans-serif;line-height:1">${n}</div>
     <div style="font-size:9px;color:#3a4456;font-weight:600;margin-top:2px">${l}</div></div>`;
@@ -4070,13 +4075,13 @@ function vPlan(){
     ?`<button class="btn btn-g btn-sm" style="padding:3px 8px;font-size:10px" onclick="coMarcarAuditado()">\u2713 Marcar auditado</button>`
     :`<button class="btn btn-g btn-sm" style="padding:3px 8px;font-size:10px" onclick="UI.coEditing=true;render()">\ud83d\udcdd ${coHoy.audited?"Editar":"Auditar"}</button>`;
   const rightPanel=`<div style="width:250px;flex-shrink:0;display:flex;flex-direction:column;gap:10px;margin-top:21px;position:sticky;top:14px;max-height:calc(100vh - 100px);overflow-y:auto;padding-right:2px">
-    <div class="pp-card">
+    <div class="pp-card" style="position:relative">
       <button class="pp-head" onclick="togPlanPanel('checkout')">
-        <span>\ud83d\udeaa Check-outs de hoy ${pendL.length?`<span class="pp-badge">${pendL.length}</span>`:""}</span>
+        <span>\ud83d\udeaa Check-outs de hoy ${pendL.length?`<span class="pp-badge">${pendL.length}</span>`:""}<span onclick="event.stopPropagation();UI.coInfoOpen=!UI.coInfoOpen;render()" title="Info" style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:rgba(0,0,0,.12);color:inherit;font-size:10px;font-weight:800;margin-left:6px;cursor:help;vertical-align:middle">\u24d8</span></span>
         <i class="ti ti-chevron-${coOpen?"up":"down"}"></i>
       </button>
+      ${UI.coInfoOpen?`<div style="position:absolute;top:38px;right:10px;left:10px;z-index:60;background:#1c2f24;color:#fff;font-size:11px;line-height:1.4;border-radius:8px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.3)"><strong>Auditor\u00eda Nocturna:</strong> a las 5am se actualiza el listado con todas las habitaciones ocupadas, de entre ellas deb\u00e9s quitar aquellas que sean repaso y finalmente confirmar el cambio.</div>`:""}
       <div class="pp-body ${coOpen?"open":""}"><div class="pp-inner">
-        <div style="font-size:10px;color:var(--text3);margin-bottom:8px;line-height:1.4">Preselecci\u00f3n editable de habitaciones que podr\u00edan retirarse hoy (a las 5am se actualiza sola con las nuevas ocupadas). Auditor/conserje nocturno: agreg\u00e1 o quit\u00e1 habitaciones (quitar = repaso, sigue el pasajero) y confirm\u00e1 antes de terminar el turno.</div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:6px">
           ${coAuditBadge}
           ${coActionBtn}
@@ -4120,6 +4125,8 @@ function vPlan(){
         <div style="display:flex;align-items:flex-start;gap:8px"><span style="width:9px;display:inline-flex;justify-content:center;flex-shrink:0;font-size:11px">🧺</span><span style="font-size:10px;line-height:1.3"><strong>Sacar blancos</strong></span></div>
         <div style="height:1px;background:var(--border);margin:2px 0"></div>
         <div style="display:flex;align-items:flex-start;gap:8px"><span class="rc-order-badge" style="flex-shrink:0">1</span><span style="font-size:10px;line-height:1.3">Orden en que la mucama inició cada habitación (si tiene varias a la vez)</span></div>
+        <div style="display:flex;align-items:flex-start;gap:8px"><span style="flex-shrink:0;color:#fff;font-size:11px;font-weight:800;padding:2px 6px;border-radius:10px;background:#1f2937">🔒</span><span style="font-size:10px;line-height:1.3">Ocupada (candado cerrado)</span></div>
+        <div style="display:flex;align-items:flex-start;gap:8px"><span style="flex-shrink:0;color:#fff;font-size:11px;font-weight:800;padding:2px 6px;border-radius:10px;background:#1e7e46">🔓</span><span style="font-size:10px;line-height:1.3">Libre (candado abierto)</span></div>
         <div style="display:flex;align-items:flex-start;gap:8px"><span style="flex-shrink:0;color:#fff;font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 6px;border-radius:10px;background:#b45309">Rva</span><span style="font-size:10px;line-height:1.3">Reserva confirmada, todavía sin check-in</span></div>
         <div style="display:flex;align-items:flex-start;gap:8px"><span style="flex-shrink:0;color:#fff;font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 6px;border-radius:10px;background:#475569">Twin</span><span style="font-size:10px;line-height:1.3">Camas separadas (2 individuales)</span></div>
         <div style="display:flex;align-items:flex-start;gap:8px"><span style="flex-shrink:0;color:#fff;font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 6px;border-radius:10px;background:#0f766e">Mat</span><span style="font-size:10px;line-height:1.3">Camas unidas (matrimonial)</span></div>
@@ -4130,12 +4137,12 @@ function vPlan(){
   const occ=r=>r.ocupada||r.paxCheckin||(r.audit==="ocup-cont");
   const allDone=r=>r.tasks.L&&r.tasks.R&&r.tasks.C;
   const cAsig=D.rooms.filter(r=>r.mucId).length;
-  const cSinAsig=D.rooms.filter(r=>!r.mucId&&!allDone(r)&&["sucio","en-proceso","reservado"].includes(r.estado)).length;
+  const cSinAsig=D.rooms.filter(r=>!r.mucId&&roomStateLbl(r)!=="Listo").length;
   const cListas=D.rooms.filter(allDone).length;
   const cMant=D.issues.filter(i=>i.estado==="abierto").length;
-  const cSucias=D.rooms.filter(r=>r.estado==="sucio"&&!allDone(r)).length;
-  const cProceso=D.rooms.filter(r=>r.estado==="en-proceso").length;
-  const cBlancos=D.rooms.filter(r=>r.needsBlancos).length;
+  const cSucias=D.rooms.filter(r=>roomStateLbl(r)==="Limpieza").length;
+  const cProceso=D.rooms.filter(r=>{const l=roomStateLbl(r);return l==="Repaso"||l==="Control";}).length;
+  const cBlancos=D.bl.filter(b=>b.estado!=="completado").length;
   const statChip=(n,l,c)=>`<span style="display:inline-flex;align-items:baseline;gap:3px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.6);border-radius:20px;padding:3px 9px;font-size:10px;color:#3a4456;font-weight:600;white-space:nowrap"><b style="color:${c};font-size:12px;font-family:'Outfit',sans-serif">${n}</b>${l}</span>`;
   const statsBar=`<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px">
     ${statChip(cListas,"Listas","#1d7a6b")}
@@ -4152,7 +4159,7 @@ function vPlan(){
     </span>
     <button class="btn btn-g btn-sm" onclick="openAsignarHab()">Asignar habitaciones</button>
     <button class="btn btn-g btn-sm" onclick="openBulkBlancos()">Asignar blancos</button>
-    <button class="btn btn-sm btn-danger-solid" onclick="if(confirm('¿Estás seguro? Al hacer esto todas las habitaciones se van a marcar libres y sin huéspedes.'))resetearPasajeros()">Resetear pasajeros</button>
+    <button class="btn btn-sm btn-danger-solid" onclick="if(confirm('¿Estás seguro? Esto resetea TODO: todas las habitaciones vuelven a sucio, se borran las asignaciones de mucama y blancos, se borran pasajeros/LCO y quedan todas libres. Solo el estado de las camas queda como está.'))resetearPasajeros()">Resetear pasajeros</button>
   </div>`;
   return `${statsBar}
   <div style="display:flex;gap:14px;align-items:flex-start">
@@ -4163,6 +4170,31 @@ function vPlan(){
     </div>
     ${rightPanel}
   </div>`;
+}
+// Ítem 2 (tanda 12): comunicados marcados "mostrar en el inicio" aparecen como recuadros
+// debajo del listado de habitaciones de General. El ancho de cada recuadro (1, 2 o 3
+// columnas de 3) se calcula estimando la cantidad de renglones que ocupa el texto: se
+// prefieren 3 recuadros por fila, pero un texto largo (>6 renglones) ocupa 2 columnas y uno
+// muy largo (>10 renglones) ocupa las 3.
+function comuHomeSpan(c){
+  const plain=(c.msg||"").replace(/<br\s*\/?>/gi,"\n").replace(/<\/(p|div)>/gi,"\n").replace(/<[^>]+>/g,"");
+  const explicitBreaks=(plain.match(/\n/g)||[]).length;
+  const fontSize=c.size||14;
+  const charsPerLine=Math.max(18,Math.round(2500/fontSize));
+  const flat=plain.replace(/\n/g,"");
+  const wrapLines=Math.max(1,Math.ceil(flat.length/charsPerLine));
+  const lines=explicitBreaks+wrapLines;
+  return lines>10?3:lines>6?2:1;
+}
+function comuHomeBoxesHtml(){
+  const list=D.comunicados.filter(c=>c.home).sort((a,b)=>b.t-a.t);
+  if(!list.length)return"";
+  const fmt=t=>{const d=new Date(t);return d.toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit"})+" "+d.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"});};
+  const box=c=>`<div style="grid-column:span ${comuHomeSpan(c)};background:${c.bg||"#fff9e6"};border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,.05);min-width:0;overflow:hidden">
+    <div style="font-size:10px;color:var(--text3);margin-bottom:5px">${c.nombre?c.nombre+" · ":""}${fmt(c.t)}</div>
+    ${comuMsgHtml(c)}
+  </div>`;
+  return `<div style="margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);grid-auto-flow:row dense;gap:10px">${list.map(box).join("")}</div>`;
 }
 function vGen(){
   const gfe=UI.geneFe||"all";
@@ -4175,7 +4207,8 @@ function vGen(){
     <div>${rcColHeader(64,false,"Piso 1")}<div class="rg">${f1.map((r,i)=>rcCardSimple(r,i+1)).join("")}</div></div>
     <div>${rcColHeader(64,false,"Piso 2")}<div class="rg">${f2.map((r,i)=>rcCardSimple(r,f1.length+i+1)).join("")}</div></div>
     <div>${rcColHeader(64,false,"Piso 3")}<div class="rg">${renderRoomsWithLinkFrame(f3,rcCardSimple,f1.length+f2.length)}</div></div>
-  </div>`;
+  </div>
+  ${comuHomeBoxesHtml()}`;
 }
 function vDet(){
   const rows=D.rooms.map(r=>{
@@ -4543,8 +4576,33 @@ function vConsAgenda(){
     ${days.map(iso=>`<div class="consag-row ${iso===isoDate(new Date())?"today":""}"><div class="consag-day">${dowLbl(iso)}</div>${turnos.map(t=>cell(iso,t[0])).join("")}</div>`).join("")}
   </div>`;
 }
+// \u00cdtem 2 (tanda 12): el mensaje ahora es HTML enriquecido (negrita/subrayado/color aplicables
+// a una selecci\u00f3n de texto, v\u00eda document.execCommand sobre un contenteditable) en vez de un
+// estilo \u00fanico para todo el mensaje. Los comunicados viejos (creados antes de este cambio)
+// guardaron bold/underline/color "de mensaje completo" -- comuMsgHtml() detecta ese formato
+// viejo y lo sigue renderizando igual que antes, para no romper nada ya publicado.
+function comuMsgHtml(c){
+  if(c.bold!==undefined||c.underline!==undefined||c.color!==undefined){
+    return `<div style="font-size:${c.size}px;font-weight:${c.bold?800:400};text-decoration:${c.underline?"underline":"none"};color:${c.color||"#15151f"};white-space:pre-wrap">${(c.msg||"").replace(/</g,"&lt;")}</div>`;
+  }
+  return `<div style="font-size:${c.size}px;color:#15151f;white-space:pre-wrap">${c.msg||""}</div>`;
+}
+window.comuFormat=(cmd)=>{
+  const el=document.getElementById("comuMsgEdit");
+  if(!el)return;
+  el.focus();
+  document.execCommand(cmd,false,null);
+  UI.comuForm.msg=el.innerHTML;
+};
+window.comuFormatColor=(color)=>{
+  const el=document.getElementById("comuMsgEdit");
+  if(!el)return;
+  el.focus();
+  document.execCommand("foreColor",false,color);
+  UI.comuForm.msg=el.innerHTML;
+};
 function vComunicados(){
-  const f=UI.comuForm||(UI.comuForm={nombre:"",msg:"",size:14,bold:false,underline:false,color:"#15151f",bg:"#fff9e6"});
+  const f=UI.comuForm||(UI.comuForm={nombre:"",msg:"",size:14,bg:"#fff9e6",home:false});
   const list=[...D.comunicados].sort((a,b)=>b.t-a.t);
   const fmt=t=>{const d=new Date(t);return d.toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric"})+" "+d.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"});};
   return `<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:16px">
@@ -4553,20 +4611,26 @@ function vComunicados(){
       <div><span class="fl">Nombre (opcional)</span><input class="fc" type="text" value="${f.nombre}" oninput="UI.comuForm.nombre=this.value"></div>
       <div><span class="fl">Tama\u00f1o de letra</span><select class="fc" onchange="UI.comuForm.size=+this.value">${[12,14,16,18,22,26].map(s=>`<option value="${s}" ${f.size===s?"selected":""}>${s}px</option>`).join("")}</select></div>
     </div>
-    <div class="fg"><span class="fl">Texto</span><textarea class="fc" oninput="UI.comuForm.msg=this.value">${f.msg}</textarea></div>
+    <div class="fg">
+      <span class="fl">Texto (seleccion\u00e1 una parte para aplicarle formato)</span>
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <button type="button" class="btn btn-g btn-sm" onmousedown="event.preventDefault()" onclick="comuFormat('bold')" title="Negrita a la selecci\u00f3n"><b>N</b></button>
+        <button type="button" class="btn btn-g btn-sm" onmousedown="event.preventDefault()" onclick="comuFormat('underline')" title="Subrayado a la selecci\u00f3n"><u>S</u></button>
+        <input type="color" value="#15151f" onmousedown="event.preventDefault()" onchange="comuFormatColor(this.value)" title="Color de texto de la selecci\u00f3n" style="width:34px;height:26px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px">
+      </div>
+      <div id="comuMsgEdit" class="fc" contenteditable="true" style="min-height:90px;white-space:pre-wrap;cursor:text" oninput="UI.comuForm.msg=this.innerHTML" onblur="UI.comuForm.msg=this.innerHTML">${f.msg||""}</div>
+    </div>
     <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
-      <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" ${f.bold?"checked":""} onchange="UI.comuForm.bold=this.checked"> Negrita</label>
-      <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" ${f.underline?"checked":""} onchange="UI.comuForm.underline=this.checked"> Subrayado</label>
-      <label style="display:flex;align-items:center;gap:6px;font-size:12px">Color de texto <input type="color" value="${f.color}" onchange="UI.comuForm.color=this.value" style="width:34px;height:26px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px"></label>
       <label style="display:flex;align-items:center;gap:6px;font-size:12px">Color de fondo <input type="color" value="${f.bg}" onchange="UI.comuForm.bg=this.value" style="width:34px;height:26px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px"></label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="checkbox" ${f.home?"checked":""} onchange="UI.comuForm.home=this.checked"> Mostrar en el inicio (General)</label>
     </div>
     <button class="btn btn-p btn-sm" onclick="addComunicado()"><i class="ti ti-plus"></i> Publicar comunicado</button>
   </div>
   ${!list.length?`<div style="text-align:center;padding:30px;color:var(--text3)">Sin comunicados</div>`:
   list.map(c=>`<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:12px 14px;border-radius:var(--r2);margin-bottom:8px;background:${c.bg};border:1px solid var(--border)">
     <div style="flex:1;min-width:0">
-      <div style="font-size:10px;color:var(--text3);margin-bottom:4px">${c.nombre?c.nombre+" \u00b7 ":""}${fmt(c.t)}</div>
-      <div style="font-size:${c.size}px;font-weight:${c.bold?800:400};text-decoration:${c.underline?"underline":"none"};color:${c.color};white-space:pre-wrap">${c.msg}</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:4px">${c.nombre?c.nombre+" \u00b7 ":""}${fmt(c.t)}${c.home?` \u00b7 <span style="color:var(--teal);font-weight:700">Se muestra en el inicio</span>`:""}</div>
+      ${comuMsgHtml(c)}
     </div>
     <button class="btn btn-g btn-sm btn-d" onclick="UI.delType=\'comu\';UI.delId=\'${c.id}\';UI.mod=\'confirm\';render()"><i class="ti ti-trash" style="font-size:12px"></i></button>
   </div>`).join("")}`;
@@ -4765,8 +4829,8 @@ function rMu(){
       :working?"box-shadow:0 0 0 3px #27ae60":"";
     const doneTime=r.doneTs?new Date(r.doneTs).toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"}):"";
     const tLbl=taskLabel(r);
-    const camaTxt=CAMA_UNIBLE.has(r.num)?(r.camaTarget?(r.camaTarget==="MAT"?"Unir":"Separar"):"Dejar como estaba ("+camaLbl(r.cama)+")"):"";
-    const camaBox=CAMA_UNIBLE.has(r.num)?`<div style="background:${r.camaTarget?"#fef3c7":"#f1f5f9"};border:2px solid ${r.camaTarget?"#d97706":"var(--border)"};border-radius:10px;padding:10px 12px;margin-bottom:10px">
+    const camaTxt=isCamaUnible(r.num)?(r.camaTarget?(r.camaTarget==="MAT"?"Unir":"Separar"):"Dejar como estaba ("+camaLbl(r.cama)+")"):"";
+    const camaBox=isCamaUnible(r.num)?`<div style="background:${r.camaTarget?"#fef3c7":"#f1f5f9"};border:2px solid ${r.camaTarget?"#d97706":"var(--border)"};border-radius:10px;padding:10px 12px;margin-bottom:10px">
         <div style="font-size:18px;font-weight:800;color:${r.camaTarget?"#92400e":"#334155"}">\ud83d\udecf\ufe0f Cama unible: ${camaTxt}</div>
       </div>`:"";
     const canReabrir=isDone&&!r.ocupada;
@@ -4789,7 +4853,7 @@ function rMu(){
           mainBtn=`<button class="mu-btn mb-locked" disabled style="width:100%"><i class="ti ti-lock"></i> OCUPADA</button>`;
         }else if(!r.iniciada){
           mainBtn=`<button class="mu-btn mb-init" style="width:100%" onclick="muIniciar('${r.id}'${id2Arg})"><i class="ti ti-player-play"></i> INICIAR</button>`;
-        }else if(CAMA_UNIBLE.has(r.num)&&r.camaTarget){
+        }else if(isCamaUnible(r.num)&&r.camaTarget){
           mainBtn=`<button class="mu-btn mb-cama" style="width:100%" onclick="muSetCama('${r.id}','${r.camaTarget}'${id2Arg})">YA CAMBIÉ LAS CAMAS</button>`;
         }else{
           const rest=MU_MIN_MS-(Date.now()-(r.iniciadaTs||0));
@@ -5011,7 +5075,7 @@ function modRoom(){
         <div><span class="fl">Mucama</span><select class="fc" onchange="UI.mMu=this.value"><option value="">— Sin asignar —</option>${D.mu.map(mu=>`<option value="${mu.id}" ${UI.mMu===mu.id?"selected":""}>${mu.nombre} (${mu.cod})</option>`).join("")}</select></div>
         <div><span class="fl">Prioridad para mucama</span><select class="fc" onchange="UI.mPrio=this.value"><option value="">Sin prioridad</option><option value="baja" ${UI.mPrio==="baja"?"selected":""}>⚪ Baja (última)</option><option value="normal" ${UI.mPrio==="normal"?"selected":""}>🟠 Normal</option><option value="importante" ${UI.mPrio==="importante"?"selected":""}>🔴 Importante (reservas)</option><option value="urgente" ${UI.mPrio==="urgente"?"selected":""}>⚫ Urgente (pax llegó)</option></select></div>
       </div>
-      ${CAMA_UNIBLE.has(r.num)?`<div class="fg"><span class="fl">Tipo de cama</span><select class="fc" onchange="UI.mCama=this.value"><option value="" ${!UI.mCama?"selected":""}>\u2014</option><option value="MAT" ${UI.mCama==="MAT"?"selected":""}>Matrimonial</option><option value="TWIN" ${UI.mCama==="TWIN"?"selected":""}>Twin / 2 individuales</option><option value="KING" ${UI.mCama==="KING"?"selected":""}>King</option><option value="TRIPLE" ${UI.mCama==="TRIPLE"?"selected":""}>Triple</option></select></div>`:""}
+      ${isCamaUnible(r.num)?`<div class="fg"><span class="fl">Tipo de cama</span><select class="fc" onchange="UI.mCama=this.value"><option value="" ${!UI.mCama?"selected":""}>\u2014</option><option value="MAT" ${UI.mCama==="MAT"?"selected":""}>Matrimonial</option><option value="TWIN" ${UI.mCama==="TWIN"?"selected":""}>Twin / 2 individuales</option><option value="KING" ${UI.mCama==="KING"?"selected":""}>King</option><option value="TRIPLE" ${UI.mCama==="TRIPLE"?"selected":""}>Triple</option></select></div>`:""}
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><input type="checkbox" id="flg" ${UI.mFlag?"checked":""} onchange="UI.mFlag=this.checked" style="width:14px;height:14px;accent-color:#ef4444"><label for="flg" style="font-size:12px;cursor:pointer">Marcar con alerta especial</label></div>
       <div class="fg"><span class="fl">Notas especiales (visible en tablet)</span><textarea class="fc" rows="2" placeholder="Ej: Cambiar toallas, revisar A/C, huésped alérgico..." oninput="UI.mNotaRec=this.value">${UI.mNotaRec||""}</textarea></div>
       <div class="mf">
@@ -5377,7 +5441,7 @@ function modAsignarHab(){
     </div>`;
     const prio=(UI.asigPrio&&UI.asigPrio[r.id]!==undefined)?UI.asigPrio[r.id]:(r.prio||"");
     const nota=(UI.asigNota&&UI.asigNota[r.id]!==undefined)?UI.asigNota[r.id]:(r.notaRec||"");
-    const camaUnible=CAMA_UNIBLE.has(num1)||CAMA_UNIBLE.has(num2||"");
+    const camaUnible=isCamaUnible(num1)||isCamaUnible(num2||"");
     const camaActual=r.cama==="MAT"||r.cama==="TWIN"?r.cama:"";
     const camaActualEf=camaActual||"TWIN"; // si nunca se definió, se asume el estado físico por defecto (separadas)
     const camaOtra=camaActualEf==="MAT"?"TWIN":"MAT";
@@ -5991,26 +6055,35 @@ window.printHabs=()=>{
   const fam=["210","212","310","312"];
   const isFam=n=>fam.includes(n);
   const catLbl={SUITE:"Suite",FAMILIAR:"Suite Familiar",STD:"Standard",MINI:"Std Mini",ECO:"Económica",DEPTO:"Depto"};
+  ROOM_CATS.forEach(c=>{if(catLbl[c.key]===undefined)catLbl[c.key]=c.label;});
+  const CAP_NUM={SGL:1,DBL:2,TPL:3,CPL:4,QTPL:5};
   const nums=Object.keys(RD).sort((a,b)=>+a-+b);
   const row=n=>{const d=RD[n];const cat=isFam(n)?"FAMILIAR":d.cat;
-    return `<tr><td class="n">${n}</td><td>${cat==="FAMILIAR"?"Suite Familiar":catLbl[cat]||cat}${d.sub?" · "+d.sub:""}</td><td class="c">${d.cap}</td><td class="c">${d.tv?"Sí":"—"}</td><td class="c">${d.caja?"Sí":"—"}</td></tr>`;};
-  const fd=new Date().toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+    const capNum=CAP_NUM[d.cap]!==undefined?CAP_NUM[d.cap]:d.cap;
+    const twin=d.camaTipo==="Twin";
+    return `<tr><td class="n">${n}</td><td>${cat==="FAMILIAR"?"Suite Familiar":catLbl[cat]||cat}</td><td>${d.sub||"—"}</td><td class="c">${twin?"Sí":"—"}</td><td class="c">${capNum}</td></tr>`;};
+  const floorTable=(lbl,filt)=>{const ns=nums.filter(n=>filt(n));if(!ns.length)return"";
+    return `<div class="fcol"><div class="fcol-lbl">${lbl}</div><table><thead><tr><th>Hab</th><th>Categoría</th><th>Tipo de cama</th><th>Twin</th><th>Cap.</th></tr></thead><tbody>${ns.map(row).join("")}</tbody></table></div>`;};
   const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Habitaciones — Hotel Copahue</title><style>
+  @page{size:A4 landscape;margin:8mm}
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a1a;padding:20px;font-size:13px;line-height:1.4}
-  h1{font-size:20px;margin-bottom:2px;color:#1c2f24}
-  .date{color:#888;font-size:12px;margin-bottom:16px;text-transform:capitalize}
-  table{width:100%;border-collapse:collapse;font-size:12px}
-  th{background:#1c2f24;color:#fff;padding:6px 8px;text-align:left;font-size:11px;text-transform:uppercase}
-  td{padding:6px 8px;border-bottom:1px solid #eee}
-  td.n{font-weight:700;width:60px}
-  td.c{text-align:center;width:70px}
-  @media print{body{padding:8px}th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+  body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a1a;padding:6px;font-size:11px;line-height:1.3}
+  .cols{display:flex;gap:10px;align-items:flex-start}
+  .fcol{flex:1;min-width:0}
+  .fcol-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:#1c2f24;margin-bottom:3px;padding-bottom:2px;border-bottom:2px solid #1c2f24}
+  table{width:100%;border-collapse:collapse;font-size:10px}
+  th{background:#1c2f24;color:#fff;padding:2px 4px;text-align:left;font-size:9px;text-transform:uppercase;font-weight:600}
+  td{padding:2px 4px;border-bottom:1px solid #eee}
+  td.n{font-weight:700;width:26px}
+  td.c{text-align:center;width:32px}
+  @media print{body{padding:2px}th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
   </style></head><body>
-  <h1>Hotel Copahue — Listado de habitaciones</h1>
-  <div class="date">${fd}</div>
-  <table><thead><tr><th>Hab</th><th>Categoría</th><th>Capacidad</th><th>Smart TV</th><th>Caja fuerte</th></tr></thead><tbody>${nums.map(row).join("")}</tbody></table>
+  <div class="cols">
+  ${floorTable("Piso 1",n=>fl1(n))}
+  ${floorTable("Piso 2",n=>fl2(n))}
+  ${floorTable("Piso 3",n=>fl3(n))}
+  </div>
   </body></html>`;
   let w=null;
   try{ w=window.open("","_blank"); }catch(e){ w=null; }
@@ -6199,12 +6272,15 @@ window.muToggleDiaVariante=(idx,iso)=>{
 };
 window.addComunicado=()=>{
   const f=UI.comuForm||{};
-  if(!f.msg||!f.msg.trim())return;
-  const c={id:uid(),nombre:(f.nombre||"").trim(),msg:f.msg.trim(),size:f.size||14,bold:!!f.bold,underline:!!f.underline,color:f.color||"#15151f",bg:f.bg||"#fff9e6",t:Date.now()};
+  const el=document.getElementById("comuMsgEdit");
+  if(el)f.msg=el.innerHTML;
+  const plain=(el?el.innerText:(f.msg||"").replace(/<[^>]+>/g,"")).trim();
+  if(!plain)return;
+  const c={id:uid(),nombre:(f.nombre||"").trim(),msg:f.msg||"",size:f.size||14,bg:f.bg||"#fff9e6",home:!!f.home,t:Date.now()};
   D.comunicados=[c,...D.comunicados];
   lsS(K.comunicados,D.comunicados);
-  UI.comuForm={nombre:"",msg:"",size:14,bold:false,underline:false,color:"#15151f",bg:"#fff9e6"};
-  logChange("Comunicado publicado en conserjería");
+  UI.comuForm={nombre:"",msg:"",size:14,bg:"#fff9e6",home:false};
+  logChange("Comunicado publicado en conserjería"+(c.home?" (mostrado en inicio)":""));
   render();
 };
 window.saveConsAg=(iso,turno,field,val)=>{
@@ -6509,10 +6585,34 @@ window.resetGeneral=()=>{
   logChange("Reinicio general: habitaciones, cocheras y asignaciones de mucamas");
   render();
 };
+// Ítem 2 (tanda 13): "Resetear pasajeros" ahora resetea TODO el ciclo de limpieza, no solo
+// ocupación/pasajeros -- lo único que se preserva a propósito es r.cama (el estado real de las
+// camas). D.bl (asignaciones de blancos) se vacía por completo, aparte del array de habitaciones.
 window.resetearPasajeros=()=>{
-  D.rooms=D.rooms.map(r=>({...r,pax:0,ocupada:false,paxCheckin:false}));
+  D.rooms=D.rooms.map(r=>({...r,
+    estado:"sucio",
+    mucId:null,
+    tasks:{L:false,R:false,C:false},
+    tarea:null,
+    prio:null,
+    notaRec:"",
+    pax:0,
+    paxCheckin:false,
+    ocupada:false,
+    reserva:"",
+    camaTarget:null,
+    sinBlancos:false,
+    needsBlancos:false,
+    doneTs:null,
+    iniciada:false,
+    iniciadaTs:null,
+    lcoClearedTs:null,
+    lcoSeenDate:null,
+  }));
+  D.bl=[];
   lsS(K.rooms,D.rooms);
-  logChange("Reseteo de pasajeros: todas las habitaciones marcadas libres y sin huéspedes");
+  lsS(K.bl,D.bl);
+  logChange("Reseteo total: todas las habitaciones a sucio, sin mucama/blancos asignados, sin pasajeros/LCO, marcadas libres (se mantuvo el estado de las camas)");
   render();
 };
 window.doDelete=()=>{
@@ -6548,7 +6648,7 @@ function expectedMinsFor(num,taskType){
 function muMarcarLista(id,id2,sinBlancos){
   const r=D.rooms.find(x=>x.id===id);
   if(!r||!r.iniciada||!r.iniciadaTs||(Date.now()-r.iniciadaTs)<MU_MIN_MS)return;
-  if(CAMA_UNIBLE.has(r.num)&&r.camaTarget)return; // debe confirmar el cambio de camas pedido antes de marcar terminada
+  if(isCamaUnible(r.num)&&r.camaTarget)return; // debe confirmar el cambio de camas pedido antes de marcar terminada
   const doneTs=Date.now();
   D.rooms=D.rooms.map(x=>(x.id===id||x.id===id2)?{...x,estado:"limpio-hoy",tasks:{L:true,R:true,C:true},iniciada:false,iniciadaTs:null,doneTs,sinBlancos:!!sinBlancos}:x);
   lsS(K.rooms,D.rooms);
@@ -7040,6 +7140,7 @@ window.checkShift=function(){
   } else removeShiftPopup();
 };
 setInterval(function(){try{checkShift();}catch(e){}},20000);
+try{wipeTestPersonnelOnce();}catch(e){}
 try{checkResetDiario();checkCheckoutAutoRefresh();checkRecordatorios();}catch(e){}
 try{checkInformeSnap();}catch(e){}
 setInterval(function(){try{checkInformeSnap();}catch(e){}},60000);
