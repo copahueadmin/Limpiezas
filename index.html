@@ -90,6 +90,40 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
   .area-shell>.main{overflow:visible}
   .area-shell .content{overflow-y:visible}
   .area-menu-wrap{display:block}
+  /* (Tanda 87 / ítem 10) La regla global "html,body{height:100%;overflow:hidden}" (pensada para el
+     scroll INTERNO de .content, que funciona bien en escritorio) le gana en especificidad/orden a
+     cualquier intento de dejar crecer .area-shell/.main/.content de acá arriba -- aunque esos 3 ya
+     quedan con overflow:visible, el contenido que se sale de la pantalla termina recortado (invisible)
+     por html/body, sin ningún contenedor que lo pueda scrollear: en "Personal y francos" y
+     "Facturación mensual" (Gerencia/Administración/Coordinación) esto se notaba porque son las
+     páginas con más contenido. html.area-shell-view/body.area-shell-view (agregadas en render(),
+     solo mientras el rol activo es Gerencia/Administración/Coordinación) dejan que la página entera
+     scrollee de forma normal en celular, sin afectar el resto de las vistas ni el escritorio. */
+  html.area-shell-view,body.area-shell-view{height:auto!important;overflow-y:visible!important;overflow-x:hidden!important}
+  /* (Tanda 87 / ítem 11) En "Facturación mensual" (facturacionSectionHtml()), en celular el historial
+     de meses cargados (".fac-historial", la columna derecha en escritorio) pasa a mostrarse PRIMERO,
+     arriba de la carga del mes actual -- ".fac-shell" pasa a una sola columna apilada (las dos
+     columnas de escritorio, 320px+280px, no entran en un ancho de celular) y "order:-1" reordena
+     visualmente ".fac-historial" sin tocar el HTML ni el orden real de las tarjetas, así que la vista
+     de escritorio (fuera de este media query) queda exactamente igual que antes. */
+  .fac-shell{grid-template-columns:1fr!important}
+  .fac-historial{order:-1}
+  /* (Tanda 87 / ítem 12) Los enlaces externos embebidos a pantalla completa dentro del panel de
+     contenido (Stock/Devengamiento/Tarifario/Presupuestos/Informe desayuno/Roomings/Agenda
+     coordinativa/Asistente Copahuito/accesos personalizados -- todos con class="cnt-embed", ver
+     vStock() y funciones hermanas más abajo en el archivo) usaban margin negativo + height:100% del
+     padding de .content, que en celular ya no da un iframe a pantalla completa: (a) algunos quedaban
+     en el recuadro angosto "height:78vh" en vez de a pantalla completa (eso era una preferencia de
+     escritorio por rol, sin sentido en celular donde conviene aprovechar todo el ancho/alto) y (b)
+     con el arreglo del ítem 10 de esta misma tanda (html/body ya no fuerzan overflow:hidden en
+     celular, para que la página entera pueda scrollear) el alto de .content deja de ser un 100%
+     fijo, así que "height:calc(100% + 28px)" ya no tiene de qué porcentaje partir. Se resuelve con
+     position:fixed respecto al viewport (no depende del alto de ningún ancestro): cubre toda la
+     pantalla salvo los 50px de arriba (el alto fijo de .topbar, ver ".topbar{height:50px}"), que
+     quedan libres para que el encabezado (con el botón de volver/menú) se siga viendo y usando.
+     z-index 60 queda por debajo del desplegable de 3 rayitas (z-index 520) para que ese menú se siga
+     viendo por encima si se abre con un enlace externo de fondo. */
+  .cnt-embed{position:fixed!important;top:50px!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;height:auto!important;margin:0!important;border:none!important;border-radius:0!important;z-index:60}
 }
 
 /* BUTTONS */
@@ -323,10 +357,16 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .prio-pill{padding:6px 13px;border-radius:20px;font-size:14px;font-weight:500}
 .pp-urg{background:#111827;color:#fff!important}
 .pp-imp{background:#fee2e2;color:#991b1b}
-.pp-nor{background:#faeeda;color:#854f0b}
+/* (Tanda 87 / ítem 7) Estos 3 pills viven dentro de ".mt-card"/".mu-card", cuyo selector catch-all
+   ".mt-card *"/".mu-card *" (ver "más contraste" más abajo) les pisaba el color propio -- en modo
+   claro quedaban con el texto genérico oscuro (igual se leía, por suerte) pero en modo oscuro ese
+   mismo catch-all los pasaba a texto casi blanco SIN cambiar su fondo claro, quedando ilegibles. Se
+   protege acá con !important (mismo recurso que ya usaba .pp-urg) para que conserven siempre su
+   propio par fondo/texto, pensado para ser legible en cualquier modo. */
+.pp-nor{background:#faeeda;color:#854f0b!important}
 .pp-baj{background:#f3f4f6;color:#374151;border:1px solid #d1d5db}
-.pp-pue{background:#f3f4f6;color:#6b7280}
-.pp-bl{background:#d1fae5;color:#065f46}
+.pp-pue{background:#f3f4f6;color:#6b7280!important}
+.pp-bl{background:#d1fae5;color:#065f46!important}
 .pp-esp{background:#f5f0ff;color:#7c3aed}
 .mb-ok{background:#4ade80;color:#000}
 .mb-ok:hover{background:#059669}
@@ -358,9 +398,9 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .mt-met{font-size:17px;color:var(--text3);margin-bottom:18px}
 .mt-btn{padding:22px 28px;border-radius:14px;border:none;cursor:pointer;font-size:21px;font-family:'DM Sans',sans-serif;font-weight:700;display:inline-flex;align-items:center;gap:10px;transition:all .15s;-webkit-tap-highlight-color:transparent}
 .mt-btn:active{transform:scale(.97)}
-.mb-res{background:#10b981;color:#fff}
+.mb-res{background:#10b981;color:#fff!important}
 .mb-res:hover{background:#059669}
-.mb-nota{background:#fde68a;color:#92400e}
+.mb-nota{background:#fde68a;color:#92400e!important}
 .mb-nota:hover{background:#fcd34d}
 .mb-bln{background:#7c3aed;color:#fff}
 
@@ -843,6 +883,13 @@ body.dark [style*="background:#e8e8e4"],body.dark [style*="background:#f9f5ef"],
    está redefinida a un gris casi negro para este modo (ver :root/body.dark más abajo). */
 body.dark [style*="background:#fdf6e3"],body.dark [style*="background:#e6f4f1"],
 body.dark [style*="background:#ede9fe"],body.dark [style*="background:#dcf5ef"],
+/* (Tanda 87 / ítem 3) Comunicados (#fef9c3, amarillo), Notas generales (#ffe3bf, naranja) y las
+   "Nota de conserjería" de Notas en habitaciones (#e0e7ff, índigo -- el otro tipo de esa lista,
+   "Aviso", usa #ede9fe, que ya estaba en esta lista desde antes) quedaban con su fondo claro de
+   siempre en modo oscuro mientras el texto de adentro sí pasaba a claro (heredado de body.dark),
+   quedando texto claro sobre fondo claro, ilegible -- mismo mecanismo que el resto de esta lista. */
+body.dark [style*="background:#fef9c3"],body.dark [style*="background:#ffe3bf"],
+body.dark [style*="background:#e0e7ff"],
 body.dark [style*="background:rgba(255,255,255,.5)"],body.dark [style*="background:rgba(255,255,255,.55)"]{
   background:rgba(35,35,42,.55)!important;color:#e8e8ee!important;border-color:rgba(255,255,255,.1)!important
 }
@@ -1264,6 +1311,91 @@ body.dark .ps-coch{background:rgba(20,22,20,.45)!important;border:1px solid rgba
 body.dark .ps-coch svg .park-bg{fill:#2b2f2d}
 body.dark .ps-coch svg .park-deco{fill:#2b2f2d}
 body.dark .ps-coch svg .park-wallpiece{fill:rgba(30,32,30,.55)}
+/* (Tanda 87 / ítem 7) Mantenimiento es una pantalla de tablet de uso fijo -- a diferencia del resto de
+   la app, no debe reaccionar al modo oscuro del navegador/dispositivo. El dark-mode parcial que sí le
+   llegaba a través de ".mt-card" (ver "más contraste" más arriba) dejaba un aspecto mixto e
+   inconsistente: fondo general de la pantalla siempre claro, pero las tarjetas y su texto se ponían
+   oscuros -- acá se fuerza siempre el mismo aspecto claro original. Va al final de la hoja de estilos
+   para ganarle a esas reglas de dark mode (mismo recurso que la sección de "menú lateral" más arriba,
+   que también gana por ser la última regla). Los botones/pills ya protegidos con !important propio
+   (.mb-res/.mb-nota/.pp-nor/.pp-pue/.pp-bl, ver más arriba) se excluyen acá con :not() para no
+   pisarlos de nuevo. No toca ".mu-card"/".mu-app" (Mucamas) -- ese es un arreglo aparte (ítem 8). */
+body.dark .mt-app{background:#faf5eb!important}
+body.dark .mt-card{background:#ffffff!important}
+body.dark .mt-card *:not(.mb-res):not(.mb-nota):not(.pp-urg):not(.pp-nor):not(.pp-pue):not(.pp-bl):not(.pp-imp):not(.pp-baj):not(.pp-esp){color:#12181f!important}
+body.dark .mt-card .mt-tit{color:inherit!important}
+/* (Tanda 87 / ítem 8) Mismo pedido que el ítem 7, pero para Mucamas (".mu-app"): pantalla de tablet
+   fija, no debe reaccionar al modo oscuro. Acá el problema era un poco distinto -- ".mu-app" en sí ya
+   tenía fondo fijo (#a9c3b3, sin variar con el modo), pero bastante de su contenido usa las variables
+   CSS globales (var(--white)/var(--text)/var(--text2)/var(--text3)/var(--border)/var(--sand)...), que
+   SÍ cambian con el modo oscuro (ver "body.dark{...}" más arriba) -- eso rompía la caja de "Sacar
+   blancos" (el renglón de cada habitación usa var(--white) de fondo, que en modo oscuro se pone casi
+   negro, pero la etiqueta "SACAR BLANCOS" tiene un color de texto oscuro fijo -- quedaba texto oscuro
+   sobre fondo oscuro) y el detalle de qué significa cada columna del listado (Hab./Tarea/Rva./etc,
+   ver sortHdr() en rMu()), que usa var(--text2) -- en modo oscuro se aclara mucho, pero el fondo de
+   ".mu-app" nunca se oscureció, entonces quedaba texto claro sobre el mismo fondo claro de siempre.
+   La solución más prolija es volver a declarar esas variables con sus valores de modo claro, pero
+   SOLO adentro de ".mu-app" -- como son variables CSS, heredan a todos los elementos de adentro, así
+   que esto solo con eso ya deja el 90% del contenido igual que en modo claro, sin tener que repetir
+   la lógica elemento por elemento. Lo que no depende de estas variables (el catch-all de ".mu-card",
+   mismo mecanismo que ".mt-card" del ítem 7) se congela aparte, debajo. No toca Mantenimiento (que ya
+   tiene su propio arreglo arriba, ítem 7) ni el resto de la app. */
+body.dark .mu-app{
+  --text:#15151f;--text2:#3a4456;--text3:#5e6b7e;--white:#fff;--border:#e2ddd4;
+  --sand:#f4f0e8;--sand2:#ede6d8;--sand3:#c8b89a;
+  background:#a9c3b3!important;
+}
+/* La sola redeclaración de variables de arriba no alcanza para el color de texto: hay reglas previas
+   en la hoja de estilos que, en vez de leer la variable, buscan literalmente el texto
+   "color:var(--text2)"/"color:var(--text3)" DENTRO del atributo style de cada elemento (selector de
+   atributo) y le fuerzan un color fijo con !important (ver "[style*=...]" más arriba) -- eso ignora
+   por completo el valor ya recalculado de la variable. Se pisan acá esas mismas reglas, agregando
+   ".mu-app" al selector para ganar por especificidad (una clase más = más específico, gana sin
+   importar el orden) y devolver el color de modo claro dentro de Mucamas. */
+body.dark .mu-app [style*="color:var(--text2)"]{color:#3a4456!important}
+body.dark .mu-app [style*="color:var(--text3)"]{color:#5e6b7e!important}
+/* Además, ".mu-sec" (título de cada sección: "Sacar blancos"/"Áreas comunes"/"Terminadas") fija su
+   color con una clase CSS (no con estilo inline), y hay otra regla más abajo en la hoja
+   ("body.dark div{color:inherit}", pensada para el resto de la app) que le termina ganando por
+   especificidad (una etiqueta + una clase le gana a una sola clase) y le hace heredar el color
+   general de modo oscuro en vez de mantener el propio. Se fuerza acá con !important. */
+body.dark .mu-app .mu-sec{color:#3a4456!important}
+/* Tercera vuelta de vuelta, la más grande: hay también un mecanismo "catch-all" opuesto y ya
+   documentado en la Tanda 87 / ítems 2-3 (ver "background:#XXXXXX" más arriba) pero para TEXTO
+   oscuro con estilo inline -- cualquier elemento con "color:#XXXXXX" (uno de una lista larga de
+   grises/navys/oscuros típicos) se aclara automáticamente en modo oscuro, asumiendo que el fondo
+   detrás también se oscureció. Eso es correcto para el resto de la app, pero acá el fondo de
+   Mucamas quedó congelado en claro (arriba), así que aclarar el texto lo vuelve ilegible (texto
+   claro sobre fondo claro -- el bug exacto de "sacar blancos" y otros textos con color inline en
+   esta vista). Se restaura cada color a sí mismo, con más especificidad, solo dentro de ".mu-app". */
+body.dark .mu-app [style*="color:#6b7280"]{color:#6b7280!important}
+body.dark .mu-app [style*="color:#9ca3af"]{color:#9ca3af!important}
+body.dark .mu-app [style*="color:#5e6b7e"]{color:#5e6b7e!important}
+body.dark .mu-app [style*="color:#3a4456"]{color:#3a4456!important}
+body.dark .mu-app [style*="color:#334155"]{color:#334155!important}
+body.dark .mu-app [style*="color:#1e3a8a"]{color:#1e3a8a!important}
+body.dark .mu-app [style*="color:#5b21b6"]{color:#5b21b6!important}
+body.dark .mu-app [style*="color:#0f5c50"]{color:#0f5c50!important}
+body.dark .mu-app [style*="color:#111827"]{color:#111827!important}
+body.dark .mu-app [style*="color:#1a1a2e"]{color:#1a1a2e!important}
+body.dark .mu-app [style*="color:#15151f"]{color:#15151f!important}
+body.dark .mu-app [style*="color:#374151"]{color:#374151!important}
+body.dark .mu-app [style*="color:#1f2937"]{color:#1f2937!important}
+body.dark .mu-app [style*="color:#142a1f"]{color:#142a1f!important}
+body.dark .mu-app [style*="color:#0f1f17"]{color:#0f1f17!important}
+body.dark .mu-app [style*="color:#0f172a"]{color:#0f172a!important}
+body.dark .mu-app [style*="color:#8a6a1f"]{color:#8a6a1f!important}
+body.dark .mu-app [style*="color:#a3821f"]{color:#a3821f!important}
+body.dark .mu-app [style*="color:#2a3340"]{color:#2a3340!important}
+body.dark .mu-app [style*="color:#1c2f24"]{color:#1c2f24!important}
+body.dark .mu-card{background:#ffffff!important}
+body.dark .mu-card *:not(.mu-btn):not(.mu-btn *):not(.pp-urg):not(.pp-nor):not(.pp-pue):not(.pp-bl):not(.pp-imp):not(.pp-baj):not(.pp-esp){color:#12181f!important}
+body.dark .mu-card .mu-note{color:inherit!important}
+/* (Tanda 87 / ítem 9) Desplegable de 3 barritas de Gerencia/Administración/Coordinación en formato
+   celular (".area-menu-item", ver arriba): al pasar el cursor/dedo, el fondo pasaba a un gris claro
+   fijo (#f3f4f6, sin variante oscura) mientras el texto usa var(--text), que en modo oscuro es casi
+   blanco -- texto claro sobre fondo claro, ilegible. Se agrega acá el estado hover para modo oscuro. */
+body.dark .area-menu-item:hover{background:rgba(255,255,255,.1)!important}
 </style>
 </head>
 <body>
@@ -3426,6 +3558,34 @@ function _viewKey(){
   return [ROLE,UI.v,UI.mantTab,UI.adminMode,UI.rolCard,UI.selR,UI.selA].join("|");
 }
 function render(){
+  // (Tanda 87) Mientras el modal de "sitio embebido" (abrirSitioEmbebido/modSiteEmbed) está abierto,
+  // NO reconstruimos toda la vista de fondo: rXxx() reemplaza todo el innerHTML de #app, lo que
+  // destruye el <iframe> ya insertado y fuerza que la página externa se recargue desde cero -- esto
+  // pasaba cada ~60s por el setInterval de checks periódicos (checkResetDiario, etc. terminan
+  // llamando a render()), borrando lo que el usuario venía completando ahí adentro. El modal ocupa
+  // casi toda la pantalla (.ov es position:fixed;inset:0) así que la vista de fondo no se ve mientras
+  // tanto: no hace falta reconstruirla. Si la URL/título no cambiaron, no tocamos el DOM del modal;
+  // si cambiaron (se abrió un sitio distinto) o todavía no está montado, lo (re)insertamos una vez.
+  if(UI.mod==="siteEmbed"){
+    const _appEl=document.getElementById("app");
+    if(_appEl){
+      const _existingOv=_appEl.querySelector('.ov[data-site-embed="1"]');
+      const _wantSrc=UI.siteEmbedUrl||"";
+      // (Tanda 88) UI.siteEmbedReload la prende SOLO abrirSitioEmbebido() -- es decir, solo cuando el
+      // usuario efectivamente apretó el botón del enlace embebido (sea para abrirlo por primera vez o
+      // para "recargarlo" volviendo a apretar el mismo botón con el modal ya abierto). Un render()
+      // disparado por cualquier otra cosa (el chequeo periódico de 60s, por ejemplo) la deja apagada,
+      // así que sigue sin recrear el iframe si la URL no cambió -- eso es lo que evita el bug de la
+      // Tanda 87 (recarga sola cada 1 minuto). Se apaga acá mismo, se usa una sola vez por click.
+      const _forceReload=UI.siteEmbedReload===true;
+      UI.siteEmbedReload=false;
+      if(_forceReload||!_existingOv||_existingOv.getAttribute("data-site-embed-src")!==_wantSrc){
+        if(_existingOv)_existingOv.remove();
+        _appEl.insertAdjacentHTML("beforeend",modSiteEmbed());
+      }
+    }
+    return;
+  }
   const key=_viewKey();
   const sameView=key===_lastViewKey;
   // (Tanda 53) El scroll del propio menú lateral (.sb-nav) se guarda y restaura SIEMPRE, sin importar
@@ -3442,6 +3602,14 @@ function render(){
   }else{
     _scrollMemory={};
   }
+  // (Tanda 87 / ítem 10) Gerencia/Administración/Coordinación (rAreaShell, .area-shell) necesitan que
+  // en celular la página entera pueda desplazarse como una web normal (ver el bloque CSS
+  // "html.area-shell-view,body.area-shell-view" en el media query de .area-shell) -- Recepción/
+  // Mucamas/Mantenimiento siguen con su scroll interno de siempre (no llevan esta clase), así que se
+  // marca html/body con esta clase solo mientras el rol activo es uno de esos 3, sin tocar nada más.
+  const _isAreaShellRole=ROLE==="ger"||ROLE==="admin"||ROLE==="coord";
+  document.documentElement.classList.toggle("area-shell-view",_isAreaShellRole);
+  document.body.classList.toggle("area-shell-view",_isAreaShellRole);
   if(ROLE==="sel")rSel();
   else if(ROLE==="rec")rRec();
   else if(ROLE==="mu")rMu();
@@ -3738,7 +3906,7 @@ function rAreaShell(role,titulo,emoji,navItems,bodyHtml){
   // (rGer()/rAdminArea()/rCoord()) no pudo calcular bodyHtml para esa clave -- se resuelve acá, con el
   // mismo patrón a pantalla completa que vTarifas()/vAgendaCoordinativa() (margen negativo + iframe).
   const clActivo=sec.indexOf&&sec.indexOf("cl:")===0?((D.customLinks&&D.customLinks[role])||[]).find(l=>("cl:"+l.id)===sec):null;
-  const bodyFinal=clActivo?`<div style="margin:-14px -18px;height:calc(100% + 28px);overflow:hidden;background:var(--white)"><iframe src="${clActivo.url}" style="width:100%;height:100%;border:none" title="${(clActivo.label||"").replace(/"/g,"&quot;")}"></iframe></div>`:bodyHtml;
+  const bodyFinal=clActivo?`<div class="cnt-embed" style="margin:-14px -18px;height:calc(100% + 28px);overflow:hidden;background:var(--white)"><iframe src="${clActivo.url}" style="width:100%;height:100%;border:none" title="${(clActivo.label||"").replace(/"/g,"&quot;")}"></iframe></div>`:bodyHtml;
   // (Tanda 81 / ítem 2) El sidebar de Gerencia/Administración/Coordinación gana la misma posibilidad
   // de minimizarse que ya tenía Recepción (`UI.sbCollapsed`, clase `.sb.collapsed` -- toda la CSS de
   // "solo íconos" ya existía sin estar acotada a Recepción, alcanzó con reusarla acá) -- a diferencia
@@ -3850,7 +4018,7 @@ function rGer(){
 // de contenido, sin overlay. Reutiliza el mismo patrón de vTarifas()/vDevengamiento() (margen negativo +
 // iframe a la URL raíz del sitio, que ya era la URL que usaba el botón viejo).
 function vAsistenteCopahuito(){
-  return `<div style="margin:-14px -18px;height:calc(100% + 28px);overflow:hidden;background:var(--white)">
+  return `<div class="cnt-embed" style="margin:-14px -18px;height:calc(100% + 28px);overflow:hidden;background:var(--white)">
     <iframe src="https://asistente-copahuito.netlify.app" style="width:100%;height:100%;border:none" title="Asistente Copahuito"></iframe>
   </div>`;
 }
@@ -4171,7 +4339,16 @@ function rRec(){
         <span style="font-size:10px;color:var(--text3)">${pend()} pend.</span>
       </div>
     </div>
-    ${UI.v==="gen"&&UI.parkHidden?`<div style="display:flex;justify-content:flex-end;padding:6px 24px 0"><button class="btn btn-g btn-sm" onclick="UI.parkHidden=false;render()" title="Mostrar el panel de cocheras">🚗 Mostrar cocheras</button></div>`:""}
+    <!-- (Tanda 87 / ítem 1) Esta fila (arriba del todo de ".content", visible cuando las cocheras
+    están ocultas) quedaba con un fondo grisáceo bien visible -- el mismo efecto "vidrio líquido" que
+    ya tienen TODOS los ".btn"/".btn-g" de la app (rgba(255,255,255,.06) + backdrop-filter:blur, ver
+    el bloque "LIQUID GLASS" del CSS), pero acá, en su propia fila aislada pegada justo arriba de la
+    grilla de habitaciones (sin otros botones al lado que "disimulen" el efecto), se veía como una
+    barra sólida separando/tapando visualmente el inicio del listado. Se fuerza este botón puntual a
+    fondo y blur totalmente transparentes (con !important, para ganarle al !important de ".btn" del
+    tema de vidrio) -- no se tocó la clase ".btn-g" compartida, que sigue con su estilo de vidrio de
+    siempre en el resto de la app. -->
+    ${UI.v==="gen"&&UI.parkHidden?`<div style="display:flex;justify-content:flex-end;padding:6px 24px 0;background:transparent"><button class="btn btn-g btn-sm" style="background:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:none!important;border-color:transparent!important" onclick="UI.parkHidden=false;render()" title="Mostrar el panel de cocheras">🚗 Mostrar cocheras</button></div>`:""}
     <div class="content">
       ${UI.v==="dash"?vDash():UI.v==="plan"?vPlan():UI.v==="gen"?vGen():
         UI.v==="audit"?vAuditView():UI.v==="det"?vDet():UI.v==="inf"?vInf():UI.v==="blancos"?vBlancos():UI.v==="muv"?vMuv():
@@ -5907,6 +6084,13 @@ body.dark [style*="background:#e8e8e4"],body.dark [style*="background:#f9f5ef"],
    está redefinida a un gris casi negro para este modo (ver :root/body.dark más abajo). */
 body.dark [style*="background:#fdf6e3"],body.dark [style*="background:#e6f4f1"],
 body.dark [style*="background:#ede9fe"],body.dark [style*="background:#dcf5ef"],
+/* (Tanda 87 / ítem 3) Comunicados (#fef9c3, amarillo), Notas generales (#ffe3bf, naranja) y las
+   "Nota de conserjería" de Notas en habitaciones (#e0e7ff, índigo -- el otro tipo de esa lista,
+   "Aviso", usa #ede9fe, que ya estaba en esta lista desde antes) quedaban con su fondo claro de
+   siempre en modo oscuro mientras el texto de adentro sí pasaba a claro (heredado de body.dark),
+   quedando texto claro sobre fondo claro, ilegible -- mismo mecanismo que el resto de esta lista. */
+body.dark [style*="background:#fef9c3"],body.dark [style*="background:#ffe3bf"],
+body.dark [style*="background:#e0e7ff"],
 body.dark [style*="background:rgba(255,255,255,.5)"],body.dark [style*="background:rgba(255,255,255,.55)"]{
   background:rgba(35,35,42,.55)!important;color:#e8e8ee!important;border-color:rgba(255,255,255,.1)!important
 }
@@ -6501,14 +6685,26 @@ function vGen(){
   const f3=sortRoomsCustom(D.rooms.filter(r=>fl3(r.num)&&curG.pred(r)));
   // (Tanda 34) Comunicados y Notas quedan uno al lado del otro (Notas fija a la derecha, a pedido
   // del usuario) -- si solo hay uno de los dos, se muestra solo, sin el hueco vacío del otro lado.
+  // (Tanda 87 / ítem 2) Cada uno de los tres bloques de esta zona (Comunicados, Notas generales,
+  // Notas en habitaciones) se envuelve en su propio ".card" -- la misma clase de "flotante de vidrio"
+  // (translúcida, con blur) que ya usa el resto de la app para tarjetas (estadísticas, leyenda,
+  // tarjetas de mucama/problema, etc.) -- para que cada sección quede visualmente separada de las
+  // demás. Se reutiliza ".card" tal cual, sin crear una clase nueva, porque ya tiene resuelto (y
+  // probado en el resto de la app) el modo oscuro: fondo oscuro translúcido + texto claro heredado
+  // (ver body.dark .card, cerca de la definición de ".card" en el CSS) -- los fondos de color propios
+  // de cada nota/comunicado (amarillo/naranja/índigo) quedan DENTRO de este flotante, sin
+  // reemplazarlo, y su propio ajuste de modo oscuro es el del ítem 3 de esta misma tanda (ver el
+  // bloque "cazar todos los fondos claros" del CSS).
   const comuBlock=comuHomeBoxesHtml();
   const notasBlock=notasGenHtml();
-  const comuNotasHtml=(comuBlock&&notasBlock)
+  const comuCard=comuBlock?`<div class="card">${comuBlock}</div>`:"";
+  const notasCard=notasBlock?`<div class="card">${notasBlock}</div>`:"";
+  const comuNotasHtml=(comuCard&&notasCard)
     ?`<div style="display:flex;gap:14px;align-items:flex-start;margin-top:14px;flex-wrap:wrap">
-        <div style="flex:2;min-width:280px">${comuBlock}</div>
-        <div style="flex:1;min-width:220px">${notasBlock}</div>
+        <div style="flex:2;min-width:280px">${comuCard}</div>
+        <div style="flex:1;min-width:220px">${notasCard}</div>
       </div>`
-    :(comuBlock||notasBlock)?`<div style="margin-top:14px">${comuBlock||notasBlock}</div>`:"";
+    :(comuCard||notasCard)?`<div style="margin-top:14px">${comuCard||notasCard}</div>`:"";
   // (Tanda 86 / ítem 3) Accesos rápidos para crear, desde acá mismo, una nota general (reutiliza
   // notasOpen(), Tanda 34) o un comunicado (navega a Novedades conserjería → Comunicados, donde ya
   // vive el formulario completo con formato de texto -- ver vComunicados(); no se duplica ese editor
@@ -6527,7 +6723,7 @@ function vGen(){
   ${roomTagsBarHtml()}
   ${quickCrearHtml}
   ${comuNotasHtml}
-  <div style="margin-top:14px">${notasHabHtml()}</div>`;
+  <div class="card" style="margin-top:14px">${notasHabHtml()}</div>`;
 }
 function vDet(){
   const rows=D.rooms.map(r=>{
@@ -6644,16 +6840,21 @@ function vInf(){
     };
     return {mu,asig:asig.length,habsListas,tareasHechas,detalle};
   });
-  const statCard=(n,l,c)=>`<div style="text-align:center;flex:1"><div style="font-size:20px;font-family:'Playfair Display',serif;color:${c||'var(--navy)'}">${n}</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px">${l}</div></div>`;
+  const statCard=(n,l,c,bold)=>`<div style="text-align:center;flex:1"><div style="font-size:20px;font-family:'Playfair Display',serif;color:${c||'var(--navy)'}${bold?';font-weight:800':''}">${n}</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px">${l}</div></div>`;
+  // (Tanda 87 / ítem 4) El panel se renombra "Informe de ocupación" (antes "Informe del día" -- el
+  // título del PDF/mail no se toca, ya que el pedido fue específicamente sobre "el flotante" en pantalla).
+  // "Blancos entregados" se separa a una tarjeta propia al costado (ver más abajo, tras cerrar esta
+  // tarjeta principal), con ancho fijo (flex:0 0 auto) para que no se achique ni afecte el tamaño de
+  // los demás flotantes. Las tarjetas se agrupan en un contenedor flex donde la principal usa flex:1.
   return `<div id="informe-print">
-  <div class="card" style="margin-bottom:12px">
+  <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px">
+  <div class="card" style="flex:1;min-width:280px;margin-bottom:0">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div><div style="font-size:18px;font-family:'Playfair Display',serif">Informe del día</div><div style="display:flex;align-items:center;gap:10px;margin-top:3px;flex-wrap:wrap"><div style="font-size:11px;color:#3a4456;text-transform:capitalize">${fd} · emitido ${hora} hs</div><div style="display:inline-flex;align-items:center;gap:5px;background:#1c2f24;color:#fff;border-radius:14px;padding:3px 11px;font-size:11px;font-weight:600">${turno.ic} ${turno.l} · ${turno.h}</div></div></div>
+      <div><div style="font-size:18px;font-family:'Playfair Display',serif">Informe de ocupación</div><div style="display:flex;align-items:center;gap:10px;margin-top:3px;flex-wrap:wrap"><div style="font-size:11px;color:#3a4456;text-transform:capitalize">${fd} · emitido ${hora} hs</div><div style="display:inline-flex;align-items:center;gap:5px;background:#1c2f24;color:#fff;border-radius:14px;padding:3px 11px;font-size:11px;font-weight:600">${turno.ic} ${turno.l} · ${turno.h}</div></div></div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
         <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
           <button class="btn" onclick="descargarInformePDF()">Descargar PDF</button>
           <button class="btn btn-p" style="font-weight:800;font-size:12px;padding:9px 18px;box-shadow:0 4px 14px rgba(29,122,107,.45)" onclick="enviarInforme()">Enviar informe</button>
-          <button class="btn" onclick="blRepOpen()" title="Cargar y consultar lo que entregó el lavadero cada noche -- reporte aparte del informe diario">Blancos entregados</button>
         </div>
         ${isAdminAuth()?`<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
           <button class="btn btn-g" style="font-size:9.5px;text-decoration:underline" onclick="enviarInformePrueba()" title="Manda el informe marcado como PRUEBA, a cualquier hora, sin afectar el registro de envío del turno">Enviar informe de prueba</button>
@@ -6671,8 +6872,8 @@ function vInf(){
     <div style="display:flex;gap:8px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:12px 0;flex-wrap:wrap">
       ${statCard(llegRooms,"Hab. con check-in","#15803d")}
       ${statCard(llegPax,"Pax hospedados","#15803d")}
-      ${statCard(resRooms,"Hab. por llegar","#854f0b")}
-      ${statCard(resPax,"Pax por llegar","#854f0b")}
+      ${statCard(resRooms,"Hab. por llegar",resRooms>0?"#dc2626":"#854f0b",resRooms>0)}
+      ${statCard(resPax,"Pax por llegar",resPax>0?"#dc2626":"#854f0b",resPax>0)}
       ${statCard(D.rooms.length-totalOcc,"Hab. libres","#1d7a6b")}
     </div>
     <div style="margin-top:12px">
@@ -6688,6 +6889,11 @@ function vInf(){
         </div>`).join("")}
       </div>
     </div>
+  </div>
+  <div class="card" style="flex:0 0 auto;align-self:flex-start;padding:14px 18px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;margin-bottom:0">
+    <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Otro informe</div>
+    <button class="btn" onclick="blRepOpen()" title="Cargar y consultar lo que entregó el lavadero cada noche -- reporte aparte del informe diario">Blancos entregados</button>
+  </div>
   </div>
   <div class="card" style="margin-bottom:12px">
     <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Actividades de mucamas</div>
@@ -7240,7 +7446,7 @@ function vHabs(){
 // (Tanda 67 / ítem 2) Coordinación también lo pidió ahora -- se suma 'coord' a la condición.
 function vStock(){
   const full=ROLE==="admin"||ROLE==="rec"||ROLE==="coord";
-  return `<div style="${full?"margin:-14px -18px;height:calc(100% + 28px)":"height:78vh;border:1px solid var(--border);border-radius:var(--r2)"};overflow:hidden;background:var(--white)">
+  return `<div class="cnt-embed" style="${full?"margin:-14px -18px;height:calc(100% + 28px)":"height:78vh;border:1px solid var(--border);border-radius:var(--r2)"};overflow:hidden;background:var(--white)">
     <iframe src="https://stock-hotelcopahue.netlify.app/" style="width:100%;height:100%;border:none" title="Stock"></iframe>
   </div>`;
 }
@@ -7254,7 +7460,7 @@ function vStock(){
 // negativo exacto al padding de .content más height:calc(100% + 28px), en vez de height:78vh con
 // espacio desperdiciado. Coordinación no tiene esta sección, así que no hace falta condicionar por rol.
 function vDevengamiento(){
-  return `<div style="margin:-14px -18px;height:calc(100% + 28px);overflow:hidden;background:var(--white)">
+  return `<div class="cnt-embed" style="margin:-14px -18px;height:calc(100% + 28px);overflow:hidden;background:var(--white)">
     <iframe src="https://devengamiento-hotelcopahue.netlify.app/" style="width:100%;height:100%;border:none" title="Devengamiento"></iframe>
   </div>`;
 }
@@ -7267,7 +7473,7 @@ function vDevengamiento(){
 // "Tarifario" (antes "Ver tarifas") -- los otros iframes embebidos (Stock/Devengamiento/Presupuestos/
 // Informe desayuno/Roomings) no se tocaron, siguen con el patrón anterior.
 function vTarifas(){
-  return `<div style="margin:-14px -18px;height:calc(100% + 28px);overflow:hidden;background:var(--white)">
+  return `<div class="cnt-embed" style="margin:-14px -18px;height:calc(100% + 28px);overflow:hidden;background:var(--white)">
     <iframe src="https://asistente-copahuito.netlify.app/dist/#/imprimir" style="width:100%;height:100%;border:none" title="Tarifario"></iframe>
   </div>`;
 }
@@ -7276,14 +7482,14 @@ function vTarifas(){
 // condicionado por rol (mismo motivo que vStock() más arriba); Coordinación sí lo pidió en la Tanda 67.
 function vPresupuestos(){
   const full=ROLE==="ger"||ROLE==="coord";
-  return `<div style="${full?"margin:-14px -18px;height:calc(100% + 28px)":"height:78vh;border:1px solid var(--border);border-radius:var(--r2)"};overflow:hidden;background:var(--white)">
+  return `<div class="cnt-embed" style="${full?"margin:-14px -18px;height:calc(100% + 28px)":"height:78vh;border:1px solid var(--border);border-radius:var(--r2)"};overflow:hidden;background:var(--white)">
     <iframe src="https://asistente-copahuito.netlify.app/dist/#/presupuestos" style="width:100%;height:100%;border:none" title="Ver presupuestos"></iframe>
   </div>`;
 }
 // (Tanda 59 / ítem 1 y 3) Mismo cambio a pantalla completa que vDevengamiento() -- Gerencia y
 // Administración son las únicas dos áreas que usan esta función.
 function vInfoDesayuno(){
-  return `<div style="margin:-14px -18px;height:calc(100% + 28px);overflow:hidden;background:var(--white)">
+  return `<div class="cnt-embed" style="margin:-14px -18px;height:calc(100% + 28px);overflow:hidden;background:var(--white)">
     <iframe src="https://desayunos-donbenito.netlify.app/" style="width:100%;height:100%;border:none" title="Informe desayuno"></iframe>
   </div>`;
 }
@@ -7291,7 +7497,7 @@ function vInfoDesayuno(){
 // (Tanda 67 / ítem 2) Pasa a pantalla completa a pedido del usuario -- como esta función es exclusiva
 // de Coordinación (nadie más la usa), no hace falta condicionar por rol.
 function vRoomings(){
-  return `<div style="margin:-14px -18px;height:calc(100% + 28px);overflow:hidden;background:var(--white)">
+  return `<div class="cnt-embed" style="margin:-14px -18px;height:calc(100% + 28px);overflow:hidden;background:var(--white)">
     <iframe src="https://roomings-hotelcopahue.netlify.app/" style="width:100%;height:100%;border:none" title="Roomings"></iframe>
   </div>`;
 }
@@ -7300,7 +7506,7 @@ function vRoomings(){
 // vPresupuestos()), así que usa directamente el mismo patrón a pantalla completa que vTarifas()/
 // vDevengamiento(): margen negativo exacto al padding de .content más height:calc(100% + 28px).
 function vAgendaCoordinativa(){
-  return `<div style="margin:-14px -18px;height:calc(100% + 28px);overflow:hidden;background:var(--white)">
+  return `<div class="cnt-embed" style="margin:-14px -18px;height:calc(100% + 28px);overflow:hidden;background:var(--white)">
     <iframe src="https://agendacoordinativa.netlify.app/" style="width:100%;height:100%;border:none" title="Agenda coordinativa"></iframe>
   </div>`;
 }
@@ -7708,7 +7914,7 @@ function facturacionSectionHtml(){
   const emailVal=(D.facReportEmails&&D.facReportEmails[ym])!==undefined?D.facReportEmails[ym]:facRepUltimoEmail();
   const ymManual=UI.facManualYm||ym;
   return `<div style="max-width:1200px">
-    <div style="display:grid;grid-template-columns:minmax(320px,1fr) minmax(280px,360px);gap:14px;align-items:start">
+    <div class="fac-shell" style="display:grid;grid-template-columns:minmax(320px,1fr) minmax(280px,360px);gap:14px;align-items:start">
       <div>
         <div class="card" style="margin-bottom:14px">
           <div class="fg" style="max-width:220px"><span class="fl">Mes</span><input class="fc" type="month" value="${ym}" onchange="UI.facMes=this.value;render()"></div>
@@ -7745,7 +7951,7 @@ function facturacionSectionHtml(){
           <div style="margin-top:12px"><button class="btn btn-p btn-sm" onclick="facDescargarPDF('${ym}')">Descargar PDF de este mes</button></div>
         </div>
       </div>
-      <div class="card">
+      <div class="card fac-historial">
         <h3 style="margin-bottom:10px">Historial de meses cargados</h3>
         ${facHistorialCalendarioHtml(puedeCrear)}
         ${puedeCrear?`<div style="border-top:1.5px solid var(--border);margin-top:12px;padding-top:12px">
@@ -8281,9 +8487,12 @@ function rMant(){
   <div class="mt-app">
     <div class="mt-hdr">
       <div><div class="mt-hdr-n">Mantenimiento ||</div><div class="mu-hdr-s">${fd} \u00b7 <span class="sync-dot"></span>en vivo</div></div>
+      <!-- (Tanda 87 / \u00edtem 7) El desplegable de 3 barritas (muMenuHtml()) pasa a la derecha de "Cerrar
+           sesi\u00f3n" -- antes iba a la izquierda. Solo se reordena ac\u00e1 (rMant()); Mucamas (rMu()) sigue
+           con el orden original, que el usuario no pidi\u00f3 cambiar. -->
       <div style="display:flex;gap:10px;align-items:center">
-        ${isAdminMant?"":muMenuHtml()}
         <button class="tab-exit" onclick="exitRole()">Cerrar sesi\u00f3n</button>
+        ${isAdminMant?"":muMenuHtml()}
       </div>
     </div>
     <div style="display:flex;gap:10px;padding:16px 16px 14px">
@@ -9165,7 +9374,12 @@ function modVacaciones(){
   // (y solo vive) en "Vacaciones personal" (vacGestionHtml(), reqRow()/puedeAprobar()), que ya tenía la
   // misma función completa desde la Tanda 51 -- no se duplicaba lógica, así que sacarla de acá no le
   // saca ninguna capacidad a nadie, solo el punto de entrada redundante.
-  return `<div class="ov" onclick="closeMod(event)"><div class="mod" onclick="event.stopPropagation()" style="max-width:560px">
+  // (Tanda 87 / ítem 6) Modal un poco más ancho para que el aviso del lunes, con el texto final
+  // reformulado, se mantenga en 2 renglones como pidió el usuario. La clase ".mod" fija "width:460px"
+  // (el "max-width:560px" que tenían otros modales similares no alcanza a ensancharlos, ya que
+  // max-width no puede superar a un width explícito más chico) -- por eso acá se pisa "width" en vez
+  // de solo "max-width".
+  return `<div class="ov" onclick="closeMod(event)"><div class="mod" onclick="event.stopPropagation()" style="width:620px;max-width:100%">
     <div class="mh"><div><h2>🏖️ Vacaciones</h2><div class="mh-s">${p.nombre||""} · ${AREA_LBL[p.area]||p.area||""}</div></div><button class="btn btn-g btn-sm" onclick="closeMod()"><i class="ti ti-x"></i></button></div>
     <div class="mc">
       <h3 style="margin-bottom:8px">Solicitar vacaciones</h3>
@@ -9184,7 +9398,7 @@ function modVacaciones(){
            no lo es -- justamente la excepción que pide el usuario (semana con feriados de por medio)
            requiere poder mandar igual la solicitud, previa consulta a un superior por fuera del
            sistema; por eso el chequeo de abajo es una advertencia visual, no una validación dura. -->
-      <div class="note-box" style="margin-bottom:8px"><span>📌</span><div>El primer día (Desde) tiene que ser un <strong>lunes</strong>. Si esa semana tiene un feriado de por medio, consultá con un superior antes de solicitar.</div></div>
+      <div class="note-box" style="margin-bottom:8px"><span>📌</span><div>El primer día (Desde) tiene que ser un <strong>lunes</strong>. Si esa semana tiene un feriado de por medio, consultá con un superior antes de enviar la solicitud.</div></div>
       <div class="fg2">
         <div><span class="fl">Desde</span><input class="fc" type="date" value="${UI.vacDesde||""}" onchange="UI.vacDesde=this.value;UI.vacHastaCalOpen=true;render()"></div>
         <div><span class="fl">Hasta</span><input class="fc" type="date" value="${UI.vacHasta||""}" onchange="UI.vacHasta=this.value;UI.vacHastaCalOpen=false;render()"></div>
@@ -9194,7 +9408,7 @@ function modVacaciones(){
       ${UI.vacDesde&&new Date(UI.vacDesde+"T00:00:00").getDay()!==1?`<div class="note-box note-red" style="margin-bottom:8px">⚠️ El día elegido como "Desde" no es un lunes. Verificá la fecha o consultá con un superior si corresponde por un feriado.</div>`:""}
       <div class="fg">
         <span class="fl">Comentario / nota (opcional)</span>
-        <textarea class="fc" rows="2" placeholder="Lo puede ver Coordinación y Gerencia en la sección de vacaciones del personal" oninput="UI.vacNota=this.value">${(UI.vacNota||"").replace(/</g,"&lt;")}</textarea>
+        <textarea class="fc" rows="2" placeholder="Dejar una descripción" oninput="UI.vacNota=this.value">${(UI.vacNota||"").replace(/</g,"&lt;")}</textarea>
       </div>
       <button class="btn btn-p btn-sm" onclick="vacEnviar()">Enviar solicitud</button>
       <h3 style="margin:16px 0 8px">Mis solicitudes</h3>
@@ -9251,20 +9465,25 @@ function muMiSemanaHtml(mu){
 // modFrancos() más abajo -- Recepción ya no pasa por este modal, tiene su propio calendario compartido
 // en Coordinación). (Tanda 59 / ítem 5) Mantenimiento ya no tiene franco semanal recurrente -- ahora
 // solo se avisan excepciones puntuales por feriado (D.feriadosMant, el mismo dato que arma Coordinación
-// en feriadosMantHtml()), así que acá se muestra eso: un día es "franco" solo si está marcado
-// explícitamente como "no trabaja" para esa fecha exacta -- sin marca, se asume que trabaja normal.
-function personaProxDiasFrancosHtml(personId,n){
-  const out=[];
-  const base=new Date();base.setHours(0,0,0,0);
+// en feriadosMantHtml()).
+// (Tanda 87 / ítem 7) Renombrado de "Francos" a "Feriados" para Mantenimiento (Mucamas sigue diciendo
+// "Francos", no se tocó -- ver muMenuHtml()/modFrancos()). Antes esta función mostraba los próximos 7
+// días corridos SIEMPRE, asumiendo "Trabaja" en cualquier día sin marca explícita -- a pedido del
+// usuario, ahora solo se listan las fechas futuras (desde hoy) que el coordinador efectivamente marcó
+// en D.feriadosMant (sea "trabaja" o "no trabaja" ese feriado puntual); si no marcó nada, no aparece
+// nada -- ya no se muestran los 7 días por defecto.
+function personaProxFeriadosMantHtml(personId){
+  const hoy=hoyISO();
   const exc=(D.feriadosMant&&D.feriadosMant[personId])||{};
-  for(let i=0;i<n;i++){
-    const d=new Date(base);d.setDate(d.getDate()+i);
-    out.push({iso:d.toISOString().slice(0,10),dow:DOW_LBL[d.getDay()],franco:exc[d.toISOString().slice(0,10)]===false});
-  }
-  const row=x=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:6px;border-radius:12px;background:${x.franco?"#f3f4f6":"var(--white)"};border:2px solid ${x.franco?"transparent":"var(--border)"}">
-    <div style="width:76px;flex-shrink:0"><div style="font-size:13px;font-weight:800;text-transform:capitalize">${x.dow}</div><div style="font-size:11px;color:var(--text3)">${x.iso.slice(8,10)}/${x.iso.slice(5,7)}</div></div>
-    <div style="flex:1;font-size:14px;font-weight:700;color:${x.franco?"var(--text3)":"var(--text)"}">${x.franco?"Franco":"Trabaja"}</div>
+  const out=Object.entries(exc).filter(([iso])=>iso>=hoy).sort((a,b)=>a[0]<b[0]?-1:1);
+  if(!out.length)return `<div style="text-align:center;color:var(--text3);padding:14px;font-size:12px">Coordinación todavía no marcó ningún feriado próximo para vos.</div>`;
+  const row=([iso,trabaja])=>{
+    const d=new Date(iso+"T00:00:00");
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:6px;border-radius:12px;background:${trabaja?"var(--white)":"#f3f4f6"};border:2px solid ${trabaja?"var(--border)":"transparent"}">
+    <div style="width:90px;flex-shrink:0"><div style="font-size:13px;font-weight:800;text-transform:capitalize">${d.toLocaleDateString("es-AR",{weekday:"short"})}</div><div style="font-size:11px;color:var(--text3)">${iso.slice(8,10)}/${iso.slice(5,7)}/${iso.slice(0,4)}</div></div>
+    <div style="flex:1;font-size:14px;font-weight:700;color:${trabaja?"var(--text)":"var(--text3)"}">${trabaja?"Trabaja este feriado":"Franco / no trabaja"}</div>
   </div>`;
+  };
   return `<div>${out.map(row).join("")}</div>`;
 }
 // (Tanda 51 / ítem 7) Menú grande (3 barritas) para Mucamas y Mantenimiento: reemplaza los botones
@@ -9272,8 +9491,9 @@ function personaProxDiasFrancosHtml(personId,n){
 // un desplegable de 3 opciones -- cada una abre su propia sección/modal por separado (antes "Mi
 // semana" y "Soporte técnico" vivían juntos, con pestañas, dentro de modMuInfo()). "Mi semana" pasa a
 // llamarse "Francos" (ítem 7 del pedido) mantiene el mismo contenido para mucama (muMiSemanaHtml,
-// agenda concreta con horario) y usa el franco semanal recurrente para Mantenimiento (que no tiene
-// agenda de fechas concretas), vía personaProxDiasFrancosHtml() de arriba.
+// agenda concreta con horario) y usa las excepciones de feriados para Mantenimiento (que no tiene
+// agenda de fechas concretas), vía personaProxFeriadosMantHtml() de arriba -- renombrado a "Feriados"
+// para Mantenimiento en la Tanda 87 / ítem 7.
 window.toggleMuMenu=()=>{UI.muMenuOpen=!UI.muMenuOpen;render();};
 // (Tanda 53 / ítem 10) Ahora se pinta inline en el encabezado (mu-hdr/mt-hdr), al mismo nivel que
 // "Cerrar sesión" -- ya no es un botón flotante fijo arriba a la derecha (ver rMu()/rMant(), que lo
@@ -9284,11 +9504,14 @@ function muMenuHtml(){
   if(ROLE!=="mu"&&ROLE!=="mant")return"";
   const open=!!UI.muMenuOpen;
   const fbN=fbBadgeCount(ROLE);
+  // (Tanda 87 / ítem 7) Para Mantenimiento este ítem pasa a llamarse "Feriados" (Mucamas sigue diciendo
+  // "Francos" -- no se tocó, ver comentario grande más arriba de personaProxFeriadosMantHtml()).
+  const francoLbl=ROLE==="mant"?"Feriados":"Francos";
   return `<div class="mu-menu-wrap">
     <button class="mu-menu-btn" onclick="toggleMuMenu()" title="Menú" aria-label="Menú"><span class="mu-menu-bars"><span></span><span></span><span></span></span>${fbN?`<span class="mu-menu-badge">${fbN}</span>`:""}</button>
     ${open?`<div class="mu-menu-dd">
       <div class="mu-menu-item" onclick="UI.muMenuOpen=false;vacAbrir()"><span class="mu-menu-ic">🏖️</span> Vacaciones</div>
-      <div class="mu-menu-item" onclick="UI.muMenuOpen=false;francosAbrir()"><span class="mu-menu-ic">🗓️</span> Francos</div>
+      <div class="mu-menu-item" onclick="UI.muMenuOpen=false;francosAbrir()"><span class="mu-menu-ic">🗓️</span> ${francoLbl}</div>
       <div class="mu-menu-item" onclick="UI.muMenuOpen=false;soporteAbrir()"><span class="mu-menu-ic">🛠️</span> Soporte técnico de la app${fbN?`<span class="mu-menu-badge" style="position:static;margin-left:auto">${fbN}</span>`:""}</div>
       ${((D.customLinks&&D.customLinks[ROLE])||[]).map(l=>`<div class="mu-menu-item" onclick="UI.muMenuOpen=false;abrirSitioEmbebido('${(l.label||"").replace(/'/g,"\\'")}','${(l.url||"").replace(/'/g,"\\'")}')"><span class="mu-menu-ic">🔗</span> ${l.label}</div>`).join("")}
     </div>`:""}
@@ -9306,9 +9529,11 @@ function modFrancos(){
   const nombre=isMu?(mu?mu.nombre:""):(RNAME||"");
   const body=isMu
     ?(mu?muMiSemanaHtml(mu):`<div style="text-align:center;color:var(--text3);padding:14px;font-size:12px">Sin datos de agenda.</div>`)
-    :personaProxDiasFrancosHtml(RID,7);
+    :personaProxFeriadosMantHtml(RID);
+  // (Tanda 87 / ítem 7) Título "Feriados" para Mantenimiento, "Francos" para Mucamas (sin cambios).
+  const titulo=isMu?"🗓️ Francos":"🗓️ Feriados";
   return `<div class="ov" onclick="closeMod(event)"><div class="mod" onclick="event.stopPropagation()" style="max-width:560px">
-    <div class="mh"><div><h2>🗓️ Francos</h2><div class="mh-s">${nombre}</div></div><button class="btn btn-g btn-sm" onclick="closeMod()"><i class="ti ti-x"></i></button></div>
+    <div class="mh"><div><h2>${titulo}</h2><div class="mh-s">${nombre}</div></div><button class="btn btn-g btn-sm" onclick="closeMod()"><i class="ti ti-x"></i></button></div>
     <div class="mc">${body}</div>
   </div></div>`;
 }
@@ -12053,9 +12278,18 @@ window.openRendimiento=()=>{UI.mod="rendimiento";UI.rendPeriodo=UI.rendPeriodo||
 // botón nuevo que necesite este mismo comportamiento puede reutilizarlo llamando
 // abrirSitioEmbebido(titulo,url) -- no hace falta un modal nuevo por cada sitio. Se engancha al render
 // desde rAreaShell() (Administración/Gerencia/Coordinación, únicas áreas donde se usa por ahora).
-window.abrirSitioEmbebido=(titulo,url)=>{UI.mod="siteEmbed";UI.siteEmbedTitulo=titulo;UI.siteEmbedUrl=url;render();};
+// (Tanda 88) Cada vez que se llama a esta función es porque el usuario apretó el botón que abre ese
+// enlace embebido -- a diferencia de un render() disparado por otra cosa (el chequeo periódico de
+// cada 60s, por ejemplo, ver la guarda de más arriba en render() que evita que ESO recargue el
+// iframe solo), acá sí corresponde recargar la página incrustada, sea la primera vez que se abre o
+// se vuelva a apretar el mismo botón con el modal ya abierto (p.ej. desde el menú de 3 barritas, que
+// por su z-index más alto sigue siendo clickeable por encima del modal). UI.siteEmbedReload se lee
+// una sola vez dentro de la guarda de render() y se apaga ahí mismo.
+window.abrirSitioEmbebido=(titulo,url)=>{UI.mod="siteEmbed";UI.siteEmbedTitulo=titulo;UI.siteEmbedUrl=url;UI.siteEmbedReload=true;render();};
 function modSiteEmbed(){
-  return `<div class="ov" onclick="closeMod(event)"><div class="mod" onclick="event.stopPropagation()" style="max-width:none;width:92vw;height:92vh;max-height:92vh;display:flex;flex-direction:column;overflow:hidden">
+  // (Tanda 87) data-site-embed + data-site-embed-src permiten a render() detectar si el iframe
+  // ya está en el DOM con la misma URL y evitar recrearlo en cada render (ver guardia en render()).
+  return `<div class="ov" data-site-embed="1" data-site-embed-src="${(UI.siteEmbedUrl||"").replace(/"/g,'&quot;')}" onclick="closeMod(event)"><div class="mod" onclick="event.stopPropagation()" style="max-width:none;width:92vw;height:92vh;max-height:92vh;display:flex;flex-direction:column;overflow:hidden">
     <div class="mh" style="flex-shrink:0"><div><h2>${UI.siteEmbedTitulo||""}</h2></div><button class="btn btn-g btn-sm" onclick="closeMod()"><i class="ti ti-x"></i></button></div>
     <div class="mc" style="flex:1;padding:0;overflow:hidden">
       <iframe src="${UI.siteEmbedUrl||""}" style="width:100%;height:100%;border:none" title="${UI.siteEmbedTitulo||""}"></iframe>
