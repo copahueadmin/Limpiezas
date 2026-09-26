@@ -46,7 +46,15 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .nb:hover{color:#fff;background:var(--navy2)}
 .nb.on{color:#fff;background:var(--navy2);border-left-color:#5dcaa5}
 .nb i{font-size:15px;flex-shrink:0}
-.nb-n{margin-left:auto;background:#ef4444;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px;min-width:16px;text-align:center}
+/* (Tanda 95) ".nb-n" (el contador rojo de "Limpiezas"/"Mantenimiento"/"Feedback y Soporte" en el
+   sidebar) es hijo de ".nb-lbl", un <span> en línea (inline) -- "margin-left:auto" no tiene ningún
+   efecto ahí (los márgenes automáticos solo empujan dentro de un contenedor flex/grid, y ".nb-lbl" no
+   lo es), así que el contador quedaba pegado al texto sin ningún espacio real entre los dos. A pedido
+   del usuario ("un poquito más de distancia entre el contador y el texto"), se reemplaza por un
+   margen fijo -- alcanza con eso porque ".sb.collapsed .nb-lbl{display:none}" ya oculta esta etiqueta
+   entera (contador incluido) en el sidebar colapsado (solo íconos), así que no hace falta ningún
+   ajuste aparte para ese modo. */
+.nb-n{margin-left:6px;background:#ef4444;color:#fff;border-radius:10px;padding:1px 5px;font-size:9px;min-width:16px;text-align:center}
 .sb-foot{padding:10px 14px;cursor:pointer;color:var(--sand3);font-size:11px;display:flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0}
 .sb-foot:hover{color:#fff}
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
@@ -84,6 +92,13 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
    declaración que está más abajo en el archivo sin importar si está dentro o fuera de un @media (ver
    nota de "cascada de CSS" en Particularidades técnicas); declarar la regla base después de este
    bloque haría que siempre gane el `display:none`, incluso en anchos angostos. */
+/* (Tanda 93) Mismo motivo que el comentario de arriba (Tanda 80): la regla base de nombre completo/
+   inicial (conserjeriaFrancosMesHtml(), calendario de Conserjería) tiene que ir ANTES de este media
+   query para que, en un ancho angosto, gane la regla que sí está definida dentro del @media más
+   abajo (que la invierte) -- si esta base quedara declarada más abajo en el archivo, ganaría siempre
+   ella sola sin importar el ancho de pantalla. */
+.cf-nom-full{display:inline}
+.cf-nom-init{display:none}
 @media (max-width:860px){
   .area-shell{flex-direction:column;height:auto;min-height:100vh;overflow:visible}
   .area-shell>.sb{display:none}
@@ -124,6 +139,15 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
      z-index 60 queda por debajo del desplegable de 3 rayitas (z-index 520) para que ese menú se siga
      viendo por encima si se abre con un enlace externo de fondo. */
   .cnt-embed{position:fixed!important;top:50px!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;height:auto!important;margin:0!important;border:none!important;border-radius:0!important;z-index:60}
+  /* (Tanda 93) En "Personal y francos", el calendario de Conserjería (conserjeriaFrancosMesHtml())
+     muestra en cada día el nombre completo de quien tiene franco y de quien lo cubre -- a pedido del
+     usuario, en celular pasan a mostrarse solo con su inicial (la celda del calendario es angosta y
+     el nombre completo quedaba muy apretado ahí) SIN afectar la vista de escritorio, que sigue
+     mostrando el nombre completo de siempre (fuera de este media query, ".cf-nom-full"/".cf-nom-init"
+     tienen la regla inversa, ver más abajo en el archivo). Mismo criterio ya usado para "en celular
+     cambia, en escritorio no" que el resto de este bloque. */
+  .cf-nom-full{display:none}
+  .cf-nom-init{display:inline}
 }
 
 /* BUTTONS */
@@ -261,6 +285,15 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .ppdd-btn{padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--white);cursor:pointer;font-size:12px;font-weight:700;color:var(--navy);display:inline-flex;align-items:center;gap:6px;font-family:inherit}
 .ppdd-btn:hover{background:#f8f5f0}
 .ppdd-panel{position:absolute;top:100%;left:0;margin-top:6px;background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.16);z-index:70;max-height:min(70vh,420px);overflow-y:auto;padding:10px 12px}
+/* (Tanda 92) Widget de campo custom del flotante de francos (conserjería): botón enfocable
+   (.cf-fbtn) + lista de opciones propia (.cf-opts/.cf-opt), reemplaza los <select> nativos para
+   que nada se abra como overlay del navegador/SO (disruptivo en tablets) y para que Tab pueda
+   recorrer los campos con foco real. */
+.cf-fbtn:focus{outline:2px solid var(--teal2);outline-offset:1px}
+.cf-opts{position:absolute;top:100%;left:0;right:0;margin-top:2px;background:var(--white);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.18);max-height:160px;overflow-y:auto;z-index:10}
+.cf-opt{padding:6px 8px;font-size:12px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cf-opt:hover{background:var(--sand)}
+.cf-opt.on{background:var(--teal);color:#fff;font-weight:700}
 .hist-restore{opacity:0;flex-shrink:0;padding:5px 10px;border-radius:8px;border:1px solid var(--teal);background:var(--sand);color:var(--teal);font-size:10px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .12s;display:flex;align-items:center;gap:4px}
 .hist-row:hover .hist-restore{opacity:1}
 .hist-restore:hover{background:var(--teal);color:#fff}
@@ -2213,11 +2246,28 @@ function loadD(){
 // probar logins de recepción, mucamas y mantenimiento durante el desarrollo, y esos usuarios de
 // prueba quedaron guardados en localStorage/Firebase -- actualizar el archivo publicado NO los
 // borra solo, porque D.users/D.mu se cargan desde lo ya persistido, no desde el default del
-// código. Esta función corre UNA sola vez (queda marcada con `personnelWipedV1`, sincronizado
-// como el resto de D, así que corre una sola vez en total, no una vez por dispositivo) y borra
-// D.mu por completo más las cuentas de D.users de área "rec" y "mant" (deja intactas las cuentas
-// de área "admin", que no son de prueba). De ahí en más, cualquier mucama/usuario que se cree
-// desde Gestión de personal queda como está, sin que este chequeo vuelva a tocarlo.
+// código. Esta función corría UNA sola vez, marcándose con `personnelWipedV1` -- la idea era que,
+// al estar esa marca sincronizada como el resto de D, corriera una sola vez en total, no una vez
+// por dispositivo.
+// (Tanda 89) DESACTIVADA -- era la causa de que usuarios de personal (y mucamas) cargados
+// legítimamente desaparecieran "solos" al día siguiente. El problema: esta función se llama de
+// forma SINCRÓNICA muy temprano en el arranque (ver el `try{wipeTestPersonnelOnce();}catch(e){}`
+// más abajo en el archivo), ANTES de que `CLOUD_KEYS.forEach(attachCloudListener)` siquiera se
+// ejecute -- y ese listener de Firestore, aunque se ejecutara antes, igual responde de forma
+// asincrónica (nunca a tiempo para este chequeo). Es decir, `D.personnelWipedV1` acá arriba refleja
+// ÚNICAMENTE lo que este dispositivo/navegador tenía guardado en su propio localStorage, no lo que
+// ya está confirmado en la nube. Cualquier dispositivo/navegador que abra la app SIN esa marca
+// puesta localmente -- una tablet o computadora nueva, un navegador distinto, o el mismo después de
+// borrar datos de sitio/caché -- ejecuta el borrado usando su copia LOCAL (posiblemente vieja) de
+// D.mu/D.users, y como el borrado termina en `lsS(...)` (que siempre empuja a Firestore), esa copia
+// vieja/vacía se sube y PISA la de la nube -- borrando de la nube, para todos los demás
+// dispositivos, cualquier mucama o usuario de recepción/mantenimiento cargado legítimamente desde
+// que corrió el último "borrado". Reproducido y confirmado con Playwright: un dispositivo nuevo con
+// usuarios reales ya sincronizados pero sin la marca local los perdía igual. Como esta limpieza ya
+// cumplió su propósito hace muchas tandas (los usuarios de prueba originales del desarrollo ya no
+// deberían seguir ahí) y seguir llamándola solo puede seguir causando pérdida de datos reales, se
+// deja de invocar (ver el `try{...}` más abajo, ahora comentado) -- la función queda definida por si
+// hace falta revisar el historial, pero no se ejecuta más.
 function wipeTestPersonnelOnce(){
   if(D.personnelWipedV1)return;
   const hadMu=D.mu.length,hadUsers=D.users.filter(u=>u.area==="rec"||u.area==="mant").length;
@@ -2871,12 +2921,21 @@ function checkResetDiario(){
     // se termina de completar solo a las 5am (o antes si es admin probando) en checkCheckoutAutoRefresh().
     D.checkoutHoy={date:h,ids:D.rooms.filter(r=>r.ocupada&&r.ocupadaAyer&&roomStateLbl(r)==="Limpieza").map(r=>r.id),refreshed5am:false,audited:false,notified:false};
     lsS(K.checkoutHoy,D.checkoutHoy);
-    // Limpia días pasados de cada mucama; elimina mucamas sin días futuros
+    // Limpia días pasados de cada mucama (deja solo los días de hoy en adelante en su calendario).
+    // (Tanda 89) ANTES esto también borraba (`.filter(m=>!m.dias||m.dias.length>0)`) por completo a
+    // cualquier mucama que se quedara sin ningún día futuro cargado -- una mucama nueva arranca con
+    // `dias:[hoyISO()]` (ver openNewMu()) y, si nadie le carga días futuros el mismo día que se la da
+    // de alta, este chequeo (que corre solo, la primera vez que se abre la app en un día distinto)
+    // la eliminaba entera al día siguiente -- nombre, apodo, clave, color, todo -- sin ningún aviso ni
+    // confirmación. Esta es la causa de que "se borren solas" las mucamas cargadas recientemente. Se
+    // saca el `.filter(...)` que borraba la mucama: ahora solo se le vacía el calendario de días
+    // pasados, igual que antes, pero la CUENTA nunca se borra sola -- borrar una mucama sigue siendo
+    // una acción explícita del admin/coordinador desde "Gestión de personal" (ver uDel()).
     D.mu=D.mu.map(m=>{
       if(!m.dias)return m;
       const fut=m.dias.filter(d=>d>=h);
       return {...m,dias:fut};
-    }).filter(m=>!m.dias||m.dias.length>0);
+    });
     lsS(K.mu,D.mu);
     // Historial de problemas: se borran solos los resueltos de hace más de 7 días
     const semanaMs=7*24*60*60*1000;
@@ -3557,6 +3616,30 @@ let _scrollMemory={};
 function _viewKey(){
   return [ROLE,UI.v,UI.mantTab,UI.adminMode,UI.rolCard,UI.selR,UI.selA].join("|");
 }
+// (Tanda 90) Paneles de contenido con un enlace externo embebido a pantalla completa DENTRO del
+// panel (no en el modal de "sitio embebido" de arriba, ver comentario de la Tanda 87 más abajo en
+// esta misma función) -- Stock/Devengamiento/Tarifario/Presupuestos/Desayunos mensuales/Roomings/
+// Agenda/Asistente Copahuito/accesos personalizados, todos con class="cnt-embed" (ver vStock() y
+// funciones hermanas, y el `clActivo` de rAreaShell()). Esta tabla replica, sección por sección, el
+// mismo mapeo de claves que ya usan rGer()/rAdminArea()/rCoord() (UI.areaSec[role]) y rRec() (UI.v)
+// para decidir qué mostrar -- se usa solo para saber, ANTES de reconstruir #app, si la sección activa
+// es una de estas, así render() puede evitar destruir el <iframe> ya cargado (ver _currentCntEmbedKey
+// más abajo).
+const CNT_EMBED_SECTIONS={ger:["deveng","tarifas","presup","infodesay"],admin:["stock","deveng","tarifas","infodesay","agenda"],coord:["stock","presup","agenda"]};
+const CNT_EMBED_V_REC=["stock","copahuito","roomings"];
+let _lastCntEmbedKey=null;
+function _currentCntEmbedKey(){
+  if(ROLE==="ger"||ROLE==="admin"||ROLE==="coord"){
+    const sec=(UI.areaSec&&UI.areaSec[ROLE])||"home";
+    if((sec.indexOf&&sec.indexOf("cl:")===0)||CNT_EMBED_SECTIONS[ROLE].indexOf(sec)!==-1)return ROLE+"|"+sec;
+    return null;
+  }
+  if(ROLE==="rec"){
+    if(CNT_EMBED_V_REC.indexOf(UI.v)!==-1)return "rec|"+UI.v;
+    return null;
+  }
+  return null;
+}
 function render(){
   // (Tanda 87) Mientras el modal de "sitio embebido" (abrirSitioEmbebido/modSiteEmbed) está abierto,
   // NO reconstruimos toda la vista de fondo: rXxx() reemplaza todo el innerHTML de #app, lo que
@@ -3586,6 +3669,26 @@ function render(){
     }
     return;
   }
+  // (Tanda 90) Mismo problema que el modal de "sitio embebido" de arriba, pero para los paneles de
+  // contenido que llevan un enlace externo embebido a pantalla completa DENTRO del panel (Stock/
+  // Devengamiento/Tarifario/Presupuestos/Desayunos mensuales/Roomings/Agenda/Asistente Copahuito/
+  // accesos personalizados -- ver CNT_EMBED_SECTIONS/CNT_EMBED_V_REC/_currentCntEmbedKey() más arriba):
+  // rGer()/rAdminArea()/rCoord()/rRec() hacen `#app.innerHTML=...` completo en cada render(), lo que
+  // destruye el <iframe> ya cargado y lo recarga desde cero -- pasaba con cualquier render() disparado
+  // por otra cosa (chequeos periódicos, otros cambios de estado), no solo al navegar. UI._cntReload la
+  // prenden SOLO areaNavGo()/areaCustomLinkGo()/sv() -- es decir, una navegación explícita del usuario
+  // (sea para entrar a la sección por primera vez o para "recargarla" volviendo a tocar el mismo ítem
+  // ya activo, mismo criterio que UI.siteEmbedReload arriba). Si la sección activa es una de estas Y
+  // no cambió desde el último render() Y no hubo navegación explícita, no tocamos el DOM y salimos acá
+  // -- si cambió de sección o el iframe todavía no está montado, dejamos que rXxx() reconstruya normal.
+  const _cntKey=_currentCntEmbedKey();
+  const _forceCntReload=UI._cntReload===true;
+  UI._cntReload=false;
+  if(_cntKey&&!_forceCntReload&&_cntKey===_lastCntEmbedKey){
+    const _appElCnt=document.getElementById("app");
+    if(_appElCnt&&_appElCnt.querySelector(".cnt-embed iframe"))return;
+  }
+  _lastCntEmbedKey=_cntKey;
   const key=_viewKey();
   const sameView=key===_lastViewKey;
   // (Tanda 53) El scroll del propio menú lateral (.sb-nav) se guarda y restaura SIEMPRE, sin importar
@@ -3963,10 +4066,10 @@ function rAreaShell(role,titulo,emoji,navItems,bodyHtml){
 </div>
 ${UI.mod==="rendimiento"?modRendimiento():""}`;
 }
-window.areaNavGo=(role,key)=>{UI.areaSec=UI.areaSec||{};UI.areaSec[role]=key;render();};
+window.areaNavGo=(role,key)=>{UI.areaSec=UI.areaSec||{};UI.areaSec[role]=key;UI._cntReload=true;render();};
 // (Tanda 68 / ítem 4) Navega a un acceso personalizado embebido -- ver el "cl:<id>" que resuelve
 // rAreaShell() más arriba.
-window.areaCustomLinkGo=(role,id)=>{UI.areaSec=UI.areaSec||{};UI.areaSec[role]="cl:"+id;render();};
+window.areaCustomLinkGo=(role,id)=>{UI.areaSec=UI.areaSec||{};UI.areaSec[role]="cl:"+id;UI._cntReload=true;render();};
 // (Tanda 80) Menú hamburguesa móvil de Gerencia/Administración/Coordinación (.area-menu-wrap/
 // .area-menu-dd en rAreaShell()) -- mismo patrón toggle+listener-de-click-afuera que ya usa
 // toggleMuMenu()/su listener para Mucamas/Mantenimiento, con su propio estado (UI.areaMenuOpen) para
@@ -4053,9 +4156,12 @@ function rCoord(){
   // Gerencia), porque el usuario lo pidió así puntualmente para este acceso.
   // (Tanda 67 / ítems 3 y 4) "Agenda coordinativa" -> "Agenda" y "Ver presupuestos" -> "PRESUPUESTOS"
   // (en mayúsculas, así lo pidió el usuario puntualmente para este rol/etiqueta).
+  // (Tanda 93) El usuario volvió a pedir el cambio, ahora en sentido contrario: "PRESUPUESTOS" queda
+  // como el resto de las etiquetas de este mismo menú (mayúscula solo la inicial, como "Inicio"/
+  // "Stock"/"Agenda"), sin la excepción en mayúsculas sostenidas que se había dejado en la Tanda 67.
   // (Tanda 78 / ítem 3) "Inicio": aviso de vacaciones pendientes pasa a ir DEBAJO de "Bienvenido/a",
   // mismo cambio (y mismo motivo) que en Gerencia -- ver el comentario junto a `rGer()`.
-  const navItems=[{key:"home",ic:"🏠",lbl:"Inicio"},{key:"blancos",ic:"🧺",lbl:"Blancos / Lavadero"},{key:"personal",ic:"👥",lbl:"Personal y francos"},{key:"roomings",ic:"🏨",lbl:"Roomings"},{key:"vacaciones",ic:"🏖️",lbl:"Vacaciones personal"},{key:"facturacion",ic:"💰",lbl:"Facturación mensual"},{key:"stock",ic:"📦",lbl:"Stock"},{key:"presup",ic:"🧾",lbl:"PRESUPUESTOS"},{key:"agenda",ic:"📅",lbl:"Agenda"}];
+  const navItems=[{key:"home",ic:"🏠",lbl:"Inicio"},{key:"blancos",ic:"🧺",lbl:"Blancos / Lavadero"},{key:"personal",ic:"👥",lbl:"Personal y francos"},{key:"roomings",ic:"🏨",lbl:"Roomings"},{key:"vacaciones",ic:"🏖️",lbl:"Vacaciones personal"},{key:"facturacion",ic:"💰",lbl:"Facturación mensual"},{key:"stock",ic:"📦",lbl:"Stock"},{key:"presup",ic:"🧾",lbl:"Presupuestos"},{key:"agenda",ic:"📅",lbl:"Agenda"}];
   const body=sec==="blancos"?blancosRecapHtml():sec==="personal"?personalFrancosSectionHtml():sec==="roomings"?vRoomings():sec==="vacaciones"?vacGestionHtml():sec==="facturacion"?facturacionSectionHtml():sec==="stock"?vStock():sec==="presup"?vPresupuestos():sec==="agenda"?vAgendaCoordinativa():sec==="home"?(areaWelcomeCard("Coordinación","🧭")+vacPendientesNotifHtml("coord")):areaWelcomeCard("Coordinación","🧭");
   rAreaShell("coord","Coordinación","🧭",navItems,body);
 }
@@ -4240,7 +4346,7 @@ window.uSave=()=>{
 
 // ═══════════════ RECEPCIÓN ═══════════════
 
-const VTIT={dash:"Resumen del día",plan:"Limpiezas",audit:"Auditoría nocturna",gen:"Vista general",inf:"Informe",blancos:"Blancos",muv:"Mucamas y turnos",mant:"Mantenimiento",cons:"Novedades conserjería",coch:"Cocheras mensuales",cte:"Cuenta corriente",habs:"Habitaciones",stock:"Stock",feedback:"Feedback / Soporte técnico",deveng:"Devengamiento",tarifas:"Tarifario",presup:"Ver presupuestos",infodesay:"Informe desayuno",copahuito:"Asistente Copahuito"};
+const VTIT={dash:"Resumen del día",plan:"Limpiezas",audit:"Auditoría nocturna",gen:"Vista general",inf:"Informe",blancos:"Blancos",muv:"Mucamas y turnos",mant:"Mantenimiento",cons:"Novedades conserjería",coch:"Cocheras mensuales",cte:"Cuenta corriente",habs:"Habitaciones",stock:"Stock",feedback:"Feedback / Soporte técnico",deveng:"Devengamiento",tarifas:"Tarifario",presup:"Ver presupuestos",infodesay:"Informe desayuno",copahuito:"Asistente Copahuito",roomings:"Roomings"};
 // (Tanda 82 / ítem 1) "Asistente Copahuito" se muda acá (sidebar de Recepción, justo debajo de
 // "Stock") desde el sidebar de Administración -- ver el comentario junto a `rAdminArea()`.
 // `vAsistenteCopahuito()` no tiene ningún gating por rol adentro (solo embebe un iframe), así que
@@ -4310,6 +4416,10 @@ function rRec(){
       ${nb("cons","📖","Novedades conserjería")}
       ${nb("coch","🚗","Cocheras mensuales")}
       ${nb("stock","📦","Stock")}
+      <!-- (Tanda 94) "Roomings" se suma al sidebar de Recepción -- mismo acceso (misma vRoomings(),
+      sin gating por rol adentro, ya reutilizada tal cual por Coordinación desde la Tanda 53) que ya
+      tenía Coordinación, a pedido puntual del usuario para este rol. -->
+      ${nb("roomings","🏨","Roomings")}
       ${nb("copahuito","🤖","Asistente Copahuito")}
       <div class="sb-grp">Info</div>
       ${nb("cte","📒","Cuenta corriente")}
@@ -4354,7 +4464,7 @@ function rRec(){
         UI.v==="audit"?vAuditView():UI.v==="det"?vDet():UI.v==="inf"?vInf():UI.v==="blancos"?vBlancos():UI.v==="muv"?vMuv():
         UI.v==="mant"?vMant():UI.v==="cons"?vCons():UI.v==="coch"?vCoch():
         UI.v==="stock"?vStock():UI.v==="feedback"?vFeedbackRec():
-        UI.v==="copahuito"?vAsistenteCopahuito():
+        UI.v==="copahuito"?vAsistenteCopahuito():UI.v==="roomings"?vRoomings():
         UI.v==="cte"?vCte():vHabs()}
     </div>
   </main>
@@ -5153,7 +5263,10 @@ function vMuv(){
         </div>
         <div style="display:flex;gap:2px">
           <button class="btn btn-g btn-sm" onclick="openEditMu('${mu.id}')"><i class="ti ti-edit" style="font-size:12px"></i></button>
-          <button class="btn btn-g btn-sm btn-d" onclick="UI.delType='mu';UI.delId='${mu.id}';UI.mod='confirm';render()"><i class="ti ti-trash" style="font-size:12px"></i></button>
+          <!-- (Tanda 89) Bot\u00f3n de eliminar mucama sacado -- ver el comentario igual en la copia
+               viva de esta funci\u00f3n m\u00e1s abajo en el archivo (esta es la copia duplicada/muerta de
+               vMuv(), la \u00faltima declaraci\u00f3n gana). Eliminar mucamas pasa a ser posible SOLO desde
+               "Gesti\u00f3n de personal" (uDel()). -->
         </div>
       </div>
       <div style="background:var(--sand);border-radius:var(--r);padding:9px 11px;margin-bottom:7px">
@@ -5920,7 +6033,7 @@ function modConfirm(){
   </div></div>`;
 }
 // ═══════════════ ACCIONES ═══════════════
-window.sv=v=>{UI.v=v;render()};
+window.sv=v=>{UI.v=v;UI._cntReload=true;render()};
 window.descargarInformePDF=()=>{
   const _now=new Date();
   const fd=_now.toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
@@ -6993,7 +7106,10 @@ function vMuv(){
         </div>
         <div style="display:flex;gap:2px">
           <button class="btn btn-g btn-sm" onclick="openEditMu('${mu.id}')" title="Editar">\u270f\ufe0f</button>
-          <button class="btn btn-g btn-sm btn-d" onclick="UI.delType='mu';UI.delId='${mu.id}';UI.mod='confirm';render()" title="Eliminar">\u274c</button>
+          <!-- (Tanda 89) El bot\u00f3n de eliminar mucama se saca de esta tarjeta de "Personal en vivo" --
+               a pedido del usuario, eliminar una mucama pasa a ser posible SOLO desde "Gesti\u00f3n de
+               personal" (uDel()), nunca desde ac\u00e1 ni desde ning\u00fan otro lugar -- ver tambi\u00e9n
+               doDelete(), que ya no acepta UI.delType==="mu". -->
         </div>
       </div>
       <div style="background:var(--sand);border-radius:var(--r);padding:9px 11px;margin-bottom:7px">
@@ -9658,7 +9774,31 @@ function francosMesNavHtml(){
 // seleccionarlo (UI.consFrancoDiaSel) y, debajo, se cargan hasta 2 entradas {personId,cubreId} para
 // ESE día -- quién tiene franco y quién lo cubre, siempre eligiendo entre el personal de Recepción/
 // Conserjería registrado con usuario en el sistema (francoPersonalRec()), nunca texto libre.
+// (Tanda 90) Esta función (consFrancoDiaSel) sigue tal cual, sin tocar -- la sigue usando el modo
+// SOLO LECTURA de Gerencia (soloLectura=true, ver conserjeriaFrancosMesHtml()/francosSoloLecturaHtml()),
+// que no cambió: clickear un día ahí sigue mostrando su detalle en la tarjeta de abajo. El modo
+// editable (Administración/Coordinación) pasa a usar consFrancoPopToggle() en su lugar, ver más abajo.
 window.consFrancoDiaSel=(fechaISO)=>{UI.consFrancoDiaSel=fechaISO;render();};
+// (Tanda 90) A pedido del usuario, armar los francos de Conserjería deja de requerir marcar el día y
+// bajar la vista hasta una tarjeta separada -- ahora se hace directo en un flotante que se abre pegado
+// al propio día del calendario (mismo patrón ya establecido en la app para paneles flotantes que se
+// abren/cierran con un click, ver togPlanPanel()/toggleAsigPicker() en Recepción > Limpiezas). Estado
+// separado de UI.consFrancoDiaSel (que sigue siendo del modo solo lectura) para no interferir entre
+// los dos: acá `null` = ningún flotante abierto, y cualquier otro valor es la fecha ISO del día cuyo
+// flotante está abierto -- clickear el mismo día otra vez, clickear otro día, o clickear afuera de
+// cualquier flotante lo cierran (ver el listener global de "click afuera" más abajo en el archivo).
+// (Tanda 92) Abrir/cerrar el flotante de un día ya no es un toggle "ciego" -- ahora distingue si
+// ESTÁ abriendo (para foquear de una el primer campo, ver cfFocusFirstOrLast()) de si está cerrando
+// (nada que foquear). También limpia UI.cfFieldOpen (qué campo interno, si alguno, tiene su propio
+// listado de opciones desplegado, ver cfFieldToggle()) para no dejar un listado fantasma abierto si
+// se vuelve a abrir el mismo día más tarde.
+window.consFrancoPopToggle=(fechaISO)=>{
+  const abriendo=UI.consFrancoPopFecha!==fechaISO;
+  UI.consFrancoPopFecha=abriendo?fechaISO:null;
+  UI.cfFieldOpen=null;
+  render();
+  if(abriendo)cfFocusFirstOrLast(fechaISO,"first");
+};
 window.consFrancoAgregar=(fechaISO)=>{
   D.consFrancoDias=D.consFrancoDias||{};
   const cur=D.consFrancoDias[fechaISO]||[];
@@ -9669,6 +9809,16 @@ window.consFrancoAgregar=(fechaISO)=>{
   D.consFrancoDias={...D.consFrancoDias,[fechaISO]:[...cur,{personId:disponible.id,cubreId:""}]};
   lsS(K.consFrancoDias,D.consFrancoDias);
   render();
+};
+// (Tanda 92) Envuelve consFrancoAgregar() sin tocarla -- después de agregar (si efectivamente se
+// agregó: consFrancoAgregar() puede no hacer nada si ya hay 2 francos o no queda nadie disponible),
+// foquea el campo "quién tiene franco" del franco recién creado, para poder seguir completando con
+// TAB sin soltar el teclado.
+window.cfAgregarClick=(fechaISO)=>{
+  const antes=((D.consFrancoDias&&D.consFrancoDias[fechaISO])||[]).length;
+  consFrancoAgregar(fechaISO);
+  const despues=((D.consFrancoDias&&D.consFrancoDias[fechaISO])||[]).length;
+  if(despues>antes)cfFocusField(fechaISO,antes,"person");
 };
 window.consFrancoQuitar=(fechaISO,idx)=>{
   D.consFrancoDias=D.consFrancoDias||{};
@@ -9687,6 +9837,116 @@ window.consFrancoSet=(fechaISO,idx,campo,val)=>{
   lsS(K.consFrancoDias,D.consFrancoDias);
   render();
 };
+// (Tanda 92) Reemplaza los <select> nativos de cada campo (persona con franco / quién cubre) dentro
+// del flotante -- a pedido del usuario, la edición tiene que quedar SIEMPRE contenida adentro del
+// propio flotante de la fecha, y un <select> nativo abre su listado de opciones como una capa del
+// navegador/sistema operativo, por fuera de nuestro HTML (muy notorio en tablet, donde tocar un
+// <select> abre un selector nativo a pantalla completa) -- exactamente el "otro flotante que se abre
+// afuera" que no se quería. Este campo es un botón propio (className cf-fbtn) que al clickearlo
+// despliega, DENTRO del mismo flotante (position:relative en el campo, position:absolute en el
+// listado, ver CSS ".cf-opts"), la lista de personal para elegir -- nunca un control nativo del
+// navegador. Mismo patrón de estado que togPlanPanel()/toggleAsigPicker(): UI.cfFieldOpen guarda
+// {fecha,idx,field} del ÚNICO campo con su listado abierto, o null si ninguno.
+window.cfFieldToggle=(ev,fechaISO,idx,field)=>{
+  ev.stopPropagation();
+  const cur=UI.cfFieldOpen;
+  const mismo=cur&&cur.fecha===fechaISO&&cur.idx===idx&&cur.field===field;
+  UI.cfFieldOpen=mismo?null:{fecha:fechaISO,idx,field};
+  render();
+  cfFocusField(fechaISO,idx,field);
+};
+// (Tanda 92) Elegir una opción del listado propio de un campo: guarda el valor (consFrancoSet(), sin
+// tocar esa función) y cierra el listado, devolviendo el foco al botón del campo -- así timeline de
+// TAB puede seguir de largo hacia el próximo campo sin que el usuario tenga que volver a clickear
+// nada.
+window.cfPick=(fechaISO,idx,campo,val)=>{
+  UI.cfFieldOpen=null;
+  consFrancoSet(fechaISO,idx,campo,val);
+  cfFocusField(fechaISO,idx,campo==="personId"?"person":"cubre");
+};
+// (Tanda 92) Clickear el flotante en cualquier parte que NO sea un campo (el título, el padding, el
+// botón "Agregar franco") cierra el listado de opciones que haya quedado abierto, sin cerrar todo el
+// flotante -- evita que un listado se quede desplegado tapando el resto del flotante si el usuario
+// clickea a un costado en vez de elegir una opción o clickear el campo de nuevo.
+window.cfPopClick=(ev)=>{
+  ev.stopPropagation();
+  if(!ev.target.closest(".cf-field")&&UI.cfFieldOpen){UI.cfFieldOpen=null;render();}
+};
+// (Tanda 92) Devuelve la fecha ISO del día siguiente (dir=1) o anterior (dir=-1) dentro de la MISMA
+// grilla visible del mes actual (incluye los días de relleno del mes anterior/siguiente que ya se
+// muestran en pantalla, ver celdasMesCompleto()) -- null si no hay (extremo de la grilla visible), en
+// cuyo caso TAB sigue de largo hacia afuera del calendario en vez de intentar cruzar de mes solo.
+function cfAdjacentFecha(fechaISO,dir){
+  const ym=francosCalYM();
+  const [a,m]=ym.split("-").map(Number);
+  const celdas=celdasMesCompleto(a,m-1,true);
+  const idx=celdas.findIndex(c=>c.iso===fechaISO);
+  if(idx===-1)return null;
+  const dest=idx+dir;
+  if(dest<0||dest>=celdas.length)return null;
+  return celdas[dest].iso;
+}
+// (Tanda 92) Foquea el botón de un campo puntual (idx/field) de un día -- se usa después de un
+// render() (que reconstruye todo el DOM) para recuperar el foco sobre el botón recién recreado.
+function cfFocusField(fechaISO,idx,field){
+  const el=document.querySelector(`.cf-fbtn[data-cf-btn="${fechaISO}|${idx}|${field}"]`);
+  if(el)el.focus();
+}
+// (Tanda 92) Foquea el PRIMER o ÚLTIMO campo realmente tabulable de un día -- "primero" es el campo
+// "persona" del franco 0 si ya hay algún franco cargado, o si no el botón "Agregar franco"; "último"
+// es el campo "cubre" del franco 1 (índice 1) SOLO si ya hay 2 francos cargados (el tope), o si no
+// el botón "Agregar franco" (que en ese caso es el último control tabulable del flotante). Se usa al
+// abrir un día (foquear su primer campo) y al saltar de día en día con TAB (ver cfFieldTab()/
+// cfAgregarTab() más abajo).
+function cfFocusFirstOrLast(fechaISO,cual){
+  const entradas=(D.consFrancoDias&&D.consFrancoDias[fechaISO])||[];
+  let sel;
+  if(cual==="first")sel=entradas.length?`.cf-fbtn[data-cf-btn="${fechaISO}|0|person"]`:`.cf-add-btn[data-cf-add="${fechaISO}"]`;
+  else sel=entradas.length===2?`.cf-fbtn[data-cf-btn="${fechaISO}|1|cubre"]`:`.cf-add-btn[data-cf-add="${fechaISO}"]`;
+  const el=document.querySelector(sel);
+  if(el)el.focus();
+}
+// (Tanda 92) A pedido del usuario, TAB dentro del flotante de un día pasa de campo en campo (persona
+// del franco 1 -> cubre del franco 1 -> persona del franco 2 -> cubre del franco 2, en ese orden, ya
+// gratis por el orden natural del DOM/foco del navegador -- no hace falta código extra para ESO) y,
+// al llegar al ÚLTIMO campo tabulable de un día, sigue derecho hacia el PRIMER campo del día
+// siguiente en el calendario (Shift+TAB desde el PRIMER campo de un día va al ÚLTIMO del día
+// anterior) -- eso sí necesita interceptar el TAB acá, porque por defecto el navegador no tiene
+// ninguna noción de "el día de al lado" (los demás días ni siquiera tienen su flotante montado en el
+// DOM). Los botones de "Quitar este franco" y la "✕" de cerrar llevan tabindex="-1" (no entran en
+// esta secuencia) para que TAB solo recorra los campos de datos, tal como se pidió.
+window.cfFieldTab=(ev,fechaISO,idx,field)=>{
+  if(ev.key!=="Tab")return;
+  const entradas=(D.consFrancoDias&&D.consFrancoDias[fechaISO])||[];
+  const esPrimero=idx===0&&field==="person";
+  const esUltimo=field==="cubre"&&idx===entradas.length-1&&entradas.length===2;
+  if(!ev.shiftKey&&esUltimo){
+    ev.preventDefault();
+    const sig=cfAdjacentFecha(fechaISO,1);
+    if(sig){UI.consFrancoPopFecha=sig;UI.cfFieldOpen=null;render();cfFocusFirstOrLast(sig,"first");}
+  }else if(ev.shiftKey&&esPrimero){
+    ev.preventDefault();
+    const ant=cfAdjacentFecha(fechaISO,-1);
+    if(ant){UI.consFrancoPopFecha=ant;UI.cfFieldOpen=null;render();cfFocusFirstOrLast(ant,"last");}
+  }
+};
+// (Tanda 92) Mismo salto de día en día que cfFieldTab(), aplicado al botón "Agregar franco" -- es
+// SIEMPRE el último campo tabulable cuando está presente (hay menos de 2 francos cargados), así que
+// TAB desde acá siempre pasa al día siguiente. `esUnico` (true solo cuando el día todavía no tiene
+// NINGÚN franco cargado, así que este botón es a la vez el primer Y el único campo del día) habilita
+// que Shift+TAB desde acá también salte hacia atrás, al día anterior.
+window.cfAgregarTab=(ev,fechaISO,esUnico)=>{
+  if(ev.key!=="Tab")return;
+  if(!ev.shiftKey){
+    ev.preventDefault();
+    const sig=cfAdjacentFecha(fechaISO,1);
+    if(sig){UI.consFrancoPopFecha=sig;UI.cfFieldOpen=null;render();cfFocusFirstOrLast(sig,"first");}
+  }else if(esUnico){
+    ev.preventDefault();
+    const ant=cfAdjacentFecha(fechaISO,-1);
+    if(ant){UI.consFrancoPopFecha=ant;UI.cfFieldOpen=null;render();cfFocusFirstOrLast(ant,"last");}
+  }
+};
 // (Tanda 69 / ítem 3) Vacaciones YA APROBADAS (cualquier estado salvo "pendiente"/"rechazado") de
 // Recepción o Mucamas que caen dentro de un día dado -- para el distintivo "vacaciones X" del
 // calendario de Conserjería. Reutiliza D.vacaciones (mismo modelo que vacGestionHtml()) sin duplicar
@@ -9695,11 +9955,66 @@ const VAC_ESTADOS_APROBADOS=["aprobado_coord","aprobado_ger","confirmado"];
 function vacacionesAprobadasEnDia(fechaISO){
   return (D.vacaciones||[]).filter(r=>VAC_ESTADOS_APROBADOS.includes(r.estado)&&["rec","mu"].includes(r.personArea)&&r.desde<=fechaISO&&fechaISO<=r.hasta);
 }
+// (Tanda 90) Contenido del flotante que se abre pegado a un día del calendario editable (Administración/
+// Coordinación) para cargar sus hasta 2 francos -- mismos datos y mismas 3 funciones de siempre
+// (consFrancoAgregar/consFrancoQuitar/consFrancoSet), sin tocar el modelo, solo el lugar donde se editan.
+// `anchorH`/`anchorV` (fragmentos de CSS ya armados en conserjeriaFrancosMesHtml() según la columna/fila
+// de ESE día puntual) deciden si el flotante abre hacia la derecha o la izquierda, y hacia abajo o hacia
+// arriba, para que nunca quede cortado contra el borde del calendario en los días de las últimas
+// columnas/filas.
+// (Tanda 92) Widget de campo custom: reemplaza los <select> nativos por un botón enfocable
+// (.cf-fbtn, con data-cf-btn="fecha|idx|campo" para que cfFocusField/cfFocusFirstOrLast lo
+// encuentren) + una lista de opciones propia (.cf-opts/.cf-opt) que se renderiza DENTRO del
+// propio .cf-pop -- nunca como overlay nativo del navegador/SO -- y solo cuando UI.cfFieldOpen
+// coincide exactamente con esta fecha+idx+campo. campo es "person" (persona con franco) o
+// "cubre" (quien lo cubre); el data attribute y las funciones cfFieldToggle/cfPick/cfFieldTab
+// ya usan estos mismos nombres.
+function cfFieldHtml(fechaISO,idx,campo,valorId,opciones,personal,abierto){
+  const campoData=campo==="person"?"personId":"cubreId";
+  const actual=campo==="cubre"&&!valorId?`— Sin cobertura asignada —`:(personal.find(p=>p.id===valorId)?nombreMostrar(personal.find(p=>p.id===valorId)):"— Elegir —");
+  const negrita=campo==="person"?"font-weight:800":"font-style:italic;font-weight:400";
+  return `<div class="cf-field" style="position:relative;margin-bottom:6px">
+    <button type="button" class="cf-fbtn" data-cf-btn="${fechaISO}|${idx}|${campo}" style="width:100%;text-align:left;padding:6px 8px;border:1px solid var(--border);border-radius:8px;background:var(--white);cursor:pointer;${negrita};font-size:12px;color:var(--text);display:flex;align-items:center;justify-content:space-between;gap:6px" onclick="cfFieldToggle(event,'${fechaISO}',${idx},'${campo}')" onkeydown="cfFieldTab(event,'${fechaISO}',${idx},'${campo}')">
+      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${actual}</span>
+      <i class="ti ti-chevron-down" style="font-size:11px;flex-shrink:0;color:var(--text3)"></i>
+    </button>
+    ${abierto?`<div class="cf-opts">
+      ${campo==="cubre"?`<div class="cf-opt${!valorId?" on":""}" onclick="cfPick('${fechaISO}',${idx},'${campoData}','')">— Sin cobertura asignada —</div>`:""}
+      ${opciones.map(p=>`<div class="cf-opt${valorId===p.id?" on":""}" onclick="cfPick('${fechaISO}',${idx},'${campoData}','${p.id}')">${campo==="cubre"?"Cubre: ":""}${nombreMostrar(p)}</div>`).join("")}
+    </div>`:""}
+  </div>`;
+}
+function consFrancoPopHtml(fechaISO,entradas,personal,nombreDe,anchorH,anchorV){
+  const lbl=new Date(fechaISO+"T00:00:00").toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long"});
+  return `<div class="cf-pop" onclick="cfPopClick(event)" style="position:absolute;${anchorH};${anchorV};width:250px;max-width:82vw;background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 36px rgba(0,0,0,.24);padding:11px;text-align:left;color:var(--text2);font-size:12px;cursor:default">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+      <div style="font-weight:800;font-size:12px;text-transform:capitalize;color:var(--text)">${lbl}</div>
+      <button class="btn btn-g btn-sm" tabindex="-1" style="padding:2px 7px;flex-shrink:0" onclick="consFrancoPopToggle('${fechaISO}')" title="Cerrar">✕</button>
+    </div>
+    ${entradas.length?entradas.map((e,idx)=>{
+      const abiertoPerson=!!(UI.cfFieldOpen&&UI.cfFieldOpen.fecha===fechaISO&&UI.cfFieldOpen.idx===idx&&UI.cfFieldOpen.field==="person");
+      const abiertoCubre=!!(UI.cfFieldOpen&&UI.cfFieldOpen.fecha===fechaISO&&UI.cfFieldOpen.idx===idx&&UI.cfFieldOpen.field==="cubre");
+      return `<div style="border:1px solid var(--border);border-radius:8px;padding:7px 8px;margin-bottom:7px;background:var(--sand)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+          <span style="font-size:9px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.4px">Franco ${idx+1}</span>
+          <button class="btn btn-g btn-sm" tabindex="-1" style="color:#b91c1c;padding:1px 6px" onclick="consFrancoQuitar('${fechaISO}',${idx})" title="Quitar este franco"><i class="ti ti-trash"></i></button>
+        </div>
+        ${cfFieldHtml(fechaISO,idx,"person",e.personId,personal,personal,abiertoPerson)}
+        ${cfFieldHtml(fechaISO,idx,"cubre",e.cubreId,personal.filter(p=>p.id!==e.personId),personal,abiertoCubre)}
+      </div>`;
+    }).join(""):`<div style="font-size:11px;color:var(--text3);margin-bottom:8px">Sin francos cargados para este día todavía.</div>`}
+    ${entradas.length<2?`<button class="btn btn-p btn-sm cf-add-btn" data-cf-add="${fechaISO}" style="width:100%;justify-content:center" onclick="cfAgregarClick('${fechaISO}')" onkeydown="cfAgregarTab(event,'${fechaISO}',${entradas.length===0})"><i class="ti ti-plus"></i> Agregar franco</button>`:""}
+  </div>`;
+}
 // (Tanda 76 / ítem 1) `soloLectura` (nuevo, opcional, default false): cuando es `true` -- solo Gerencia,
 // ver francosSoloLecturaHtml() -- el detalle del día seleccionado se muestra como lista simple en vez de
 // selects editables/botón "Agregar franco", y el texto de ayuda de arriba cambia en consecuencia. La
 // grilla en sí (elegir qué día ver) se deja igual en ambos modos -- no muta datos, solo cambia qué día
 // se muestra abajo.
+// (Tanda 90) En el modo EDITABLE (soloLectura=false), "abajo" deja de existir: en vez de una tarjeta
+// separada con el detalle del día elegido, cada día abre su propio flotante (consFrancoPopHtml(), ver
+// más arriba) pegado ahí mismo en el calendario -- se carga directo sobre el día, sin bajar la vista.
+// El modo solo lectura de Gerencia no cambia un pelo (sigue con la tarjeta de siempre abajo).
 function conserjeriaFrancosMesHtml(soloLectura){
   const personal=francoPersonalRec();
   if(!personal.length)return `<div style="text-align:center;color:var(--text3);padding:14px;font-size:12px">Todavía no hay personal de Recepción/Conserjería cargado.</div>`;
@@ -9715,59 +10030,82 @@ function conserjeriaFrancosMesHtml(soloLectura){
   const hoy=hoyISO();
   const selFecha=(UI.consFrancoDiaSel&&UI.consFrancoDiaSel.startsWith(ym))?UI.consFrancoDiaSel:(hoy.startsWith(ym)?hoy:`${ym}-01`);
   const entradasSel=(D.consFrancoDias&&D.consFrancoDias[selFecha])||[];
+  // (Tanda 90) Cuál flotante está abierto, si soloLectura es false -- null (nada abierto) hasta que se
+  // clickee un día. Ver comentario junto a consFrancoPopToggle() más arriba en el archivo.
+  const popFecha=soloLectura?null:(UI.consFrancoPopFecha||null);
+  const totalFilas=Math.ceil(celdas.length/7);
   // (Tanda 72) nombreMostrar() en vez de p.nombre directo -- usa el apodo si tiene uno cargado.
   const nombreDe=id=>{const p=personal.find(pp=>pp.id===id);return p?nombreMostrar(p):"?";};
+  // (Tanda 93) En celular, el nombre de quien tiene franco / quien cubre en este calendario pasa a
+  // mostrarse solo con su inicial (celda angosta, ver ".cf-nom-full"/".cf-nom-init" en el CSS) --
+  // mismo criterio de "una sola letra, salvo colisión" que ya usa mucamaIniciales() para el calendario
+  // de Mucamas (Tanda 75): si otra persona de esta misma lista (`personal`) empieza con la misma
+  // letra, la más antigua se queda con una sola letra y el resto pasa a dos, para no perder la
+  // diferenciación entre ellas. No toca mucamaIniciales() (piensa en D.mu específicamente) -- esta es
+  // su equivalente para D.users del área Recepción/Conserjería.
+  const inicialDe=id=>{
+    const p=personal.find(pp=>pp.id===id);
+    if(!p)return "?";
+    const nombre=nombreMostrar(p)||"";
+    const letra=nombre.slice(0,1).toUpperCase();
+    if(!letra)return "?";
+    const conMismaLetra=personal.filter(pp=>(nombreMostrar(pp)||"").slice(0,1).toUpperCase()===letra);
+    if(conMismaLetra.length<=1)return letra;
+    const antig=pp=>{const ing=personaIngreso(pp.id,"rec");return ing?new Date(ing+"T00:00:00").getTime():Infinity;};
+    const masAntigua=conMismaLetra.reduce((a,b)=>antig(b)<antig(a)?b:a);
+    return p.id===masAntigua.id?letra:nombre.slice(0,2).toUpperCase();
+  };
   // (Tanda 75 / ítem 1) Tamaño de letra del nombre (y de "cubre X") por celda, según cuánto contenido
   // tenga ESE día puntual: por defecto bien grande (pedido explícito del usuario, "mucho más grandes y
   // visibles"), y solo se achica progresivamente cuando hay mucho para mostrar (2 francos el mismo día,
   // cada uno con cobertura asignada = 4 líneas de texto) para que siga entrando todo en la celda.
   const nombreFs=lineas=>lineas<=1?17:lineas===2?15:lineas===3?13:11;
-  return `<div style="font-size:11px;color:var(--text3);margin-bottom:10px">${soloLectura?"Tocá un día para ver quién tiene franco y quién lo cubre.":"Tocá un día para asignar quién tiene franco (hasta 2 por día) y quién lo cubre."}</div>
+  return `<div style="font-size:11px;color:var(--text3);margin-bottom:10px">${soloLectura?"Tocá un día para ver quién tiene franco y quién lo cubre.":"Tocá un día para marcar, ahí mismo, quién tiene franco (hasta 2 por día) y quién lo cubre."}</div>
     ${francosMesNavHtml()}
     <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-g btn-sm" onclick="francosDescargarPDF('cons')"><i class="ti ti-download"></i> Descargar PDF (Recepción)</button></div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:14px">
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:${soloLectura?"14px":"0"}">
       ${DOW_LBL_LUN.map(l=>`<div style="text-align:center;font-size:11px;font-weight:800;color:var(--text3);padding:2px 0">${l}</div>`).join("")}
-      ${celdas.map(c=>{
+      ${celdas.map((c,i)=>{
         const fechaISO=c.iso;
         const entradas=(D.consFrancoDias&&D.consFrancoDias[fechaISO])||[];
-        const on=selFecha===fechaISO;
+        const on=soloLectura?(selFecha===fechaISO):(popFecha===fechaISO);
         const etqs=francoEtiquetasDelDia(fechaISO);
         const vacs=vacacionesAprobadasEnDia(fechaISO);
         const lineas=entradas.reduce((n,e)=>n+(e.cubreId?2:1),0);
         const nomFs=nombreFs(lineas);
         const cubreFs=Math.max(9,nomFs-4);
-        return `<div onclick="consFrancoDiaSel('${fechaISO}')" style="cursor:pointer;text-align:center;padding:8px 4px;border-radius:8px;font-size:13px;position:relative;border:1.5px solid ${on?"#0f766e":(entradas.length?"#c9a04a":"var(--border)")};background:${on?"#0f766e":(c.fueraDeMes?"var(--sand3)":(entradas.length?"#fdf6e3":"var(--white)"))};color:${on?"#fff":(c.fueraDeMes?"var(--text3)":"var(--text2)")};min-height:112px;display:flex;flex-direction:column">
+        // (Tanda 90) Columna (0=Lunes..6=Domingo) y fila de ESTE día puntual, para decidir de qué lado
+        // abre su flotante: los días de las últimas 2 columnas lo abren hacia la izquierda (si no,
+        // quedaría cortado contra el borde derecho del calendario) y los de las últimas 2 filas lo abren
+        // hacia arriba (si no, contra el borde de abajo) -- el resto abre hacia la derecha/abajo, como
+        // sería lo esperable por defecto.
+        const col=i%7,fila=Math.floor(i/7);
+        const anchorH=col>=5?"right:0":"left:0";
+        const anchorV=fila>=totalFilas-2?"bottom:100%;margin-bottom:6px":"top:100%;margin-top:6px";
+        return `<div class="cf-cell" onclick="${soloLectura?`consFrancoDiaSel('${fechaISO}')`:`consFrancoPopToggle('${fechaISO}')`}" style="cursor:pointer;text-align:center;padding:8px 4px;border-radius:8px;font-size:13px;position:relative;z-index:${on?250:1};border:1.5px solid ${on?"#0f766e":(entradas.length?"#c9a04a":"var(--border)")};background:${on?"#0f766e":(c.fueraDeMes?"var(--sand3)":(entradas.length?"#fdf6e3":"var(--white)"))};color:${on?"#fff":(c.fueraDeMes?"var(--text3)":"var(--text2)")};min-height:112px;display:flex;flex-direction:column">
           ${etqs.length?`<span style="position:absolute;top:2px;right:3px;font-size:10px" title="${etqs.map(e=>e.texto).join(", ").replace(/"/g,"&quot;")}">🏷️</span>`:""}
+          ${(fechaISO===hoy&&!on)?`<span style="position:absolute;bottom:3px;left:4px;width:6px;height:6px;border-radius:50%;background:#0f766e" title="Hoy"></span>`:""}
           <div style="font-weight:700">${c.d}</div>
           ${entradas.length?`<div style="display:flex;flex-direction:column;gap:4px;margin-top:4px">
             ${entradas.map(e=>{
               const nom=nombreDe(e.personId);
+              const nomIni=inicialDe(e.personId);
               const cubreNom=e.cubreId?nombreDe(e.cubreId):null;
-              return `<div style="font-size:${nomFs}px;font-weight:800;color:${on?"#fff":"#8a6a1f"};line-height:1.15">${nom}${cubreNom?`<div style="font-style:italic;font-weight:600;font-size:${cubreFs}px;color:${on?"#f5f0e0":"#a3821f"}">cubre ${cubreNom}</div>`:""}</div>`;
+              const cubreIni=e.cubreId?inicialDe(e.cubreId):null;
+              return `<div style="font-size:${nomFs}px;font-weight:800;color:${on?"#fff":"#8a6a1f"};line-height:1.15"><span class="cf-nom-full">${nom}</span><span class="cf-nom-init">${nomIni}</span>${cubreNom?`<div style="font-style:italic;font-weight:400;font-size:${cubreFs}px;color:${on?"#f5f0e0":"#a3821f"}">cubre <span class="cf-nom-full">${cubreNom}</span><span class="cf-nom-init">${cubreIni}</span></div>`:""}</div>`;
             }).join("")}
           </div>`:""}
           ${vacs.length?`<div style="margin-top:auto;padding-top:3px;display:flex;flex-direction:column;gap:2px">
             ${vacs.map(v=>`<div style="font-size:9px;font-weight:700;color:${on?"#fde68a":"#7c3aed"};background:${on?"rgba(255,255,255,.15)":"rgba(124,58,237,.12)"};border-radius:4px;padding:1px 4px" title="Vacaciones de ${(v.personNombre||"").replace(/"/g,"&quot;")}">vacaciones ${(v.personNombre||"?").split(" ")[0]}</div>`).join("")}
           </div>`:""}
+          ${(!soloLectura&&on)?consFrancoPopHtml(fechaISO,entradas,personal,nombreDe,anchorH,anchorV):""}
         </div>`;
       }).join("")}
     </div>
-    <div class="card">
+    ${soloLectura?`<div class="card">
       <div style="font-weight:800;margin-bottom:8px;text-transform:capitalize">${new Date(selFecha+"T00:00:00").toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long"})}</div>
-      ${soloLectura?(entradasSel.length?`<div style="display:flex;flex-direction:column;gap:5px">${entradasSel.map(e=>`<div style="font-size:12px"><strong>${nombreDe(e.personId)}</strong>${e.cubreId?` <span style="color:var(--text3)">-- cubre: ${nombreDe(e.cubreId)}</span>`:""}</div>`).join("")}</div>`:`<div style="font-size:12px;color:var(--text3)">Sin francos cargados para este día.</div>`)
-      :(entradasSel.length?entradasSel.map((e,idx)=>`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap">
-          <select class="fc" style="max-width:180px" onchange="consFrancoSet('${selFecha}',${idx},'personId',this.value)">
-            ${personal.map(p=>`<option value="${p.id}" ${e.personId===p.id?"selected":""}>${nombreMostrar(p)}</option>`).join("")}
-          </select>
-          <span style="font-size:11px;color:var(--text3)">cubre:</span>
-          <select class="fc" style="max-width:180px" onchange="consFrancoSet('${selFecha}',${idx},'cubreId',this.value)">
-            <option value="">— Sin asignar —</option>
-            ${personal.filter(p=>p.id!==e.personId).map(p=>`<option value="${p.id}" ${e.cubreId===p.id?"selected":""}>${nombreMostrar(p)}</option>`).join("")}
-          </select>
-          <button class="btn btn-g btn-sm" style="color:#b91c1c" onclick="consFrancoQuitar('${selFecha}',${idx})"><i class="ti ti-trash"></i></button>
-        </div>`).join(""):`<div style="font-size:12px;color:var(--text3);margin-bottom:8px">Sin francos cargados para este día.</div>`)}
-      ${!soloLectura&&entradasSel.length<2?`<button class="btn btn-g btn-sm" onclick="consFrancoAgregar('${selFecha}')"><i class="ti ti-plus"></i> Agregar franco</button>`:""}
-    </div>`;
+      ${entradasSel.length?`<div style="display:flex;flex-direction:column;gap:5px">${entradasSel.map(e=>`<div style="font-size:12px"><strong>${nombreDe(e.personId)}</strong>${e.cubreId?` <span style="color:var(--text3)">-- cubre: ${nombreDe(e.cubreId)}</span>`:""}</div>`).join("")}</div>`:`<div style="font-size:12px;color:var(--text3)">Sin francos cargados para este día.</div>`}
+    </div>`:""}`;
 }
 // (Tanda 59 / ítem 5) Mucamas: calendario mensual con, para cada día, un renglón por mucama (sus 2
 // iniciales -- reutiliza mu.cod, ya existente -- más un cuadro editable de horario). Se prellena con lo
@@ -10979,7 +11317,7 @@ function modConfirm(){
   </div></div>`;
 }
 // ═══════════════ ACCIONES ═══════════════
-window.sv=v=>{UI.v=v;render()};
+window.sv=v=>{UI.v=v;UI._cntReload=true;render()};
 window.descargarInformePDF=()=>{
   const _now=new Date();
   const fd=_now.toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
@@ -12730,7 +13068,11 @@ window.resetearPasajeros=()=>{
 };
 window.doDelete=()=>{
   const t=UI.delType,id=UI.delId;
-  if(t==="mu"){D.rooms=D.rooms.map(r=>r.mucId===id?{...r,mucId:null}:r);D.mu=D.mu.filter(m=>m.id!==id);lsS(K.rooms,D.rooms);lsS(K.mu,D.mu);}
+  // (Tanda 89) Eliminar una mucama a través de este modal genérico de confirmación quedó deshabilitado
+  // a pedido del usuario -- eliminar personal/mucamas pasa a ser posible SOLO desde "Gestión de
+  // personal" (uDel()), nunca desde acá. Los botones que llegaban a poner UI.delType="mu" ya se
+  // sacaron (ver vMuv()), esto es un segundo cierre por las dudas quede algún otro camino sin
+  // encontrar: aunque algo llegue a poner UI.delType="mu" igual, este `if` ya no hace nada.
   if(t==="iss"){D.issues=D.issues.filter(i=>i.id!==id);lsS(K.issues,D.issues);}
   if(t==="cons"){D.cons=D.cons.filter(e=>e.id!==id);lsS(K.cons,D.cons);}
   if(t==="co"){D.coch=D.coch.filter(c=>c.id!==id);lsS(K.coch,D.coch);}
@@ -13805,7 +14147,11 @@ window.checkShift=function(){
   } else removeShiftPopup();
 };
 setInterval(function(){try{checkShift();}catch(e){}},20000);
-try{wipeTestPersonnelOnce();}catch(e){}
+// (Tanda 89) Desactivada -- ver el comentario grande junto a la definición de wipeTestPersonnelOnce()
+// más arriba: esta llamada era la causa de que personal/mucamas cargados legítimamente
+// desaparecieran solos al día siguiente en dispositivos que no tenían la marca de "ya limpiado"
+// guardada localmente.
+// try{wipeTestPersonnelOnce();}catch(e){}
 try{checkResetDiario();checkCheckoutAutoRefresh();checkRecordatorios();checkCocheraDia10();checkInformeShiftReminder();checkBlancosReport();checkLavaderoAviso();}catch(e){}
 try{checkInformeSnap();}catch(e){}
 setInterval(function(){try{checkInformeSnap();}catch(e){}},60000);
@@ -13884,6 +14230,32 @@ document.addEventListener("click",e=>{
     UI.asigPickerOpen=false;
     render();
   }
+});
+// (Tanda 90) Mismo patrón que el listener de ".ppdd" de arriba, para el flotante de francos de
+// Conserjería (ver consFrancoPopToggle()/consFrancoPopHtml()): cada día del calendario lleva la clase
+// "cf-cell" (se abra o no su flotante), así que un click en CUALQUIER día -- adentro o afuera de su
+// propio flotante -- vuelve acá arriba sin tocar nada (el propio onclick del día, o el
+// event.stopPropagation() del flotante, ya se encargaron); solo un click realmente afuera de todos los
+// días (otra sección de la pantalla) cierra el flotante que haya quedado abierto.
+document.addEventListener("click",e=>{
+  if(e.target.closest(".cf-cell"))return;
+  if(UI.consFrancoPopFecha){UI.consFrancoPopFecha=null;UI.cfFieldOpen=null;render();}
+});
+// (Tanda 93) En la pantalla de selección de rol (rSel()), después de clickear un área y elegir el
+// nombre del usuario, la tecla Enter ahora confirma el ingreso -- mismo efecto que tocar el botón
+// "Ingresar" a mano -- tanto si esa persona no tiene clave cargada (el botón ya está listo, sin
+// nada más que completar) como si tiene clave y ya se la escribió (el input #rol-clave ya
+// auto-ingresaba solo al completar sus 2 dígitos vía oninput, esto cubre además el caso de
+// confirmar con Enter en vez de esperar el segundo dígito). Se ignora fuera de esa pantalla
+// (ROLE!=="sel"), mientras está abierto el modal de Admin (que ya maneja su propio Enter en sus
+// propios inputs, ver "adm-user"/"adm-pass" en rSel()) y mientras todavía no haya una persona
+// elegida (UI.rolName vacío -- nada que confirmar todavía).
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Enter")return;
+  if(typeof ROLE==="undefined"||ROLE!=="sel"||UI.adminMode)return;
+  if(!(UI.rolCard&&UI.rolName))return;
+  e.preventDefault();
+  enterRole();
 });
 window.addEventListener("storage",e=>{if(e.key&&e.key.startsWith("ch_")){loadD();render();}});
 setInterval(syncCheck,3000);
