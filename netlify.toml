@@ -1,0 +1,29 @@
+# (Tanda 26) Declara dónde viven las funciones serverless de Netlify (send-email.js, que llama a
+# Resend para mandar los mails con PDF adjunto). No hay paso de build: el sitio es un solo archivo
+# HTML (sistema_de_limpiezas.html / index.html) servido tal cual.
+[build]
+  functions = "netlify/functions"
+  publish = "."
+
+# (Tanda 105 / ítem 3) send-birthday-emails.js revisa quién cumple años hoy y le manda el mail de
+# felicitaciones. Ver el comentario al principio de ese archivo para la configuración que hace falta
+# (variables de entorno nuevas, además de RESEND_API_KEY que ya existía desde la Tanda 26).
+# (Tanda 108 / ítem 2) Antes corría UNA sola vez por día, a un horario fijo (03:01 UTC = 00:01hs
+# Argentina). El problema: el scheduler de Netlify no garantiza que la función dispare justo a ese
+# minuto -- puede correr con minutos (o más) de atraso, y en algún caso puntual directamente no
+# disparar ese día. Como el usuario no quiere que el mail dependa de acertarle a un único horario --
+# pidió que salga en cualquier momento del día a partir de las 00:01hs, cuanto más cerca de esa hora
+# mejor, pero sin que se mande más de una vez -- ahora corre cada 15 minutos, TODO el día, todos los
+# días. Esto es seguro porque la función YA se protegía sola contra el envío duplicado (ver
+# `ch_cumpleemailenviado` / la variable `enviados` dentro de send-birthday-emails.js): si ya le mandó
+# el mail a alguien este año, las corridas siguientes de ese mismo día la saltean sin hacer nada. Con
+# 96 corridas por día en vez de 1, en el peor de los casos (que la corrida de las 00:01 en punto no
+# dispare) el mail sale igual, como mucho 15 minutos más tarde -- nunca se manda dos veces.
+[functions."send-birthday-emails"]
+  schedule = "*/15 * * * *"
+
+# (Tanda 106 / ítem 5) El acceso oculto a Admin pasó de "#admin" (hash) a "/copahueadmin" (path real,
+# con una regla [[redirects]] acá para que Netlify no devolviera 404 al pedir esa ruta directamente).
+# (Tanda 112 / ítem 1) Esa ruta "/copahueadmin" ya no existe -- el acceso oculto pasa a ser un gesto
+# secreto dentro de la propia página (7 clicks rápidos sobre el logo de la pantalla de bienvenida, ver
+# logoSecretClick() en el HTML), así que no hace falta ninguna regla de redirects para esto.
