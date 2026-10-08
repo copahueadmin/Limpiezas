@@ -54,6 +54,21 @@ body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .sel-enter{margin-top:24px;padding:14px 44px;background:#9c7d2e;border:none;border-radius:30px;color:#fff;font-size:15px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;transition:all .15s;display:none}
 .sel-enter.show{display:block}
 .sel-enter:hover{background:#7a5f1f;transform:translateY(-2px)}
+/* (Tanda 214) Modo oscuro del inicio (antes de iniciar sesión) + botón para cambiarlo a mano (.sel-theme-btn, ver selThemeBtnAdd()). */
+.sel-theme-btn{position:fixed;top:14px;left:14px;z-index:30;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.4);background:rgba(8,20,16,.38);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
+.sel-theme-btn:hover{background:rgba(8,20,16,.6)}
+body.dark .sel-screen{background:radial-gradient(circle at 28% 18%,rgba(201,160,74,.16),rgba(201,160,74,0) 55%),linear-gradient(150deg,#14110c 0%,#1a150d 34%,#241c10 62%,#2f2412 84%,#3a2c14 100%)}
+body.dark .sel-logo img{filter:invert(.93) hue-rotate(180deg) drop-shadow(0 2px 10px rgba(0,0,0,.5))}
+body.dark .sel-sub,body.dark .sel-names h4,body.dark .sel-clave h4{color:#d9c89a}
+body.dark .sel-card,body.dark .sel-name,body.dark .adm-box,body.dark .adm-hub{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14);color:#f3ead6;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 8px 24px rgba(0,0,0,.45)}
+body.dark .sel-card:hover{background:rgba(255,255,255,.13)}
+body.dark .sel-card.on{background:rgba(201,160,74,.20);border-color:#c9a04a;box-shadow:0 0 0 3px rgba(201,160,74,.35)}
+body.dark .sel-name:hover,body.dark .sel-name.on{background:#9c7d2e;border-color:#c9a04a}
+body.dark .adm-box h2,body.dark .adm-hub h2{color:#f3ead6}
+body.dark .adm-inp{background:rgba(255,255,255,.10);color:#f3ead6;border-color:rgba(255,255,255,.2)}
+body.dark .adm-inp::placeholder{color:rgba(243,234,214,.5)}
+body.dark .hub-btn{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.16);color:#f3ead6}
+body.dark .hub-btn:hover{background:rgba(255,255,255,.14)}
 
 /* RECEPCIÓN LAYOUT */
 .rec{display:flex;height:100vh;overflow:hidden}
@@ -812,6 +827,32 @@ body::before{
 @keyframes modalPop{0%{opacity:0;transform:scale(.92) translateY(10px)}100%{opacity:1;transform:scale(1) translateY(0)}}
 /* Ventanas que se re-renderizan seguido (selección rápida de habitaciones/personas): sin animación, quietas siempre */
 .mod-static{animation:none!important}
+/* (Tanda 202/204) Modo alto contraste: SOLO textos. Todo el texto pasa a peso 800 y se le suma un
+   trazo fino (-webkit-text-stroke) para que se note más negrita incluso donde ya era negrita (las
+   fuentes cargadas no tienen pesos mayores y el navegador sintetiza la negrita, así que el peso solo
+   no alcanza). No toca líneas, bordes, fondos, imágenes ni logos; los íconos (.ti) quedan sin trazo. */
+body.hc,body.hc *{font-weight:800!important;-webkit-text-stroke:.4px currentColor}
+body.hc .ti,body.hc [class^="ti-"],body.hc [class*=" ti-"]{-webkit-text-stroke:0}
+body.hc{--text:#000;--text2:#0a0a0a;--text3:#1a1a1a}
+body.hc.dark{--text:#fff;--text2:#f5f5f5;--text3:#e6e6e6}
+.btn-hc{font-weight:800;letter-spacing:-.5px}
+.tl-s{display:none}
+@media (max-width:600px){.tl-f{display:none}.tl-s{display:inline}}
+/* (Tanda 215) Versión computadora (>860px) de Recepción/Gerencia/Administración/Coordinación: letra de los botones del sidebar un poco más grande (12px -> 13px; "Cerrar sesión"/"Mi cuenta" 11px -> 12.5px). Se excluye el sidebar colapsado (solo íconos, usa font-size:0 para ocultar el texto). */
+@media (min-width:861px){
+  .sb:not(.collapsed) .nb{font-size:13px!important;letter-spacing:0}
+  .sb:not(.collapsed) .sb-foot{font-size:12.5px!important}
+}
+.stk-wrap{display:flex;gap:18px;align-items:flex-start}
+.stk-main{flex:1;min-width:0}
+.stk-side{width:290px;flex-shrink:0;position:sticky;top:8px}
+@media (max-width:1180px){.stk-side{display:none}}
+.ord-nota-btn{background:none;border:1px solid var(--border);border-radius:8px;cursor:pointer;padding:0 5px;font-size:13px;line-height:1.5;opacity:.6;flex-shrink:0}
+.ord-nota-btn:hover{opacity:1}
+.ord-nota-btn.has{opacity:1;background:#fef3c7;border-color:#f59e0b}
+body.dark .ord-nota-btn.has{background:#4a3a14;border-color:#b8860b}
+.btn-hc.hc-on{outline:2px solid currentColor;outline-offset:-2px}
+@media (max-width:860px){.hc-hdr860{display:none!important}}
 /* (Tanda 191) Fila de 3 columnas de Inicio (etiquetas / notas generales / notas en habitaciones) */
 .nf-fila{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start;margin-top:14px}
 .nf-fila .nf-col{margin:0;border-radius:26px!important;padding:14px 18px;min-width:0;box-sizing:border-box}
@@ -1237,6 +1278,11 @@ body.dark .rc{background:rgba(52,52,60,.55)!important;border:1px solid rgba(255,
 body.dark .rc-mu-slot{color:#c8c8d0!important}
 /* (Tanda 176) Contador de orden de la mucama: dígito rojo oscuro legible también en modo oscuro */
 body.dark .rc .rc-mu-slot .rc-order-badge,body.dark .rc-order-badge{color:#560c1a!important}
+/* (Tanda 207) Modo oscuro: los flotantes de estado de limpieza (Limpieza/Repaso/Control/Lista/Sin blancos) invierten sus colores: fondo = el tono oscuro del texto, texto = el tono claro del fondo. */
+body.dark .rc-est{background:var(--pfg)!important;color:var(--pbg)!important}
+/* (Tanda 208) Modo oscuro: el relleno de los candados ocupada/libre se oscurece (resaltaban demasiado). */
+body.dark .rc-occ-r{background:linear-gradient(145deg,#4a1c21,#5f2a30)!important}
+body.dark .rc-occ-g{background:linear-gradient(145deg,#173a2a,#1f4b37)!important}
 /* Modales */
 body.dark .ov{background:rgba(0,0,0,.72)!important}
 body.dark .ov>div,body.dark .mod{background:rgba(42,42,50,.8)!important;border:1px solid rgba(255,255,255,.12)!important;color:#f0f0f2}
@@ -1535,7 +1581,10 @@ body.dark .sb.collapsed .nb.on{background:rgba(94,234,212,.24)!important;border-
      (fuera de este media query): hace falta repetir ".sel-logo img" para empatarle la especificidad
      a "sel-logo img{width:210px;...}" -- si no, esa regla de más arriba ganaba igual estando acá
      adentro de un @media, y las 2 imágenes quedaban visibles apiladas en vez de mostrarse solo una. */
-  .sel-logo img.sel-logo-desktop{display:none}
+  /* (Tanda 212) En celular vuelve el logo de la versión computadora (apilado, 420x345) en vez del horizontal: ni muy grande ni muy chico
+     (Tanda 213: 120px -> 150px de ancho ~ 123px de alto; "max-width" 48vw para celulares angostos). Se intercambian los display de las 2 imágenes (ver
+     más abajo ".sel-logo-mobile{display:none}") y suben "padding-top" de ".sel-screen" y "top" de ".adm-btn-row" para conservar el aire bajo el logo. */
+  .sel-logo img.sel-logo-desktop{display:block;width:150px;max-width:48vw;height:auto;filter:drop-shadow(0 2px 6px rgba(120,90,20,.18))}
   /* (Tanda 118) El usuario pidió el logo más grande (100px -> 150px de ancho) Y con fondo
      transparente de verdad -- lo segundo no era un tema de CSS: el archivo que había adjuntado en la
      Tanda 117 (LOGO_SEL_MOBILE) tenía el fondo pintado de blanco sólido (alfa 100% en todo el PNG,
@@ -1554,7 +1603,7 @@ body.dark .sb.collapsed .nb.on{background:rgba(94,234,212,.24)!important;border-
      "max-width" sube a 70vw (antes 46.2vw) para que en celulares angostos el aumento también se note; "padding-top" de
      ".sel-screen" (85px -> 108px) y "top" de ".adm-btn-row" (74px -> 100px) suben lo mismo (+23/+26px) para conservar el aire que
      había bajo el logo y que no se superpongan con él. */
-  .sel-logo img.sel-logo-mobile{display:block;width:250px;max-width:70vw;height:auto;filter:drop-shadow(0 2px 6px rgba(120,90,20,.18))}
+  .sel-logo img.sel-logo-mobile{display:none}
   /* (Tanda 96) La pantalla de selección de rol/usuario (".sel-screen") centra su contenido con
      "justify-content:center" sobre una altura fija (100vh) -- en escritorio/tablet siempre entra
      entero y se ve bien centrado, pero en celular, apenas se elige un área y un usuario, el bloque
@@ -1597,7 +1646,11 @@ body.dark .sb.collapsed .nb.on{background:rgba(94,234,212,.24)!important;border-
      panel de Admin, que comparte esta clase): ese botón también usa "position:absolute", pero esas 2
      pantallas de Admin nunca desbordan ni scrollean (su contenido siempre entra centrado), así que da
      exactamente el mismo resultado visual haya o no "position:relative" acá. */
-  .sel-screen{position:relative;justify-content:flex-start;padding-top:108px}
+  .sel-screen{position:relative;justify-content:flex-start;padding-top:160px}
+  /* (Tanda 214) En celular ".sel-screen" queda "position:relative" y se pinta ENCIMA de los halos verdes de "body::before" (que en
+     computadora se ven a través, por estar ".sel-screen" sin posicionar) -- se repiten esos mismos halos como capas del propio fondo. */
+  .sel-screen{background:radial-gradient(circle at 18% 22%,rgba(45,94,69,.18),transparent 40%),radial-gradient(circle at 82% 12%,rgba(29,122,107,.16),transparent 38%),radial-gradient(circle at 70% 85%,rgba(133,79,11,.10),transparent 44%),radial-gradient(circle at 28% 78%,rgba(39,181,157,.12),transparent 40%),radial-gradient(circle at 28% 18%,rgba(241,231,210,.92),rgba(241,231,210,0) 55%),linear-gradient(150deg,#efe6d2 0%,#e8d9b9 34%,#dcbf84 62%,#caa54f 84%,#b88f38 100%)}
+  body.dark .sel-screen{background:radial-gradient(circle at 18% 22%,rgba(45,94,69,.22),transparent 40%),radial-gradient(circle at 82% 12%,rgba(29,122,107,.18),transparent 38%),radial-gradient(circle at 70% 85%,rgba(60,60,70,.2),transparent 44%),radial-gradient(circle at 28% 78%,rgba(39,181,157,.14),transparent 40%),radial-gradient(circle at 28% 18%,rgba(201,160,74,.16),rgba(201,160,74,0) 55%),linear-gradient(150deg,#14110c 0%,#1a150d 34%,#241c10 62%,#2f2412 84%,#3a2c14 100%)}
   /* (corrección posterior a la Tanda 120) El usuario reportó 2 problemas en las pantallas de Admin
      (login de usuario/clave y el panel/hub con los accesos a cada área) en celular:
      1) El logo de Admin (rSel(), rama "hub") usaba directo `<img src="${LOGO_SEL}">` sin la clase
@@ -1623,7 +1676,7 @@ body.dark .sb.collapsed .nb.on{background:rgba(94,234,212,.24)!important;border-
      como el logo ahora es "position:fixed" y centrado horizontalmente (ver ".sel-logo" más arriba),
      ambos ocupan la misma franja de arriba y se superponen en celular. Se la baja lo suficiente en
      celular para que quede siempre debajo del logo (20px de "top" + ~40px de alto real + margen). */
-  .adm-btn-row{top:100px}
+  .adm-btn-row{top:152px}
   .sel-sub{margin-bottom:8px}
   .sel-names{margin-top:8px}
   /* (Tanda 119 / ítem 4) El usuario pidió que, en celular, las tarjetas de área queden centradas "a la
@@ -5163,7 +5216,9 @@ function render(){
   const _isAreaShellRole=ROLE==="ger"||ROLE==="admin"||ROLE==="coord";
   document.documentElement.classList.toggle("area-shell-view",_isAreaShellRole);
   document.body.classList.toggle("area-shell-view",_isAreaShellRole);
-  if(ROLE==="sel")rSel();
+  // (Tanda 206) Alto contraste en modo computadora (Recepcion/Gerencia/Administracion/Coordinacion): texto mas grande.
+  try{const _hcBig=!!UI.hc&&(ROLE==="rec"||_isAreaShellRole);if(_hcBig)buildHcBig();document.body.classList.toggle("hc-big",_hcBig);}catch(e){}
+  if(ROLE==="sel"){rSel();selThemeBtnAdd();}
   else if(ROLE==="rec")rRec();
   else if(ROLE==="mu")rMu();
   else if(ROLE==="mant")rMant();
@@ -5192,6 +5247,7 @@ function render(){
   // de 3 barritas de Mucamas/Mantenimiento (ver muMenuHtml()), mismo patrón de capa global.
   if(UI.mod==="francos"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modFrancos());}
   if(UI.mod==="soporte"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modSoporte());}
+  if(UI.mod==="ordNota"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modOrdNota());}
   // (Tanda 58) Sitio embebido (abrirSitioEmbebido/modSiteEmbed, ya existía desde tanda 57 pero solo
   // se enganchaba dentro de rAreaShell) y el gestor de accesos personalizados (modCustomLinks) pasan
   // a ser capa global, igual que vacaciones/notas/fotos arriba -- así quedan disponibles también desde
@@ -5952,6 +6008,7 @@ window.enterRole=()=>{
   const clave=(UI.rolClave||'').trim();
   if((person.clave||'')!==clave){UI.rolErr='Clave incorrecta';UI.rolClave='';render();setTimeout(()=>{var e=document.getElementById('rol-clave');if(e)e.focus();},50);return;}
   ROLE=A;RID=person.id;RNAME=person.nombre;
+  try{themeResolve();}catch(e){}
   sessionStorage.setItem("ch_role",ROLE);
   sessionStorage.setItem("ch_rid",RID||"");
   sessionStorage.setItem("ch_rname",RNAME||"");
@@ -6305,12 +6362,14 @@ function rAreaShell(role,titulo,emoji,navItems,bodyHtml){
     <div class="topbar">
       <div style="display:flex;align-items:center;gap:10px"><h2>${saludoHorario().ic} ${saludoHorario().txt}${nombreSaludo()?" "+nombreSaludo():""}</h2></div>
       <div class="btns">
+        ${hcBtn(null,"hc-hdr860")}
         <button class="btn btn-g btn-sm" onclick="toggleDark()" title="Modo oscuro/claro">${UI.dark?"☀️":"🌕"}</button>
         <div class="area-menu-wrap">
           <button class="area-menu-btn" onclick="event.stopPropagation();toggleAreaMenu()" title="Menú" aria-label="Menú"><span class="area-menu-bars"><span></span><span></span><span></span></span></button>
           <div class="area-menu-dd${areaMenuOpen?" show":""}">
             ${areaMenuSectionsHtml}
             ${sidebarPrefsMenuItem}
+            <div class="area-menu-item" onclick="UI.areaMenuOpen=false;toggleHC()"><span class="area-menu-ic">Aa</span> Alto contraste${UI.hc?" (activado)":""}</div>
             <div class="area-menu-item" onclick="UI.areaMenuOpen=false;exitRole()"><span class="area-menu-ic">🚪</span> Cerrar sesión</div>
           </div>
         </div>
@@ -7352,6 +7411,38 @@ window.insPedComentarioItemSet=(peId,catId,val)=>{
   D.insumosPedidos=D.insumosPedidos.map(x=>x.id!==peId?x:{...x,items:x.items.map(i=>i.catId===catId?{...i,comentarioAprobador:val}:i)});
   lsS(K.insumosPedidos,D.insumosPedidos);
 };
+// (Tanda 209) Ventana de nota por producto de una orden de compra (icono 💬 al lado de la unidad): muestra el comentario
+// de quien pidió (el de toda la orden) y deja escribir/responder la nota del aprobador para ESE producto. Enter guarda
+// (Shift+Enter = salto de línea). La nota se guarda en items[i].comentarioAprobador, igual que antes (la ve quien pidió).
+window.ordNotaAbrir=(peId,catId)=>{
+  UI.ordNota={peId,catId};UI.mod="ordNota";render();
+  setTimeout(()=>{const t=document.getElementById("ordNotaTx");if(t){t.focus();t.setSelectionRange(t.value.length,t.value.length);}},40);
+};
+window.ordNotaCerrar=()=>{UI.mod=null;UI.ordNota=null;render();};
+window.ordNotaGuardar=()=>{
+  const n=UI.ordNota;if(!n)return;
+  const t=document.getElementById("ordNotaTx");
+  insPedComentarioItemSet(n.peId,n.catId,t?t.value.trim():"");
+  UI.mod=null;UI.ordNota=null;render();
+};
+function modOrdNota(){
+  const n=UI.ordNota||{};
+  const pe=(D.insumosPedidos||[]).find(x=>x.id===n.peId);
+  const it=pe&&pe.items.find(i=>i.catId===n.catId);
+  if(!pe||!it)return"";
+  const c=insumosCatItem(it.catId);
+  const unidad=c?insumosUnidadTexto(c).trim():"";
+  const esc=x=>String(x||"").replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  return `<div class="ov" onclick="closeMod(event)"><div class="mod" onclick="event.stopPropagation()" style="max-width:420px">
+    <div class="mh"><h2>💬 ${esc(it.nombre)}${unidad?` <span style="font-size:12px;font-weight:400;color:var(--text3)">${esc(unidad)}</span>`:""}</h2></div>
+    <div class="mc">
+      ${pe.comentario?`<div style="font-size:12px;color:var(--text2);background:var(--sand);border-radius:var(--r);padding:6px 10px;margin-bottom:10px">Comentario de quien pidió (${esc(pe.personNombre)}): ${esc(pe.comentario)}</div>`:""}
+      <div class="fg"><span class="fl">Nota sobre este producto (la ve quien pidió)</span>
+        <textarea id="ordNotaTx" class="fc" rows="3" placeholder="Escribí una respuesta o nota y apretá Enter para guardar" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();ordNotaGuardar()}">${esc(it.comentarioAprobador)}</textarea></div>
+      <div class="mf"><button class="btn btn-sm" onclick="ordNotaCerrar()">Cancelar</button><button class="btn btn-sm btn-p" onclick="ordNotaGuardar()"><i class="ti ti-check"></i> Guardar</button></div>
+    </div>
+  </div></div>`;
+}
 // Comentario del aprobador sobre la orden COMPLETA (no sobre un producto puntual).
 window.insPedComentarioOrdenSet=(peId,val)=>{
   if(!stockPuede("aprobarRechazar"))return;
@@ -7378,11 +7469,13 @@ function ordenCompraDetalleHtml(pe){
     const actual=c?insumoCantidadTotal(c):(i.cantidadActualAlPedir||0);
     const unidad=c?insumosUnidadTexto(c).trim():"";
     const difiere=c&&i.cantidadActualAlPedir!=null&&Number(i.cantidadActualAlPedir)!==actual;
-    return `<div style="${ORD_GRID};padding:10px 8px;border-bottom:1px solid var(--border);${idx%2?"background:rgba(127,127,127,.07)":""}">
-      <div style="min-width:0"><div style="font-size:15px;font-weight:700;line-height:1.25">${i.nombre}</div>${unidad?`<div style="font-size:11px;color:var(--text3);margin-top:1px">${unidad.replace(/</g,"&lt;")}</div>`:""}</div>
-      <div style="text-align:center"><span style="display:inline-block;min-width:54px;padding:4px 10px;border-radius:12px;background:#d9efe9;color:#0b4d42;font-size:20px;font-weight:800;line-height:1.2">${i.cantidad}</span></div>
-      <div style="text-align:center"><div style="font-size:19px;font-weight:700;color:${actual<=0?"#b91c1c":"var(--text)"}">${actual}</div>${difiere?`<div style="font-size:10px;color:var(--text3)">al pedir: ${i.cantidadActualAlPedir}</div>`:""}</div>
-      <div style="grid-column:1/-1;margin-top:6px"><input class="fc" type="text" style="width:100%;font-size:12px" placeholder="Comentario sobre este producto (opcional, lo ve quien pidió)" value="${(i.comentarioAprobador||"").replace(/"/g,"&quot;")}" onchange="insPedComentarioItemSet('${pe.id}','${i.catId}',this.value)"></div>
+    // (Tanda 209) Fila compacta: nombre + unidad (a la derecha del nombre) + icono de nota en una sola línea. El comentario por
+    // producto (antes un input fijo debajo de cada ítem) ahora se abre en una ventana con el icono 💬 (ordNotaAbrir()).
+    const tieneNota=!!(i.comentarioAprobador&&String(i.comentarioAprobador).trim());
+    return `<div style="${ORD_GRID};padding:5px 8px;border-bottom:1px solid var(--border);${idx%2?"background:rgba(127,127,127,.07)":""}">
+      <div style="min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:15px;font-weight:700;line-height:1.25">${i.nombre}</span>${unidad?`<span style="font-size:11px;color:var(--text3)">${unidad.replace(/</g,"&lt;")}</span>`:""}<button class="ord-nota-btn${tieneNota?" has":""}" onclick="ordNotaAbrir('${pe.id}','${i.catId}')" title="${tieneNota?"Ver / editar la nota de este producto":"Dejar una nota sobre este producto"}" aria-label="Nota">💬</button></div>
+      <div style="text-align:center"><span style="display:inline-block;min-width:48px;padding:2px 10px;border-radius:12px;background:#d9efe9;color:#0b4d42;font-size:18px;font-weight:800;line-height:1.2">${i.cantidad}</span></div>
+      <div style="text-align:center"><div style="font-size:18px;font-weight:700;line-height:1.2;color:${actual<=0?"#b91c1c":"var(--text)"}">${actual}</div>${difiere?`<div style="font-size:10px;color:var(--text3)">al pedir: ${i.cantidadActualAlPedir}</div>`:""}</div>
     </div>`;
   }).join("");
   return `<div class="card" style="margin-bottom:14px">
@@ -8034,6 +8127,50 @@ function stockGeneralHtml(){
 // habilitado (y no es el super-admin), no debería llegar acá -- el ítem del sidebar ya se lo oculta
 // (ver stockTieneAlgunPermiso() en navItems de cada rXxx()) -- pero se deja un mensaje defensivo por
 // si acaso.
+// (Tanda 210) Panel lateral "Stock actual": en pantallas anchas, todas las solapas de "Insumos y stock" (menos la propia "Stock",
+// que ya es esta misma lista a pantalla completa) muestran a la derecha el stock completo, con buscador y filtro de categoría,
+// siempre visible (sticky). Comparte el filtro con la solapa "Stock" (UI.stockGenFiltro). Al escribir NO se hace render() de toda
+// la app: solo se reemplaza el contenido de #stSideList, así el buscador no pierde el foco.
+function stockSideListHtml(){
+  const f=UI.stockGenFiltro||{texto:"",catId:""};
+  const sinAc=x=>(x||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+  const texto=sinAc((f.texto||"").trim());
+  let items=(D.insumosCatalogo||[]).filter(c=>!texto||sinAc(c.nombre).includes(texto));
+  if(f.catId==="sin")items=items.filter(c=>!c.categoriaId||!insumosCategoriaItem(c.categoriaId));
+  else if(f.catId)items=items.filter(c=>c.categoriaId===f.catId);
+  const alfa=(a,b)=>(a.nombre||"").localeCompare(b.nombre||"","es",{sensitivity:"base"});
+  const cats=(D.insumosCategorias||[]).slice().sort(alfa);
+  const grupos=[];
+  cats.forEach(cat=>{const en=items.filter(c=>c.categoriaId===cat.id).sort(alfa);if(en.length)grupos.push({nombre:cat.nombre,items:en});});
+  const sin=items.filter(c=>!c.categoriaId||!cats.some(cat=>cat.id===c.categoriaId)).sort(alfa);
+  if(sin.length)grupos.push({nombre:"Sin categoría",items:sin});
+  if(!grupos.length)return `<div style="text-align:center;color:var(--text3);padding:14px;font-size:12px">${(D.insumosCatalogo||[]).length?"Ningún insumo coincide con el filtro.":"Todavía no hay insumos cargados en el catálogo."}</div>`;
+  return grupos.map(g=>`<div style="margin-bottom:10px">
+    <div style="font-weight:800;font-size:11px;color:var(--teal);margin-bottom:2px;text-transform:uppercase;letter-spacing:.4px">${g.nombre.replace(/</g,"&lt;")}</div>
+    ${g.items.map(c=>{const act=insumoCantidadTotal(c);return `<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:12px;min-width:0">${c.nombre}</span>
+      <span style="font-size:12px;font-weight:800;white-space:nowrap;color:${act<=0?"#b91c1c":"var(--text)"}">${act}<span style="font-weight:400;font-size:10px;color:var(--text3)">${insumosUnidadTexto(c)}</span></span>
+    </div>`;}).join("")}
+  </div>`).join("");
+}
+window.stockSideFiltroSet=(campo,val)=>{
+  UI.stockGenFiltro=UI.stockGenFiltro||{texto:"",catId:""};UI.stockGenFiltro[campo]=val;
+  const el=document.getElementById("stSideList");if(el)el.innerHTML=stockSideListHtml();
+};
+function stockSidePanelHtml(){
+  const f=UI.stockGenFiltro||{texto:"",catId:""};
+  const cats=(D.insumosCategorias||[]).slice().sort((a,b)=>(a.nombre||"").localeCompare(b.nombre||"","es",{sensitivity:"base"}));
+  const opts=`<option value="">Todas las categorías</option>${cats.map(cat=>`<option value="${cat.id}" ${f.catId===cat.id?"selected":""}>${cat.nombre.replace(/</g,"&lt;")}</option>`).join("")}<option value="sin" ${f.catId==="sin"?"selected":""}>Sin categoría</option>`;
+  return `<aside class="stk-side"><div class="card" style="margin:0">
+    <h3 style="margin:0 0 8px;font-size:14px">📦 Stock actual</h3>
+    <input class="fc" type="text" style="width:100%;margin-bottom:6px" placeholder="🔎 Buscar insumo…" value="${(f.texto||"").replace(/"/g,"&quot;")}" oninput="stockSideFiltroSet('texto',this.value)">
+    <select class="fc" style="width:100%;margin-bottom:10px" onchange="stockSideFiltroSet('catId',this.value)">${opts}</select>
+    <div id="stSideList" style="max-height:calc(100vh - 250px);overflow-y:auto;padding-right:4px">${stockSideListHtml()}</div>
+  </div></aside>`;
+}
+// (Tanda 211) En pantallas chicas (<=600px) las solapas de stock usan un texto abreviado (clases .tl-f / .tl-s, ver CSS).
+const STOCK_TAB_CORTO={aprobar:"O.C.",entregas:"Pendientes",stockgen:"Stock",catalogo:"Cat.",compras:"Compras",historial:"Historial"};
+const stockTabLbl=(k,full,badge)=>STOCK_TAB_CORTO[k]?`<span class="tl-f">${full}</span><span class="tl-s">${STOCK_TAB_CORTO[k]}</span>${badge||""}`:`${full}${badge||""}`;
 function insumosStockSectionHtml(){
   // (Orden de solapas) Primero las acciones de equipo más urgentes (órdenes de compra/entregar),
   // después las propias del día a día (pedir/stock), y el catálogo -- más de referencia -- al final
@@ -8046,11 +8183,11 @@ function insumosStockSectionHtml(){
   const tabs=[];
   if(stockPuede("aprobarRechazar")){
     const n=(D.insumosPedidos||[]).filter(p=>p.estado==="pendiente").length;
-    tabs.push({k:"aprobar",lbl:`Órdenes de compra${n?` <span class="nb-n">${n}</span>`:""}`});
+    tabs.push({k:"aprobar",lbl:stockTabLbl("aprobar","Órdenes de compra",n?` <span class="nb-n">${n}</span>`:"")});
   }
   if(stockPuede("confirmarEntrega")){
     const n=(D.insumosPedidos||[]).filter(p=>p.estado==="aprobado"&&p.entrega&&p.entrega.estado==="pendiente").length;
-    tabs.push({k:"entregas",lbl:`Entregas pendientes${n?` <span class="nb-n">${n}</span>`:""}`});
+    tabs.push({k:"entregas",lbl:stockTabLbl("entregas","Entregas pendientes",n?` <span class="nb-n">${n}</span>`:"")});
   }
   if(stockPuede("pedir"))tabs.push({k:"pedir",lbl:"Pedir insumos"});
   // (Tanda 127 / ítem 3) "Stock" nueva -- ver stockGeneralHtml(): todo lo que hay en existencia,
@@ -8058,14 +8195,14 @@ function insumosStockSectionHtml(){
   // "Bajar stock" (que sigue igual, para quien tenga ese permiso puntual): "Stock" es la que el
   // usuario pidió para Recepción/Coordinación/Administración por defecto (ver stockGeneral en
   // stockPermsDefaultForRole()).
-  if(stockPuede("stockGeneral"))tabs.push({k:"stockgen",lbl:"Stock"});
+  if(stockPuede("stockGeneral"))tabs.push({k:"stockgen",lbl:stockTabLbl("stockgen","Stock")});
   if(stockPuede("bajarStock"))tabs.push({k:"bajar",lbl:"Bajar stock"});
-  if(stockPuede("verCatalogo")||stockPuede("gestionarCatalogo"))tabs.push({k:"catalogo",lbl:"Catálogo"});
+  if(stockPuede("verCatalogo")||stockPuede("gestionarCatalogo"))tabs.push({k:"catalogo",lbl:stockTabLbl("catalogo","Catálogo")});
   // (Tanda 141) "Compras" -- registro unificado de lo comprado a proveedores (pedidos entregados +
   // cargas manuales de "+ Agregar stock"), para el mismo público que ya ve esos datos: quien confirma
   // entregas, o quien gestiona el catálogo (desde donde se carga stock a mano).
-  if(stockPuede("confirmarEntrega")||stockPuede("gestionarCatalogo"))tabs.push({k:"compras",lbl:"Compras"});
-  if(tabs.length)tabs.push({k:"historial",lbl:"Historial"});
+  if(stockPuede("confirmarEntrega")||stockPuede("gestionarCatalogo"))tabs.push({k:"compras",lbl:stockTabLbl("compras","Compras")});
+  if(tabs.length)tabs.push({k:"historial",lbl:stockTabLbl("historial","Historial")});
   if(isAdminAuth())tabs.push({k:"permisos",lbl:"Permisos"});
   if(!tabs.length)return `<div class="card"><div style="font-size:12px;color:var(--text3)">Todavía no tenés ningún permiso habilitado para usar el sistema de stock. Pedile al administrador que te los habilite.</div></div>`;
   let tab=UI.stockTab;
@@ -8077,7 +8214,8 @@ function insumosStockSectionHtml(){
   // solo se cambia cuál es la solapa que arranca activa: "stockgen" tiene prioridad si está disponible,
   // y si no (alguien sin ese permiso) cae al criterio de siempre (la primera que tenga habilitada).
   if(!tab||!tabs.some(t=>t.k===tab))tab=tabs.some(t=>t.k==="stockgen")?"stockgen":tabs[0].k;
-  return `<div>
+  const conPanel=stockPuede("stockGeneral")&&tab!=="stockgen";
+  return `<div class="${conPanel?"stk-wrap":""}"><div class="${conPanel?"stk-main":""}">
     <div class="ftabs">${tabs.map(t=>`<div class="ft ${tab===t.k?"on":""}" onclick="UI.stockTab='${t.k}';render()">${t.lbl}</div>`).join("")}</div>
     ${tab==="catalogo"?pedidosCatalogoHtml(stockPuede("gestionarCatalogo")):""}
     ${tab==="compras"?comprasTabHtml():""}
@@ -8088,7 +8226,7 @@ function insumosStockSectionHtml(){
     ${tab==="entregas"?pedidosPendEntregaHtml():""}
     ${tab==="historial"?pedidosHistorialHtml():""}
     ${tab==="permisos"?stockPermisosPanelHtml():""}
-  </div>`;
+  </div>${conPanel?stockSidePanelHtml():""}</div>`;
 }
 function rAdminArea(){
   const sec=(UI.areaSec&&UI.areaSec.admin)||"home";
@@ -8288,6 +8426,7 @@ window.adminBack=()=>{UI.adminMode='hub';UI.uEdit=null;render();};
 window.adminGo=(area)=>{
   ROLE=area;RID=null;RNAME='Admin';
   sessionStorage.setItem("ch_role",ROLE);sessionStorage.setItem("ch_rid","");sessionStorage.setItem("ch_rname","Admin");
+  try{themeResolve();}catch(e){}
   UI.adminMode=null;UI.shiftActive=false;UI.shiftDismissed=false;UI.shiftSnoozeTo=null;
   // (Tanda 138 / ítem 1) El superusuario Admin entra sin pasar por enterRole() (no elige una persona
   // de una lista) -- se le suma acá el mismo chequeo de fecha especial que ya dispara enterRole(),
@@ -8658,6 +8797,7 @@ function rRec(){
     <div class="topbar">
       <h2>${UI.v==="gen"?`${saludoHorario().ic} ${saludoHorario().txt}${nombreSaludo()?" "+nombreSaludo():""}`:(VTIT[UI.v]||"")} ${(UI.v==="plan"||UI.v==="muv")?onlineStaffHtml():""}${UI.v==="gen"?`<button class="btn btn-g btn-sm" style="margin-left:10px;vertical-align:middle;font-family:'DM Sans',sans-serif" onclick="notasOpen()">📝 Notas</button>`:""}${UI.v==="gen"?`<span class="filt-dd" style="margin-left:10px;vertical-align:middle;font-size:12px"><span class="filt-dd-btn" style="padding:5px 12px">${(GEN_FILTERS.find(f=>f.k===(UI.geneFe||"all"))||GEN_FILTERS[0]).l} 🔽</span><span class="filt-dd-menu">${GEN_FILTERS.map(f=>`<div class="filt-dd-item ${(UI.geneFe||"all")===f.k?"on":""}" onclick="UI.geneFe='${f.k}';render()">${f.l}</div>`).join("")}</span></span>`:""}${UI.v==="gen"&&sessionStorage.getItem("ch_admin_auth")==="1"?`<button class="btn btn-g btn-sm" style="margin-left:10px;vertical-align:middle;color:#a32d2d;border-color:#f09595" onclick="if(confirm('Esto va a: poner en 0 la cantidad de personas, marcar todas las habitaciones como libres y sucias, liberar las cocheras, y desasignar limpiezas/repasos/controles/blancos y horarios de mucamas. Cuenta corriente, cocheras mensuales, conserjería, mantenimiento y habitaciones NO se tocan. ¿Confirmar reinicio general?'))resetGeneral()" title="Reiniciar habitaciones, cocheras y asignaciones">Reiniciar</button>`:""}</h2>
       <div class="btns">
+        ${hcBtn()}
         <button class="btn btn-g btn-sm" onclick="toggleDark()" title="Modo oscuro/claro">${UI.dark?"\u2600\ufe0f":"\ud83c\udf15"}</button>
         <button class="btn btn-g btn-sm" onclick="openHist()" title="Historial de cambios">\ud83d\udd50</button>
         <button class="btn btn-g btn-sm" onclick="openNotifLog()" title="Notificaciones">\ud83d\udd14${notifBellCount()?`<span class="pp-badge" style="margin-left:4px">${notifBellCount()}</span>`:""}</button>
@@ -8968,7 +9108,8 @@ const RC_PILL_RVA={bg:"#dacfba",fg:"#5a4a33",bd:"#c0b192"};
 function rcPillCss(t){return t?`background:${t.bg};color:${t.fg};box-shadow:inset 0 0 0 1px ${t.bd}`:"";}
 // (Tanda 160) Tonos un poco más oscuros (en la Tanda 159 quedaron muy claros sobre el fondo claro de la app) y el texto del
 // estado de limpieza en "Plus Jakarta Sans" 800 (negrita real; DM Sans solo se carga hasta 500, así que su negrita era sintética).
-function rcPillEstadoCss(tl){return rcPillCss(RC_PILL_ESTADO[tl]||RC_PILL_ESTADO["Limpieza"])+";font-family:'Plus Jakarta Sans','DM Sans',sans-serif;font-weight:800;letter-spacing:.3px;-webkit-text-stroke:.45px currentColor"+(tl==="Sin blancos"?";font-size:9px;letter-spacing:0;-webkit-text-stroke:.3px currentColor":"");}
+// (Tanda 207) Los colores van como variables (--pbg/--pfg/--pbd) para que en modo oscuro (".rc-est") se inviertan sin selectores sobre el atributo style.
+function rcPillEstadoCss(tl){const t=RC_PILL_ESTADO[tl]||RC_PILL_ESTADO["Limpieza"];return `--pbg:${t.bg};--pfg:${t.fg};--pbd:${t.bd};background:var(--pbg);color:var(--pfg);box-shadow:inset 0 0 0 1px var(--pbd)`+";font-family:'Plus Jakarta Sans','DM Sans',sans-serif;font-weight:800;letter-spacing:.3px;-webkit-text-stroke:.45px currentColor"+(tl==="Sin blancos"?";font-size:9px;letter-spacing:0;-webkit-text-stroke:.3px currentColor":"");}
 // (Tanda 162) El usuario seguía viendo fino el texto del estado: se suma un trazo (-webkit-text-stroke, mismo color que la letra)
 // que engrosa el texto sea cual sea la fuente que termine cargando (si Google Fonts no responde, DM Sans solo tiene hasta 500 y el
 // 800 es sintético). .45px alcanza para que se vea claramente más grueso sin que las letras se "tapen".
@@ -8993,7 +9134,7 @@ function rcCard(r){
   if(mantBlkRC)return `<div class="rc" style="background:var(--sand2)" title="${(mantBlkRC.mantBloqComentario||"En mantenimiento").replace(/"/g,"&quot;")}">
     <div class="rc-flag-slot" style="width:30px"></div>
     <div class="rc-num-slot" style="width:38px;padding:0 1px"><div style="font-size:16px;font-family:'Plus Jakarta Sans','DM Sans',sans-serif;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.3px;color:#111827">${r.num}</div></div>
-    <div class="rc-pill-slot" style="padding:0 1px"><div style="width:70px;height:28px;box-sizing:border-box;flex-shrink:0;color:#fff;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.2px;padding:3px 6px;border-radius:20px;text-align:center;white-space:nowrap;display:flex;align-items:center;justify-content:center;${rcPillEstadoCss(tl)}" title="Último estado de limpieza (antes del bloqueo)">${tl}</div></div>
+    <div class="rc-pill-slot" style="padding:0 1px"><div class="rc-est" style="width:70px;height:28px;box-sizing:border-box;flex-shrink:0;color:#fff;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.2px;padding:3px 6px;border-radius:20px;text-align:center;white-space:nowrap;display:flex;align-items:center;justify-content:center;${rcPillEstadoCss(tl)}" title="Último estado de limpieza (antes del bloqueo)">${tl}</div></div>
     <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;gap:4px;padding-right:8px;font-size:10px;font-weight:800;font-style:italic;text-transform:uppercase;color:#4b5563;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">En mantenimiento</div>
   </div>`;
   const m=muO(r.mucId);
@@ -9097,8 +9238,8 @@ function rcCard(r){
   // badge de 13px sobre esa esquina). Este offset es igual en rcCard() y rcCardSimple() porque ambas
   // comparten exactamente la misma secuencia de slots antes del flotante.
   const notaBadgeRC=r.aviso?`<span style="position:absolute;top:-3px;left:144px;background:#4f46e5;color:#fff;border-radius:50%;width:13px;height:13px;font-size:8px;line-height:13px;text-align:center;font-weight:900;box-shadow:0 0 0 1.5px #fff;cursor:pointer;z-index:2" title="${r.aviso.replace(/"/g,"&quot;")} (click para ver/editar)" onclick="event.stopPropagation();openRoomNotaMod('${r.id}')">💬</span>`:"";
-  const p1=`<div style="position:relative;width:${PILLW}px;${pillSt};${rcPillEstadoCss(tl)};cursor:pointer" onclick="cycleTarea('${r.id}',event${id2Arg})" title="Click para cambiar estado">${tl}</div>`;
-  const p3=`<div style="${pillStAuto};background:${sBg};border:2.5px solid ${sC};box-shadow:${sSh};padding:3px 7px;cursor:pointer;font-size:18px;line-height:1" onclick="setOccState('${r.id}','${ocupada?"libre":"ocupada"}',event${id2Arg})" title="${sL} (click para cambiar)">${sIco}</div>`;
+  const p1=`<div class="rc-est" style="position:relative;width:${PILLW}px;${pillSt};${rcPillEstadoCss(tl)};cursor:pointer" onclick="cycleTarea('${r.id}',event${id2Arg})" title="Click para cambiar estado">${tl}</div>`;
+  const p3=`<div class="rc-occ rc-occ-${ocupada?"r":"g"}" style="${pillStAuto};background:${sBg};border:2.5px solid ${sC};box-shadow:${sSh};padding:3px 7px;cursor:pointer;font-size:18px;line-height:1" onclick="setOccState('${r.id}','${ocupada?"libre":"ocupada"}',event${id2Arg})" title="${sL} (click para cambiar)">${sIco}</div>`;
   const p4=reserva?`<div style="${pillStAuto};${rcPillCss(RC_PILL_RVA)};font-weight:700;cursor:pointer" onclick="togPaxCheckin('${r.id}',event${id2Arg})" title="Doble click en pax para marcar llegada">Rva</div>`:"";
   const p5=(()=>{if(!isCamaUnible(r.num))return"";const kP5=r.cama==="MAT"?"MAT":r.cama==="TWIN"?"TWIN":"—";return `<div style="${pillStAuto};${rcPillCss(RC_PILL_CAMA[kP5])};font-weight:700;align-self:center" title="Estado de camas unibles">${r.cama==="MAT"?"MAT":r.cama==="TWIN"?"TWIN":"—"}</div>`;})();
   // (Tanda 180) Colores de prioridad: rojo = máxima (urgente) · naranja = reservas con ingreso 14 hs (importante) · amarillo = después de las reservas (normal) · gris medio = para hacer último (baja)
@@ -9232,8 +9373,8 @@ function rcCardSimple(r,tabIdx){
   // comparten la misma secuencia de slots antes del flotante de estado. Ver el comentario extendido en
   // rcCard() para el detalle completo del cálculo.
   const notaBadgeRCS=r.aviso?`<span style="position:absolute;top:-3px;left:126px;background:#4f46e5;color:#fff;border-radius:50%;width:13px;height:13px;font-size:8px;line-height:13px;text-align:center;font-weight:900;box-shadow:0 0 0 1.5px #fff;cursor:pointer;z-index:2" title="${r.aviso.replace(/"/g,"&quot;")} (click para ver/editar)" onclick="event.stopPropagation();openRoomNotaMod('${r.id}')">💬</span>`:"";
-  const p1=`<div style="position:relative;width:${PILLW}px;${pillSt};${rcPillEstadoCss(tl)};cursor:pointer" onclick="cycleTarea('${r.id}',event${id2Arg})" title="Click para cambiar estado">${tl}</div>`;
-  const p3=`<div style="${pillStAuto};background:${sBg};border:2.5px solid ${sC};box-shadow:${sSh};padding:3px 7px;cursor:pointer;font-size:18px;line-height:1" onclick="setOccState('${r.id}','${ocupada?"libre":"ocupada"}',event${id2Arg})" title="${sL} (click para cambiar)">${sIco}</div>`;
+  const p1=`<div class="rc-est" style="position:relative;width:${PILLW}px;${pillSt};${rcPillEstadoCss(tl)};cursor:pointer" onclick="cycleTarea('${r.id}',event${id2Arg})" title="Click para cambiar estado">${tl}</div>`;
+  const p3=`<div class="rc-occ rc-occ-${ocupada?"r":"g"}" style="${pillStAuto};background:${sBg};border:2.5px solid ${sC};box-shadow:${sSh};padding:3px 7px;cursor:pointer;font-size:18px;line-height:1" onclick="setOccState('${r.id}','${ocupada?"libre":"ocupada"}',event${id2Arg})" title="${sL} (click para cambiar)">${sIco}</div>`;
   const p4=reserva?`<div style="${pillStAuto};${rcPillCss(RC_PILL_RVA)};font-weight:700;cursor:pointer" onclick="togPaxCheckin('${r.id}',event${id2Arg})" title="Doble click en pax para marcar llegada">Rva</div>`:"";
   const p5=(()=>{if(!isCamaUnible(r.num))return"";const kP5=r.cama==="MAT"?"MAT":r.cama==="TWIN"?"TWIN":"—";return `<div style="${pillStAuto};${rcPillCss(RC_PILL_CAMA[kP5])};font-weight:700;align-self:center" title="Estado de camas unibles">${r.cama==="MAT"?"MAT":r.cama==="TWIN"?"TWIN":"—"}</div>`;})();
   // (Tanda 198) Se quitó el "!" ámbar de Repaso sin pax: el cuadro de cantidad de personas solo muestra un número o "LCO" (o queda vacío).
@@ -10806,7 +10947,7 @@ function logChange(desc){
   lsS(K.hist,D.hist);
 }
 window.openHist=()=>{UI.mod="hist";render();};
-window.toggleDark=()=>{UI.dark=!UI.dark;localStorage.setItem("ch_dark",UI.dark?"1":"0");document.body.classList.toggle("dark",UI.dark);applyThemeColorMeta(UI.dark);render();};
+window.toggleDark=()=>{const nd=!UI.dark;themeApply(nd);themeManualSet(nd);render();};
 
 function vAudit(){return vAuditView();}
 
@@ -10961,8 +11102,8 @@ function vPlan(){
     <div style="display:flex;align-items:flex-start;gap:8px"><span style="width:9px;display:inline-flex;justify-content:center;flex-shrink:0;font-size:11px">🧺</span><span style="font-size:10px;line-height:1.3"><strong>Sacar blancos</strong></span></div>
     <div style="height:1px;background:var(--border);margin:2px 0"></div>
     <div style="display:flex;align-items:flex-start;gap:8px"><span class="rc-order-badge" style="flex-shrink:0">1</span><span style="font-size:10px;line-height:1.3">Orden en que la mucama inició cada habitación (si tiene varias a la vez)</span></div>
-    <div style="display:flex;align-items:flex-start;gap:8px"><span style="flex-shrink:0;font-size:15px;line-height:1;padding:3px 7px;border-radius:10px;background:linear-gradient(145deg,#fecaca,#fca5a5);border:2.5px solid #dc2626;box-shadow:inset 0 1px 3px rgba(127,29,29,.45)">🔒</span><span style="font-size:10px;line-height:1.3">Ocupada (candado rojo)</span></div>
-    <div style="display:flex;align-items:flex-start;gap:8px"><span style="flex-shrink:0;font-size:15px;line-height:1;padding:3px 7px;border-radius:10px;background:linear-gradient(145deg,#dcfce7,#a7f3d0);border:2.5px solid #1e7e46;box-shadow:inset 0 1px 2px rgba(255,255,255,.85),0 0 0 3px rgba(30,126,70,.15)">🔓</span><span style="font-size:10px;line-height:1.3">Libre (candado verde)</span></div>
+    <div style="display:flex;align-items:flex-start;gap:8px"><span class="rc-occ rc-occ-r" style="flex-shrink:0;font-size:15px;line-height:1;padding:3px 7px;border-radius:10px;background:linear-gradient(145deg,#fecaca,#fca5a5);border:2.5px solid #dc2626;box-shadow:inset 0 1px 3px rgba(127,29,29,.45)">🔒</span><span style="font-size:10px;line-height:1.3">Ocupada (candado rojo)</span></div>
+    <div style="display:flex;align-items:flex-start;gap:8px"><span class="rc-occ rc-occ-g" style="flex-shrink:0;font-size:15px;line-height:1;padding:3px 7px;border-radius:10px;background:linear-gradient(145deg,#dcfce7,#a7f3d0);border:2.5px solid #1e7e46;box-shadow:inset 0 1px 2px rgba(255,255,255,.85),0 0 0 3px rgba(30,126,70,.15)">🔓</span><span style="font-size:10px;line-height:1.3">Libre (candado verde)</span></div>
     <div style="display:flex;align-items:flex-start;gap:8px"><span style="flex-shrink:0;width:30px;height:16px;border-radius:8px;border:1.5px solid #dc2626;background:linear-gradient(to right,rgba(220,38,38,.66),rgba(220,38,38,0));position:relative;overflow:hidden"><span style="position:absolute;left:4px;top:50%;transform:translateY(-52%);font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:13px;line-height:1;color:rgba(110,16,16,.5)">!</span></span><span style="font-size:10px;line-height:1.3">Franja roja a la izquierda: problema reportado (hasta que se resuelva) <!-- Tanda 170 --></span></div>
     <div style="display:flex;align-items:flex-start;gap:8px"><span style="flex-shrink:0;color:#fff;font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 6px;border-radius:10px;background:#dacfba;color:#5a4a33;font-weight:700;box-shadow:inset 0 0 0 1px #c0b192">Rva</span><span style="font-size:10px;line-height:1.3">Reserva efectuada, todavía sin check-in</span></div>
     <div style="display:flex;align-items:flex-start;gap:8px"><span style="flex-shrink:0;color:#fff;font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 6px;border-radius:10px;background:#b4c2d6;color:#22324b;font-weight:700;box-shadow:inset 0 0 0 1px #8fa1bc">Twin</span><span style="font-size:10px;line-height:1.3">Camas separadas (2 individuales)</span></div>
@@ -12958,6 +13099,7 @@ function rMu(){
            iba a la izquierda acá en Mucamas. Mantenimiento (rMant()) ya tenía este orden desde la
            Tanda 87 / ítem 7; ahora queda igual en los dos roles. -->
       <div style="display:flex;gap:10px;align-items:center">
+        ${isAdmin?hcBtn("tab-exit"):""}
         <button class="tab-exit" onclick="exitRole()">Cerrar sesión</button>
         ${isAdmin?"":muMenuHtml()}
       </div>
@@ -13190,6 +13332,7 @@ function rMant(){
            sesi\u00f3n" -- antes iba a la izquierda. Solo se reordena ac\u00e1 (rMant()); Mucamas (rMu()) sigue
            con el orden original, que el usuario no pidi\u00f3 cambiar. -->
       <div style="display:flex;gap:10px;align-items:center">
+        ${isAdminMant?hcBtn("tab-exit"):""}
         <button class="tab-exit" onclick="exitRole()">Cerrar sesi\u00f3n</button>
         ${isAdminMant?"":muMenuHtml()}
       </div>
@@ -14379,7 +14522,8 @@ function muMenuHtml(){
     {key:"vacaciones",html:`<div class="mu-menu-item" onclick="UI.muMenuOpen=false;vacAbrir()"><span class="mu-menu-ic">${icVac}</span> ${lblVac}</div>`},
     {key:"francos",html:`<div class="mu-menu-item" onclick="UI.muMenuOpen=false;francosAbrir()"><span class="mu-menu-ic">${icFranco}</span> ${lblFranco}</div>`},
     {key:"soporte",html:`<div class="mu-menu-item" onclick="UI.muMenuOpen=false;soporteAbrir()"><span class="mu-menu-ic">${icSop}</span> ${lblSop}${fbN?`<span class="mu-menu-badge" style="position:static;margin-left:auto">${fbN}</span>`:""}</div>`},
-  ],sbLinksBuckets(ROLE,"menu",["vacaciones","francos","soporte"]),clHtmlMu);
+  ],sbLinksBuckets(ROLE,"menu",["vacaciones","francos","soporte"]),clHtmlMu)
+    +`<div class="mu-menu-item hc-menu-item" onclick="UI.muMenuOpen=false;toggleHC()"><span class="mu-menu-ic" style="font-weight:800">Aa</span> Alto contraste${UI.hc?" (activado)":""}</div>`;
   return `<div class="mu-menu-wrap">
     <button class="mu-menu-btn" onclick="toggleMuMenu()" title="Menú" aria-label="Menú"><span class="mu-menu-bars"><span></span><span></span><span></span></span>${fbN?`<span class="mu-menu-badge">${fbN}</span>`:""}</button>
     ${open?`<div class="mu-menu-dd">${menuHtml}</div>`:""}
@@ -17548,7 +17692,61 @@ window.printHabs=()=>{
     try{const blob=new Blob([html],{type:"text/html"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="habitaciones.html";a.click();}catch(_){}
   }},800);
 };
-window.toggleDark=()=>{UI.dark=!UI.dark;localStorage.setItem("ch_dark",UI.dark?"1":"0");document.body.classList.toggle("dark",UI.dark);applyThemeColorMeta(UI.dark);render();};
+window.toggleDark=()=>{const nd=!UI.dark;themeApply(nd);themeManualSet(nd);render();};
+// (Tanda 202) Modo alto contraste
+window.hcBtn=function(cls,extra){
+  var on=!!UI.hc;
+  return '<button class="'+(cls||"btn btn-g btn-sm")+' btn-hc'+(extra?' '+extra:'')+(on?' hc-on':'')+'" onclick="toggleHC()" title="Alto contraste (todo el texto en negrita)'+(on?' - activado':'')+'" aria-pressed="'+on+'">Aa</button>';
+};
+// (Tanda 206) Agranda un poco (x1.12) TODOS los tamaños de letra en px, solo en pantallas de compu (>860px)
+// y solo con alto contraste en Recepcion/Gerencia/Administracion/Coordinacion (clase body.hc-big). Como los
+// tamaños estan escritos en px por toda la hoja, se generan en runtime reglas "body.hc-big <selector>" con el
+// tamaño ya multiplicado (para no componer escalas) + reglas por atributo para los font-size inline.
+window.HC_BIG_K=1.12;
+window.buildHcBig=function(){
+  if(document.getElementById("hc-big-gen"))return;
+  var K=HC_BIG_K,out=[];
+  function sz(v){var m=/^(\d*\.?\d+)px$/.exec(v||"");return m?Math.round(parseFloat(m[1])*K*10)/10+"px":null;}
+  function walk(rules){
+    for(var i=0;i<rules.length;i++){
+      var r=rules[i];
+      try{
+        if(r.cssRules&&!r.selectorText){walk(r.cssRules);continue;}
+        if(!r.selectorText||!r.style)continue;
+        var n=sz(r.style.fontSize);if(!n)continue;
+        var sels=r.selectorText.split(",").map(function(x){return x.trim();}).filter(Boolean).map(function(x){
+          if(/^(:root|html)/.test(x))return null;
+          if(/^body\b/.test(x))return x.replace(/^body/,"body.hc-big");
+          return "body.hc-big "+x;
+        }).filter(Boolean);
+        if(!sels.length)continue;
+        var rule=sels.join(",")+"{font-size:"+n+"!important}";
+        var par=r.parentRule;
+        if(par&&par.conditionText!==undefined&&par.cssText){rule=par.cssText.slice(0,par.cssText.indexOf("{"))+"{"+rule+"}";}
+        out.push(rule);
+      }catch(e){}
+    }
+  }
+  try{
+    for(var k=0;k<document.styleSheets.length;k++){
+      var sh=document.styleSheets[k];
+      if(sh.ownerNode&&(sh.ownerNode.id==="hc-big-gen"))continue;
+      var rl;try{rl=sh.cssRules;}catch(e){continue;}
+      if(rl)walk(rl);
+    }
+  }catch(e){}
+  for(var px=6;px<=80;px+=0.5){
+    var o=Math.round(px*K*10)/10+"px";
+    out.push('body.hc-big [style*="font-size:'+px+'px"],body.hc-big [style*="font-size: '+px+'px"]{font-size:'+o+'!important}');
+  }
+  var st=document.createElement("style");st.id="hc-big-gen";
+  st.textContent="@media (min-width:861px){\n"+out.join("\n")+"\n}";
+  document.head.appendChild(st);
+};
+window.applyHC=function(){
+  document.body.classList.toggle("hc",!!UI.hc);
+};
+window.toggleHC=()=>{UI.hc=!UI.hc;try{localStorage.setItem("ch_hc",UI.hc?"1":"0");}catch(e){}applyHC();render();};
 window.toggleSb=()=>{
   UI.sbCollapsed=!UI.sbCollapsed;
   const sb=document.querySelector(".sb");
@@ -20495,17 +20693,36 @@ function applyThemeColorMeta(dark){
     var wantDark=shouldBeDarkNow();
     if(wantDark!==UI._lastAutoDark){
       UI._lastAutoDark=wantDark;
-      UI.dark=wantDark;
-      localStorage.setItem("ch_dark",wantDark?"1":"0");
-      document.body.classList.toggle("dark",wantDark);
-      applyThemeColorMeta(wantDark);
+      try{localStorage.removeItem("ch_dark_man");}catch(e){}
+      themeApply(wantDark);
     }
   };
+  // (Tanda 214) Elección MANUAL del modo (botón): se guarda en "ch_dark_man" = {v:1/0, by:<quién>, sig:<modo automático al momento de elegir>}.
+  // Vale mientras no cruce el amanecer/atardecer (sig sigue igual al modo automático actual); después se descarta sola. "by" es la persona
+  // que lo eligió ("" = elegido en el inicio, sin sesión). Al cerrar sesión el inicio sigue con ese modo; al iniciar sesión otra persona
+  // (by distinto) vuelve al modo que corresponde a la franja horaria; la misma persona (o quien eligió en el inicio) lo conserva.
+  window.themeUserKey=function(){return ROLE==="sel"?"":(RID||("A:"+(RNAME||"")));};
+  window.themeManualGet=function(){
+    try{var o=JSON.parse(localStorage.getItem("ch_dark_man")||"null");if(!o)return null;
+      if(o.sig!==(shouldBeDarkNow()?1:0)){localStorage.removeItem("ch_dark_man");return null;}return o;}catch(e){return null;}
+  };
+  window.themeManualSet=function(v){try{localStorage.setItem("ch_dark_man",JSON.stringify({v:v?1:0,by:themeUserKey(),sig:shouldBeDarkNow()?1:0}));}catch(e){}};
+  window.themeApply=function(d){d=!!d;UI.dark=d;try{localStorage.setItem("ch_dark",d?"1":"0");}catch(e){}document.body.classList.toggle("dark",d);applyThemeColorMeta(d);};
+  window.themeResolve=function(){
+    var key=themeUserKey(),m=themeManualGet();
+    var keep=m&&(ROLE==="sel"||m.by===key||m.by==="");
+    if(keep){if(ROLE!=="sel"&&m.by==="")themeManualSet(!!m.v);themeApply(!!m.v);}
+    else{if(m){try{localStorage.removeItem("ch_dark_man");}catch(e){}}themeApply(shouldBeDarkNow());}
+  };
+  window.selThemeBtnAdd=function(){
+    var sc=document.querySelector(".sel-screen");if(!sc||sc.querySelector(".sel-theme-btn"))return;
+    sc.insertAdjacentHTML("afterbegin",'<button class="sel-theme-btn" onclick="toggleDark()" title="Modo oscuro/claro" aria-label="Modo oscuro/claro">'+(UI.dark?"\u2600\ufe0f":"\ud83c\udf19")+'</button>');
+  };
   var initDark=shouldBeDarkNow();
-  UI._lastAutoDark=initDark;UI.dark=initDark;
-  document.body.classList.toggle("dark",initDark);
-  localStorage.setItem("ch_dark",initDark?"1":"0");
-  applyThemeColorMeta(initDark);
+  UI._lastAutoDark=initDark;
+  themeResolve();
+  try{UI.hc=localStorage.getItem("ch_hc")==="1";}catch(e){UI.hc=false;}
+  applyHC();
 })();
 
 /* ===== Aviso de fin de turno (recepci\u00f3n) ===== */
