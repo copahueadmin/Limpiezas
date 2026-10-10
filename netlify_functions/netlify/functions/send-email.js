@@ -8,6 +8,8 @@
 //   - to: string con uno o varios destinatarios separados por coma (ej: "a@x.com, b@x.com")
 //   - subject: asunto del mail
 //   - text: cuerpo del mail en texto plano (resumen corto -- el detalle va en el PDF)
+//   - html: (opcional, Tanda 224) cuerpo del mail con formato (cursivas, etc.); si viene, el mail sale en HTML
+//     y `text` queda como versión alternativa en texto plano
 //   - pdfBase64: contenido del PDF ya codificado en base64 (sin el prefijo "data:...;base64,")
 //   - pdfFilename: nombre de archivo del adjunto (ej: "informe-2026-09-11.pdf")
 //
@@ -38,7 +40,7 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: "Body inválido (JSON esperado)." }) };
   }
 
-  const { to, subject, text, pdfBase64, pdfFilename } = payload;
+  const { to, subject, text, html, pdfBase64, pdfFilename } = payload;
   if (!to || !subject) {
     return { statusCode: 400, body: JSON.stringify({ error: "Faltan campos requeridos (to, subject)." }) };
   }
@@ -56,6 +58,10 @@ exports.handler = async (event) => {
     subject,
     text: text || "",
   };
+
+  if (html) {
+    body.html = html;
+  }
 
   if (pdfBase64 && pdfFilename) {
     body.attachments = [{ filename: pdfFilename, content: pdfBase64 }];
