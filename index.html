@@ -2459,10 +2459,14 @@ body.dark .cj-warn{color:#f87171}
 body.dark #cjTbl thead th{background:#0f3d36!important}
 
 #cjTbl .cj-stk2{width:auto}
-#cjTbl td:not(.cj-ek):not(.cj-tc) .cj-in{font-weight:600;font-style:italic}
+#cjTbl td:not(.cj-ek):not(.cj-tc) .cj-in{font-weight:600;font-style:normal}
 .cj-tbl .cj-in:not(.cj-txt){padding-left:6px!important;padding-right:11px!important}
+#cjTbl td:not(.cj-ek):not(.cj-tc) .cj-in{padding-right:14px!important;color:#7b8794!important}
+body.dark #cjTbl td:not(.cj-ek):not(.cj-tc) .cj-in{color:#a9b4c2!important}
+#cjTbl td.cj-tn{text-transform:uppercase;letter-spacing:0;padding:0 2px 0 8px;font-size:10.5px;text-align:left}
+#cjTbl td.cj-ek .cj-in,#cjTbl td.cj-ek .cj-mir{font-size:15.5px}
 #cjTbl td:not(.cj-ek):not(.cj-tc) .cj-in{font-size:12px}
-#cjTbl td:not(.cj-ek):not(.cj-tc) .cj-in::placeholder{font-style:italic}
+#cjTbl td:not(.cj-ek):not(.cj-tc) .cj-in::placeholder{font-style:normal}
 .cj-tbl th,.cj-tbl td{border-bottom:1px solid var(--cj-line);border-right:1px solid var(--cj-vline);padding:0;background:var(--cj-cell);white-space:nowrap;color:var(--text);position:relative}
 .cj-tbl th{position:sticky;top:0;z-index:3;background:linear-gradient(135deg,#1a6a5c,#1f8a76);color:#fff;padding:9px 10px;font-weight:700;text-align:center;font-size:11px;border-bottom:0;border-right:1px solid rgba(255,255,255,.14)}
 .cj-tbl th.cj-gap,.cj-tbl td.cj-gap{width:18px;min-width:18px;max-width:18px;padding:0;border-right:0}
@@ -2489,7 +2493,7 @@ body.dark .cj-tbl td.cj-c-noche{background:#1f2a4f;color:#a9bdf5}
 .cj-mir{display:block;visibility:hidden;white-space:pre;padding:9px 7px;font-size:12.5px;line-height:1.25;font-variant-numeric:tabular-nums;min-width:12ch;pointer-events:none}
 .cj-tc .cj-mir{font-weight:700;min-width:9ch;padding:9px 10px}
 .cj-in{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;padding:0 7px;font:inherit;font-size:12.5px;color:var(--text);text-align:right;outline:none;font-variant-numeric:tabular-nums;box-sizing:border-box;border-radius:8px}
-.cj-in.cj-txt{text-align:left;padding:0 10px;font-weight:700;color:inherit}
+.cj-in.cj-txt{text-align:left;padding:0 10px;font-weight:700;color:inherit;text-transform:uppercase}
 .cj-tbl td.cj-ek .cj-in,.cj-tbl td.cj-ek .cj-mir{font-weight:800}
 .cj-in::placeholder{color:var(--text3);opacity:.55}
 .cj-tc .cj-in::placeholder{color:inherit;opacity:.45;font-weight:600}
@@ -6467,6 +6471,7 @@ function _renderOverlays(){
   if(UI.mod==="cochEdit"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modCochEdit());}
   if(UI.mod==="cochDel"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modCochDel());}
   if(UI.mod==="cjComp"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modCjComp());}
+  if(UI.mod==="cjAsk"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modCjAsk());}
   if(UI.mod==="cjCm"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modCjCm());}
   try{facDesayFit();}catch(e){}
   if(UI.mod==="facDet"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modFacDet());}
@@ -18736,7 +18741,7 @@ const CJ_PROT=["pesos","vip"]; // el informe de entrega usa estos 2: no se puede
 const CJ_FIRMA_GER="Jose Ignacio Bazzani",CJ_FIRMA_ADM="Giuliano Zolvini Mayo";
 const cjPad=x=>String(x).padStart(2,"0");
 // (Tanda 242) La primera letra del nombre del conserje va siempre en mayúscula.
-const cjCap=s=>String(s==null?"":s).replace(/^(\s*)(\S)/,(m,a,b)=>a+b.toLocaleUpperCase("es"));
+const cjCap=s=>String(s==null?"":s).replace(/[^\p{L}\s.'’\-]/gu,"").toLocaleUpperCase("es"); // (Tanda 309) el conserje solo lleva texto (letras, espacios, punto, apóstrofe y guion)
 const cjR2=x=>Math.round((Number(x)||0)*100)/100;
 const cjGroup=s=>String(s).replace(/\B(?=(\d{3})+(?!\d))/g,".");
 const cjNumFmt=n=>{if(n==null||n==="")return"";const v=cjR2(n);const a=Math.abs(v).toFixed(2).split(".");return (v<0?"-":"")+cjGroup(a[0])+(a[1]==="00"?"":","+a[1]);};
@@ -18896,9 +18901,58 @@ window.cjIn=el=>{
   const mir=el.previousElementSibling;if(mir&&mir.classList.contains("cj-mir"))mir.textContent=el.value||el.placeholder;
   cjRefreshTotals();
 };
-window.cjFocus=el=>{el._cjSel=true;try{el.select();}catch(e){}};
+// (Tanda 306) Conserje / $ Entregado / $ En caja ya cargados: para modificarlos se pregunta "¿Estás seguro?" (Enter = Sí)
+function cjHasVal(el){
+  const f=el.dataset.f;if(f!=="c"&&f!=="e"&&f!=="k")return false;
+  const r=cjRec(el.dataset.i,el.dataset.t);
+  return f==="c"?(r.c!==undefined&&String(r.c).trim()!==""):typeof r[f]==="number";
+}
+window.cjFocus=el=>{
+  const u=UI.cjUnl;
+  el._cjLocked=cjCan()&&cjHasVal(el)&&!(u&&u.i===el.dataset.i&&u.t===el.dataset.t&&u.f===el.dataset.f);
+  el._cjSel=true;try{el.select();}catch(e){}
+};
+document.addEventListener("beforeinput",e=>{
+  const el=e.target;
+  if(!el||!el.classList||!el.classList.contains("cj-in"))return;
+  // (Tanda 309) Conserje: solo texto. Entregado / En caja / metodos de pago: solo digitos y signos de importe ($ . ,)
+  if(e.inputType==="insertText"&&e.data){
+    const ok=el.dataset.f==="c"?/^[\p{L}\s.'’\-]+$/u.test(e.data):/^[\d.,$]+$/.test(e.data);
+    if(!ok){e.preventDefault();return;}
+  }
+  if(!el._cjLocked)return;
+  e.preventDefault();cjAskOpen(el);
+},true);
+function cjAskOpen(el){
+  cjFlush();
+  UI.cjAsk={i:el.dataset.i,t:el.dataset.t,f:el.dataset.f,v:el.value};UI.mod="cjAsk";render();
+  setTimeout(()=>{const b=document.getElementById("cjAskYes");if(b)b.focus();},30);
+}
+function cjAskRefocus(a){
+  const el=document.querySelector('.cj-in[data-i="'+a.i+'"][data-t="'+a.t+'"][data-f="'+a.f+'"]');
+  if(el){el.focus();}
+}
+window.cjAskYes=()=>{const a=UI.cjAsk;if(!a)return;UI.cjUnl={i:a.i,t:a.t,f:a.f};UI.cjAsk=null;UI.mod=null;cjRender();cjAskRefocus(a);};
+window.cjAskNo=()=>{const a=UI.cjAsk;UI.cjAsk=null;UI.mod=null;cjRender();if(a)cjAskRefocus(a);};
+document.addEventListener("keydown",e=>{
+  if(UI.mod!=="cjAsk")return;
+  if(e.key==="Enter"){e.preventDefault();e.stopPropagation();cjAskYes();}
+  else if(e.key==="Escape"){e.preventDefault();e.stopPropagation();cjAskNo();}
+},true);
+function modCjAsk(){
+  const a=UI.cjAsk||{},lbl=a.f==="c"?"el nombre del conserje":a.f==="e"?"el importe entregado":"el importe en caja";
+  return `<div class="ov"><div class="mod" onclick="event.stopPropagation()" style="max-width:420px">
+    <div class="mh"><h2>Modificar dato cargado</h2></div>
+    <div class="mc">
+      <div style="font-size:14px;line-height:1.45">Ya hay cargado ${lbl}: <b>${cnEsc(a.v||"")}</b>.<br>¿Estás seguro de que querés modificarlo?</div>
+      <div class="mf"><button class="btn btn-sm" onclick="cjAskNo()">No</button><button id="cjAskYes" class="btn btn-p btn-sm" onclick="cjAskYes()">Sí</button></div>
+      <div class="cn-help" style="margin-top:6px">Enter = Sí · Esc = No</div>
+    </div>
+  </div></div>`;
+}
 window.cjMouseUp=(e,el)=>{if(el._cjSel){e.preventDefault();el._cjSel=false;}};
 window.cjBlur=el=>{
+  if(UI.cjUnl&&UI.cjUnl.i===el.dataset.i&&UI.cjUnl.t===el.dataset.t&&UI.cjUnl.f===el.dataset.f)UI.cjUnl=null;
   const tr=el.closest("tr");
   if(el.dataset.f!=="c"){const r=cjRec(el.dataset.i,el.dataset.t);const f=el.dataset.f;const v=f==="e"?r.e:f==="k"?r.k:(r.p||{})[f.slice(2)];el.value=(v==null?"":"$"+cjNumFmt(v));const mir=el.previousElementSibling;if(mir&&mir.classList.contains("cj-mir"))mir.textContent=el.value||el.placeholder;}
   if(tr)cjRowMark(tr);
@@ -19236,6 +19290,50 @@ function cjHistHtml(){
   ${ms.map(m=>{const c=cjCalc(m);return `<tr${m===UI.cjYm?` class="on"`:""}><td>${cjMesLbl(m)}</td><td>${cjMoney(c.facturado)}</td><td>${cjMoney(c.entregado)}</td><td>${cjMoney(c.totRet)}</td><td>${c.entrega===null?"—":cjMoney(c.entrega)}</td><td>${cjMoney(c.saldoFavor)}</td><td>${c.inf.length}</td><td><button class="btn btn-g btn-sm" onclick="cjGoYm('${m}')">Abrir</button></td></tr>`;}).join("")}
   </tbody></table></div>`;
 }
+// ---- (Tanda 307) Descargar el mes de Control de cajas en Excel (incluye el mes en curso) ----
+window.cjExcel=()=>{
+  cjFlush();
+  const ym=UI.cjYm||cjDefaultYm();
+  cjLoadXlsx().then(()=>{
+    const metodos=cjMetodosMes(ym),c=cjCalc(ym),groups=cjShifts(ym);
+    const money=v=>typeof v==="number"?v:null;
+    const aoa=[["Control de cajas · "+cjMesLbl(ym)],[],["Fecha","Turno","Conserje","$ Entregado","$ En caja",...metodos.map(m=>m.n)]];
+    groups.forEach(g=>g.ts.forEach(t=>{
+      const r=cjRec(g.iso,t);
+      const nom=cjCap(r.c!==undefined?r.c:((((D.consAg||{})[g.iso]||{})[t]||{}).nombre||""));
+      aoa.push([cjIsoFull(g.iso),cjTurnoLbl(t).toLocaleUpperCase("es"),nom,money(r.e),money(r.k),...metodos.map(m=>money((r.p||{})[m.id]))]);
+    }));
+    aoa.push(["TOTAL DEL MES","","",c.entregado,"",...metodos.map(m=>c.mp[m.id]||0)]);
+    const ws=XLSX.utils.aoa_to_sheet(aoa);
+    ws["!cols"]=[{wch:14},{wch:9},{wch:22},{wch:14},{wch:14},...metodos.map(()=>({wch:15}))];
+    ws["!merges"]=[{s:{r:0,c:0},e:{r:0,c:4}}];
+    for(let R=3;R<aoa.length;R++)for(let C=3;C<aoa[R].length;C++){const cell=ws[XLSX.utils.encode_cell({r:R,c:C})];if(cell&&typeof cell.v==="number")cell.z='"$" #,##0.00';}
+    const res=[["Resumen · "+cjMesLbl(ym)],[],["Facturado en el mes",c.facturado],["Entregado en el mes",c.entregado],["Turnos cerrados sin cargar entregado / en caja",c.pend.length]];
+    const ws2=XLSX.utils.aoa_to_sheet(res);ws2["!cols"]=[{wch:46},{wch:16}];
+    ["B3","B4"].forEach(k=>{if(ws2[k])ws2[k].z='"$" #,##0.00';});
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,"Control de cajas");
+    XLSX.utils.book_append_sheet(wb,ws2,"Resumen");
+    XLSX.writeFile(wb,"control-de-cajas-"+ym+".xlsx");
+  }).catch(()=>{alert("No se pudo generar el Excel (¿hay conexión a internet para cargar la librería?).");});
+};
+// (Tanda 308) Ancho de columnas: Fecha/Turno fijos; el resto reparte lo que sobra con peso (Entregado y En caja 1.3, Conserje 1.1, metodos 1), sin bajar del minimo de cada una
+function cjFitCols(){
+  const sc=document.getElementById("cjScroll"),t=document.getElementById("cjTbl");if(!sc||!t)return;
+  const cols=[].slice.call(t.querySelectorAll("col[data-w]"));if(!cols.length)return;
+  const tw=cols.reduce((a,c)=>a+(+c.dataset.w),0),minT=parseFloat(t.style.minWidth)||0;
+  const T=Math.max(sc.clientWidth-2,minT),flex=T-118;let sum=0;
+  cols.forEach(c=>{const w=Math.max(+c.dataset.min,Math.floor(flex*(+c.dataset.w)/tw));c.style.width=w+"px";sum+=w;});
+  t.style.width=(118+sum)+"px";
+}
+let _cjRO=null;
+function cjFitInit(){
+  setTimeout(()=>{
+    cjFitCols();
+    const sc=document.getElementById("cjScroll");
+    if(window.ResizeObserver&&sc){if(_cjRO)_cjRO.disconnect();_cjRO=new ResizeObserver(()=>cjFitCols());_cjRO.observe(sc);}
+  },0);
+}
 // ---- sección ----
 function cajasSectionHtml(){
   const ro=!cjCan();
@@ -19246,8 +19344,11 @@ function cajasSectionHtml(){
   const cmAt=key=>{const t=cjCmGet(ym,key);return {a:` data-cm="${key}" ondblclick="cjCmOpen(event,this)" oncontextmenu="cjCmOpen(event,this)"${t?` title="${cnEsc(t)}"`:""}`,c:t?" cj-hascm":""};};
   // (Tanda 298) Una sola planilla "Control de cajas": Fecha, Turno, Conserje, $ Entregado, $ En caja y los métodos de pago (data-c 0,1,2,3+).
   // (Tanda 302) Ancho mínimo de cada columna según el importe más largo cargado (para que no se corte el número)
-  const colMin=[110,96,96,...metodos.map(()=>96)],mw=(k,t)=>{const w=Math.ceil(String(t).length*7.6)+28;if(w>colMin[k])colMin[k]=w;};
+  const colMin=[100,96,96,...metodos.map(()=>88)],mw=(k,t)=>{const w=Math.ceil(String(t).length*(k===1||k===2?9.2:7.6))+(k>2?38:30);if(w>colMin[k])colMin[k]=w;};
   groups.forEach(g=>g.ts.forEach(t=>{const rc=cjRec(g.iso,t);mw(1,"$"+cjNumFmt(rc.e));mw(2,"$"+cjNumFmt(rc.k));metodos.forEach((m,mi)=>mw(3+mi,"$"+cjNumFmt((rc.p||{})[m.id])));}));
+  // (Tanda 308) Entregado y En caja siempre un poco mas anchos que los metodos de pago (peso 1.3 contra 1)
+  cjFitInit();
+  const colWt=colMin.map((_,i)=>i===1||i===2?1.3:i===0?1.1:1),colTw=colWt.reduce((x,y)=>x+y,0);
   let bodyRec="";
   groups.forEach((g,gi)=>g.ts.forEach((t,ti)=>{
     const rec=cjRec(g.iso,t),idx=r++;
@@ -19266,7 +19367,7 @@ function cajasSectionHtml(){
       <td class="cj-stk2 cj-tc cj-c-${t}${xc.c}"${xc.a}>${inp(0,"c",nombre,"Conserje",true)}</td>
       <td class="cj-ek${xe.c}"${xe.a}>${inp(1,"e",cur(rec.e),"—")}</td>
       <td class="cj-ek${xk.c}"${xk.a}>${inp(2,"k",cur(rec.k),"—")}</td>
-      ${metodos.map((m,mi)=>{const x=cmAt("r|"+g.iso+"|"+t+"|p:"+m.id);return `<td class="${sep(mi).trim()}${x.c}"${x.a}>${inp(3+mi,"p:"+m.id,cur((rec.p||{})[m.id]),"$0")}</td>`;}).join("")}
+      ${metodos.map((m,mi)=>{const x=cmAt("r|"+g.iso+"|"+t+"|p:"+m.id);return `<td class="${sep(mi).trim()}${x.c}"${x.a}>${inp(3+mi,"p:"+m.id,cur((rec.p||{})[m.id]),"")}</td>`;}).join("")}
     </tr>`;
   }));
   return `<div class="cj-root">
@@ -19277,15 +19378,15 @@ function cajasSectionHtml(){
       <button class="btn btn-g btn-sm" onclick="cjGoYm('${cjNextYm(ym)}')" title="Mes siguiente"><i class="ti ti-chevron-right"></i></button>
       <button class="btn btn-g btn-sm" onclick="cjGoYm(cjDefaultYm())">Mes actual</button>
       <div style="flex:1;font-size:12px;color:var(--text3);min-width:200px"><b style="color:var(--text);font-size:14px">${cjMesLbl(ym)}</b> · desde el turno noche del ${cjIsoFull(groups[0].iso)} hasta el turno tarde del ${cjIsoFull(groups[groups.length-1].iso)}</div>
-      ${ro?`<span class="cj-ro">👁 Solo lectura</span>`:`<button class="btn btn-g btn-sm" onclick="cjMetOpen()"><i class="ti ti-settings"></i> Métodos de pago</button>`}
+      ${ro?`<span class="cj-ro">👁 Solo lectura</span>`:`<button class="btn btn-g btn-sm" onclick="cjMetOpen()"><i class="ti ti-settings"></i> Métodos de pago</button>`}<button class="btn btn-g btn-sm" onclick="cjExcel()" title="Descargar el mes en Excel"><i class="ti ti-file-spreadsheet"></i> Descargar Excel</button>
     </div>
     ${ro?"":`<button type="button" class="card cj-bar cj-comp-btn" style="flex:1 1 360px;min-width:0;justify-content:center" onclick="cjCompOpen()" title="Emitir un comprobante de pago en efectivo"><i class="ti ti-receipt"></i> Emitir comprobante de pago en efectivo</button>`}
     </div>
     <div class="card" style="padding:10px">
       <div class="cj-h" style="margin-top:0">Control de cajas · ${cjMesLbl(ym)}</div>
       <div class="cj-sum" id="cjSum">${cjSumHtml(c)}</div>
-      <div class="cj-scroll" id="cjScroll"><table class="cj-tbl" id="cjTbl" style="min-width:${118+colMin.reduce((a,b)=>a+b,0)}px">
-        <colgroup><col style="width:54px"><col style="width:64px">${colMin.map(mw=>`<col style="width:max(${mw}px, calc((100% - 118px) / ${colMin.length}))">`).join("")}</colgroup>
+      <div class="cj-scroll" id="cjScroll"><table class="cj-tbl" id="cjTbl" style="min-width:${118+colMin.reduce((x,y)=>x+y,0)}px">
+        <colgroup><col style="width:54px"><col style="width:64px">${colWt.map((w,i)=>`<col data-w="${w}" data-min="${colMin[i]}" style="width:${colMin[i]}px">`).join("")}</colgroup>
         <thead><tr><th class="cj-stk0 cj-hg1">Fecha</th><th class="cj-stk1 cj-hg1">Turno</th><th class="cj-stk2 cj-hg1">Conserje</th><th class="cj-hg2">$ Entregado</th><th class="cj-hg2">$ En caja</th>${metodos.map((m,mi)=>`<th class="cj-hg3${sep(mi)}">${cnEsc(m.n)}</th>`).join("")}</tr></thead>
         <tbody>${bodyRec}</tbody>
         <tfoot><tr>${(()=>{const a=cmAt("c|tot|lbl"),b=cmAt("c|tot|e"),k=cmAt("c|tot|k");return `<td class="cj-stk0${a.c}" colspan="3"${a.a}>TOTAL DEL MES</td><td id="cjT_e" class="${b.c.trim()}"${b.a}>${cjMoney0(c.entregado)}</td><td class="${k.c.trim()}"${k.a}>—</td>`;})()}${metodos.map((m,mi)=>{const x=cmAt("r|tot|p:"+m.id);return `<td class="${sep(mi).trim()}${x.c}" id="cjT_${m.id}"${x.a}>${cjMoney0(c.mp[m.id]||0)}</td>`;}).join("")}</tr></tfoot>
