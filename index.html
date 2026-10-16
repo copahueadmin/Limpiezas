@@ -18911,7 +18911,21 @@ window.cjFocus=el=>{
   const u=UI.cjUnl;
   el._cjLocked=cjCan()&&cjHasVal(el)&&!(u&&u.i===el.dataset.i&&u.t===el.dataset.t&&u.f===el.dataset.f);
   el._cjSel=true;try{el.select();}catch(e){}
+  cjCenterRow(el);
 };
+// (Tanda 310) El renglon que se esta editando queda siempre en el centro (vertical) de la planilla
+function cjCenterRow(el){
+  const tr=el.closest("tr"),sc=document.getElementById("cjScroll");if(!tr||!sc||!sc.contains(tr))return;
+  const go=()=>{
+    const th=sc.querySelector("thead"),tf=sc.querySelector("tfoot");
+    const hh=th?th.getBoundingClientRect().height:0,fh=tf?tf.getBoundingClientRect().height:0;
+    const sr=sc.getBoundingClientRect(),rr=tr.getBoundingClientRect();
+    const rowC=(rr.top-sr.top)+sc.scrollTop+rr.height/2;
+    const target=rowC-(hh+(sc.clientHeight-hh-fh)/2);
+    sc.scrollTo({top:Math.max(0,target),behavior:"smooth"});
+  };
+  setTimeout(go,0);
+}
 document.addEventListener("beforeinput",e=>{
   const el=e.target;
   if(!el||!el.classList||!el.classList.contains("cj-in"))return;
