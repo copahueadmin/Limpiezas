@@ -1110,6 +1110,15 @@ input::placeholder,textarea::placeholder{color:#7a8494!important}
 /* (Tanda 155) Con el sidebar minimizado (solo íconos) se oculta "Mi cuenta" -- queda únicamente "Cerrar sesión" al pie,
    a pedido del usuario. "Mi cuenta" vuelve a aparecer apenas se expande el sidebar. */
 .sb.collapsed .sb-foot-mine{display:none!important}
+/* (Tanda 304) Globo con el nombre de la seccion (sidebar minimizado) */
+.sb-tip{position:fixed;z-index:100000;transform:translate(-6px,-50%);opacity:0;pointer-events:none;padding:8px 14px;border-radius:12px;font-size:13px;font-weight:800;white-space:nowrap;color:#fff;background:linear-gradient(160deg,rgba(26,106,92,.94),rgba(31,138,118,.9));border:1px solid rgba(255,255,255,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 8px 22px rgba(0,0,0,.28);-webkit-backdrop-filter:blur(14px) saturate(170%);backdrop-filter:blur(14px) saturate(170%);transition:opacity .15s ease,transform .15s ease}
+.sb-tip.on{opacity:1;transform:translate(0,-50%)}
+.sb-tip::before{content:"";position:absolute;left:-5px;top:50%;width:10px;height:10px;transform:translateY(-50%) rotate(45deg);background:rgba(26,106,92,.94);border-left:1px solid rgba(255,255,255,.35);border-bottom:1px solid rgba(255,255,255,.35)}
+@media (max-width:860px){.sb-tip{display:none}}
+
+.sb.collapsed .sb-foot-btn{gap:0!important;padding-left:0!important;padding-right:0!important}
+.sb.collapsed .sb-foot-btn .sb-foot-txt{display:none!important}
+.sb.collapsed .sb-foot-btn .sb-foot-ico{margin:0 auto}
 .nb{position:relative}
 .nb-lbl{transition:opacity .25s ease;opacity:1}
 .sb-datetime{transition:opacity .25s ease;opacity:1}
@@ -2440,9 +2449,20 @@ body.dark .cj-root{--cj-line:rgba(255,255,255,.12);--cj-vline:rgba(255,255,255,.
 body.dark .cj-warn{color:#f87171}
 .cj-scroll{overflow:auto;max-height:68vh;border:1px solid var(--cj-line);border-radius:var(--r2);width:100%;max-width:100%}
 .cj-tbl{border-collapse:separate;border-spacing:0;font-size:12px;width:100%;min-width:max-content}
-#cjTbl2 .cj-stk2{width:34%}
-#cjTbl td .cj-in{font-weight:600;font-style:italic}
-#cjTbl td .cj-in::placeholder{font-style:italic}
+#cjTbl{table-layout:fixed}
+/* (Tanda 304) Encabezado de Control de cajas: liso, oscuro y prolijo, con una franja de color por grupo (identificacion / caja / metodos) */
+#cjTbl thead th{padding:13px 8px 11px;background:#15564b!important;color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;text-shadow:none;border-right:1px solid rgba(255,255,255,.1);box-shadow:inset 0 -4px 0 var(--hg,#5eead4)}
+#cjTbl thead th.cj-hg1{--hg:#e2b652}
+#cjTbl thead th.cj-hg2{--hg:#f08a5d}
+#cjTbl thead th.cj-hg3{--hg:#5eead4}
+#cjTbl thead th.cj-sep{border-left:2px solid rgba(255,255,255,.55)}
+body.dark #cjTbl thead th{background:#0f3d36!important}
+
+#cjTbl .cj-stk2{width:auto}
+#cjTbl td:not(.cj-ek):not(.cj-tc) .cj-in{font-weight:600;font-style:italic}
+.cj-tbl .cj-in:not(.cj-txt){padding-left:6px!important;padding-right:11px!important}
+#cjTbl td:not(.cj-ek):not(.cj-tc) .cj-in{font-size:12px}
+#cjTbl td:not(.cj-ek):not(.cj-tc) .cj-in::placeholder{font-style:italic}
 .cj-tbl th,.cj-tbl td{border-bottom:1px solid var(--cj-line);border-right:1px solid var(--cj-vline);padding:0;background:var(--cj-cell);white-space:nowrap;color:var(--text);position:relative}
 .cj-tbl th{position:sticky;top:0;z-index:3;background:linear-gradient(135deg,#1a6a5c,#1f8a76);color:#fff;padding:9px 10px;font-weight:700;text-align:center;font-size:11px;border-bottom:0;border-right:1px solid rgba(255,255,255,.14)}
 .cj-tbl th.cj-gap,.cj-tbl td.cj-gap{width:18px;min-width:18px;max-width:18px;padding:0;border-right:0}
@@ -2723,7 +2743,20 @@ body.dark .notif-pop{background:linear-gradient(150deg,rgba(44,46,58,.66),rgba(2
 .wl-ov .wl-svg{filter:drop-shadow(-1px -1px 6px rgba(255,236,170,.48)) drop-shadow(1px 1px 6px rgba(150,255,235,.40))}
 .wl-pen{transition:opacity .45s ease}
 /* (Tanda 283) Avisos del Inicio (Gerencia/Administracion/Coordinacion): mas bajos y en 2 columnas. Los envoltorios de cada aviso pasan a display:contents para que las tarjetas .ibn fluyan en una misma grilla. */
-.ntf-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;max-width:1180px;margin:0 auto 20px;align-items:stretch}
+.awc{max-width:1180px;margin:18px auto 14px;display:flex;align-items:center;gap:18px;padding:20px 26px;background:var(--white);border:1px solid var(--border);border-left:5px solid var(--teal2);border-radius:var(--r2);box-shadow:0 4px 16px rgba(0,0,0,.06)}
+/* (Tanda 301) Sin avisos: la bienvenida queda centrada, grande y mas vistosa */
+.awc:not(:has(+ .ntf-hd)){position:relative;overflow:hidden;flex-direction:column;text-align:center;justify-content:center;max-width:620px;margin:clamp(24px,9vh,90px) auto 24px;padding:42px 36px 38px;gap:16px;border:1px solid var(--border);border-top:5px solid var(--teal2);border-left:1px solid var(--border);border-radius:26px;box-shadow:0 18px 50px rgba(20,32,26,.14);background:linear-gradient(165deg,var(--white) 0%,var(--white) 55%,rgba(39,181,157,.10) 100%)}
+.awc:not(:has(+ .ntf-hd))::before{content:"";position:absolute;width:260px;height:260px;right:-90px;top:-110px;border-radius:50%;background:radial-gradient(circle,rgba(226,182,82,.32),rgba(226,182,82,0) 70%);pointer-events:none}
+.awc:not(:has(+ .ntf-hd))::after{content:"";position:absolute;width:240px;height:240px;left:-90px;bottom:-110px;border-radius:50%;background:radial-gradient(circle,rgba(39,181,157,.28),rgba(39,181,157,0) 70%);pointer-events:none}
+.awc:not(:has(+ .ntf-hd)) .awc-ic{position:relative;z-index:1;width:92px;height:92px;border-radius:28px;font-size:50px;box-shadow:0 8px 22px rgba(20,32,26,.14)}
+.awc:not(:has(+ .ntf-hd)) .awc-tx{position:relative;z-index:1}
+.awc:not(:has(+ .ntf-hd)) .awc-tx h2{font-size:30px;margin-bottom:8px}
+.awc:not(:has(+ .ntf-hd)) .awc-tx p{font-size:15px}
+.awc-ic{flex:0 0 auto;width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:34px;background:linear-gradient(135deg,rgba(39,181,157,.18),rgba(226,182,82,.2))}
+.awc-tx h2{margin:0 0 4px;font-size:22px}
+.awc-tx p{margin:0;color:var(--text3);font-size:13.5px}
+.ntf-hd{max-width:1180px;margin:0 auto 8px;padding:0 2px;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--text3)}
+.ntf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:10px 12px;max-width:1180px;margin:0 auto 20px;align-items:stretch}
 .ntf-grid>div{display:contents}
 .ntf-grid .ibn{margin-bottom:0!important;padding:8px 13px!important;gap:10px!important;border-radius:14px!important;box-shadow:0 5px 16px rgba(0,0,0,.16)!important}
 .ntf-grid .ibn>span:first-child{font-size:21px!important}
@@ -7874,13 +7907,12 @@ function generoUsuarioActual(){
 }
 // Tarjeta de bienvenida genérica, usada como contenido de "Inicio" de cualquier área nueva mientras
 // no tiene (o ya no le queda ninguna) sección real implementada todavía.
-function ntfGridHtml(h){return (h&&String(h).trim())?`<div class="ntf-grid">${h}</div>`:"";}
+function ntfGridHtml(h){return (h&&String(h).trim())?`<h3 class="ntf-hd">Avisos y novedades</h3><div class="ntf-grid">${h}</div>`:"";}
 function areaWelcomeCard(titulo,emoji){
   const bienvenid=generoUsuarioActual()==="a"?"Bienvenida":"Bienvenido";
-  return `<div style="max-width:640px;margin:18px auto 18px;text-align:center;background:var(--white);border:1px solid var(--border);border-radius:var(--r2);padding:24px 30px">
-    <div style="font-size:38px;margin-bottom:8px">${emoji}</div>
-    <h2 style="margin-bottom:8px">${bienvenid} a ${titulo}</h2>
-    <p style="color:var(--text3);font-size:14px">${RNAME?("Sesión iniciada como "+RNAME):""}</p>
+  return `<div class="awc">
+    <div class="awc-ic">${emoji}</div>
+    <div class="awc-tx"><h2>${bienvenid} a ${titulo}</h2>${RNAME?`<p>Sesión iniciada como ${cnEsc(RNAME)}</p>`:""}</div>
   </div>`;
 }
 // (Tanda 49 / Fase C, ítem 9) Gerencia gana su primera sección real: un recap de blancos entregados
@@ -18908,7 +18940,7 @@ function cjRefreshTotals(){
 }
 function cjSumHtml(c){
   const pend=c.pend.length?`<span class="cj-warn">⚠ ${c.pend.length} turno${c.pend.length>1?"s":""} cerrado${c.pend.length>1?"s":""} sin cargar entregado / en caja${c.pend.length<=6?": "+c.pend.map(p=>cjIsoLbl(p.iso)+" "+cjTurnoLbl(p.t)).join(", "):""}</span>`:`<span style="color:var(--green)">✓ Todos los turnos cerrados tienen entregado y en caja</span>`;
-  return `<span><b>Facturado en el mes:</b> ${cjMoney0(c.facturado)}</span>`;
+  return `<span><b>Facturado en el mes:</b> ${cjMoney0(c.facturado)}</span><span><b>Entregado en el mes:</b> ${cjMoney0(c.entregado)}</span>${pend}`;
 }
 function cjSumCcHtml(c){
   const pend=c.pend.length?`<span class="cj-warn">⚠ ${c.pend.length} turno${c.pend.length>1?"s":""} cerrado${c.pend.length>1?"s":""} sin cargar entregado / en caja${c.pend.length<=6?": "+c.pend.map(p=>cjIsoLbl(p.iso)+" "+cjTurnoLbl(p.t)).join(", "):""}</span>`:`<span style="color:var(--green)">✓ Todos los turnos cerrados tienen entregado y en caja</span>`;
@@ -18920,7 +18952,7 @@ function cjSumCcHtml(c){
 function cjCmGet(ym,key){return ((((D.cajasMes||{})[ym]||{}).cm)||{})[key]||"";}
 function cjCmLabel(key){
   const p=key.split("|"),ym=UI.cjYm,ms=cjMetodosMes(ym);
-  const planilla=p[0]==="r"?"Recaudaciones":"Control de cajas";
+  const planilla="Control de cajas";
   const campo=f=>f==="c"?"Conserje":f==="e"?"$ Entregado":f==="k"?"$ En caja":f==="t"?"Turno":f==="lbl"?"Total del mes":f.indexOf("p:")===0?((ms.find(m=>m.id===f.slice(2))||{}).n||"Método"):f;
   if(p[1]==="tot")return planilla+" · Total del mes"+(p[2]&&p[2]!=="lbl"?" · "+campo(p[2]):"");
   const dia=cjIsoLbl(p[1]);
@@ -19212,32 +19244,29 @@ function cajasSectionHtml(){
   const sep=i=>i===0?" cj-sep":"";
   let r=0;
   const cmAt=key=>{const t=cjCmGet(ym,key);return {a:` data-cm="${key}" ondblclick="cjCmOpen(event,this)" oncontextmenu="cjCmOpen(event,this)"${t?` title="${cnEsc(t)}"`:""}`,c:t?" cj-hascm":""};};
-  // (Tanda 294) "Control de cajas" pasa a llamarse "Recaudaciones". Dentro, se separan dos planillas: Recaudaciones por turno
-  // (lo cobrado por cada método de pago) y Control de cajas (conserje + $ Entregado / $ En caja de cada turno).
-  // Las casillas conservan sus índices (data-r / data-c) para que las flechas y Enter sigan saltando de una planilla a la otra.
-  let bodyRec="",bodyCc="";
+  // (Tanda 298) Una sola planilla "Control de cajas": Fecha, Turno, Conserje, $ Entregado, $ En caja y los métodos de pago (data-c 0,1,2,3+).
+  // (Tanda 302) Ancho mínimo de cada columna según el importe más largo cargado (para que no se corte el número)
+  const colMin=[110,96,96,...metodos.map(()=>96)],mw=(k,t)=>{const w=Math.ceil(String(t).length*7.6)+28;if(w>colMin[k])colMin[k]=w;};
+  groups.forEach(g=>g.ts.forEach(t=>{const rc=cjRec(g.iso,t);mw(1,"$"+cjNumFmt(rc.e));mw(2,"$"+cjNumFmt(rc.k));metodos.forEach((m,mi)=>mw(3+mi,"$"+cjNumFmt((rc.p||{})[m.id])));}));
+  let bodyRec="";
   groups.forEach((g,gi)=>g.ts.forEach((t,ti)=>{
     const rec=cjRec(g.iso,t),idx=r++;
     const nombre=cjCap(rec.c!==undefined?rec.c:((((D.consAg||{})[g.iso]||{})[t]||{}).nombre||""));
     const pend=cjCerrado(g.iso,t,now)&&(typeof rec.e!=="number"||typeof rec.k!=="number");
     const inp=(cc,f,val,ph,txt)=>`<span class="cj-mir">${cnEsc(val||ph)}</span><input class="cj-in${txt?" cj-txt":""}" type="text" ${txt?"":'inputmode="decimal" data-cur="1" '}${ro?"readonly ":""}autocomplete="off" data-live-field="1" data-r="${idx}" data-c="${cc}" data-i="${g.iso}" data-t="${t}" data-f="${f}" placeholder="${ph}" value="${cnEsc(val)}" oninput="cjIn(this)" onfocus="cjFocus(this)" onmouseup="cjMouseUp(event,this)" onkeydown="cjKey(event,this)" onblur="cjBlur(this)">`;
     const cur=v=>v==null?"":"$"+cjNumFmt(v);
-    const dTdR=cmAt("r|"+g.iso+"|d"),dTdC=cmAt("c|"+g.iso+"|d");
+    const dTdC=cmAt("c|"+g.iso+"|d");
     const dateTdFn=m=>ti===0?`<td class="cj-stk0 cj-date${m.c}" rowspan="${g.ts.length}"${m.a}><b>${cjIsoLbl(g.iso)}</b><br><span>${cjDow(g.iso)}</span></td>`:"";
     const trOpen=`<tr data-i="${g.iso}" data-t="${t}" class="cj-r${ti===0?" cj-gs":""}${g.iso===hoy?" cj-today":""}${pend?" cj-pend":""}">`;
-    const tR=cmAt("r|"+g.iso+"|"+t+"|t"),tC=cmAt("c|"+g.iso+"|"+t+"|t");
-    bodyRec+=`${trOpen}
-      ${dateTdFn(dTdR)}
-      <td class="cj-stk1 cj-tn cj-c-${t}${tR.c}"${tR.a}>${cjTurnoLbl(t)}</td>
-      ${metodos.map((m,mi)=>{const x=cmAt("r|"+g.iso+"|"+t+"|p:"+m.id);return `<td class="${sep(mi).trim()}${x.c}"${x.a}>${inp(3+mi,"p:"+m.id,cur((rec.p||{})[m.id]),"$0")}</td>`;}).join("")}
-    </tr>`;
+    const tC=cmAt("c|"+g.iso+"|"+t+"|t");
     const xc=cmAt("c|"+g.iso+"|"+t+"|c"),xe=cmAt("c|"+g.iso+"|"+t+"|e"),xk=cmAt("c|"+g.iso+"|"+t+"|k");
-    bodyCc+=`${trOpen}
+    bodyRec+=`${trOpen}
       ${dateTdFn(dTdC)}
       <td class="cj-stk1 cj-tn cj-c-${t}${tC.c}"${tC.a}>${cjTurnoLbl(t)}</td>
       <td class="cj-stk2 cj-tc cj-c-${t}${xc.c}"${xc.a}>${inp(0,"c",nombre,"Conserje",true)}</td>
       <td class="cj-ek${xe.c}"${xe.a}>${inp(1,"e",cur(rec.e),"—")}</td>
       <td class="cj-ek${xk.c}"${xk.a}>${inp(2,"k",cur(rec.k),"—")}</td>
+      ${metodos.map((m,mi)=>{const x=cmAt("r|"+g.iso+"|"+t+"|p:"+m.id);return `<td class="${sep(mi).trim()}${x.c}"${x.a}>${inp(3+mi,"p:"+m.id,cur((rec.p||{})[m.id]),"$0")}</td>`;}).join("")}
     </tr>`;
   }));
   return `<div class="cj-root">
@@ -19255,21 +19284,14 @@ function cajasSectionHtml(){
     <div class="card" style="padding:10px">
       <div class="cj-h" style="margin-top:0">Control de cajas · ${cjMesLbl(ym)}</div>
       <div class="cj-sum" id="cjSum">${cjSumHtml(c)}</div>
-      <div class="cj-scroll" id="cjScroll"><table class="cj-tbl" id="cjTbl">
-        <thead><tr><th class="cj-stk0">Fecha</th><th class="cj-stk1">Turno</th>${metodos.map((m,mi)=>`<th class="${sep(mi).trim()}">${cnEsc(m.n)}</th>`).join("")}</tr></thead>
+      <div class="cj-scroll" id="cjScroll"><table class="cj-tbl" id="cjTbl" style="min-width:${118+colMin.reduce((a,b)=>a+b,0)}px">
+        <colgroup><col style="width:54px"><col style="width:64px">${colMin.map(mw=>`<col style="width:max(${mw}px, calc((100% - 118px) / ${colMin.length}))">`).join("")}</colgroup>
+        <thead><tr><th class="cj-stk0 cj-hg1">Fecha</th><th class="cj-stk1 cj-hg1">Turno</th><th class="cj-stk2 cj-hg1">Conserje</th><th class="cj-hg2">$ Entregado</th><th class="cj-hg2">$ En caja</th>${metodos.map((m,mi)=>`<th class="cj-hg3${sep(mi)}">${cnEsc(m.n)}</th>`).join("")}</tr></thead>
         <tbody>${bodyRec}</tbody>
-        <tfoot><tr>${(()=>{const x=cmAt("r|tot|lbl");return `<td class="cj-stk0${x.c}" colspan="2"${x.a}>TOTAL DEL MES</td>`;})()}${metodos.map((m,mi)=>{const x=cmAt("r|tot|p:"+m.id);return `<td class="${sep(mi).trim()}${x.c}" id="cjT_${m.id}"${x.a}>${cjMoney0(c.mp[m.id]||0)}</td>`;}).join("")}</tr></tfoot>
-      </table></div>
-    </div>
-    <div class="card" style="padding:10px" id="cjCcCard">
-      <div class="cj-h" style="margin-top:0">Control de cajas · ${cjMesLbl(ym)}</div>
-      <div class="cj-sum" id="cjSumCc">${cjSumCcHtml(c)}</div>
-      <div class="cj-scroll" id="cjScroll2"><table class="cj-tbl" id="cjTbl2">
-        <thead><tr><th class="cj-stk0">Fecha</th><th class="cj-stk1">Turno</th><th class="cj-stk2">Conserje</th><th>$ Entregado</th><th>$ En caja</th></tr></thead>
-        <tbody>${bodyCc}</tbody>
-        <tfoot><tr>${(()=>{const a=cmAt("c|tot|lbl"),b=cmAt("c|tot|e"),k=cmAt("c|tot|k");return `<td class="cj-stk0${a.c}" colspan="3"${a.a}>TOTAL DEL MES</td><td id="cjT_e" class="${b.c.trim()}"${b.a}>${cjMoney0(c.entregado)}</td><td class="${k.c.trim()}"${k.a}>—</td>`;})()}</tr></tfoot>
+        <tfoot><tr>${(()=>{const a=cmAt("c|tot|lbl"),b=cmAt("c|tot|e"),k=cmAt("c|tot|k");return `<td class="cj-stk0${a.c}" colspan="3"${a.a}>TOTAL DEL MES</td><td id="cjT_e" class="${b.c.trim()}"${b.a}>${cjMoney0(c.entregado)}</td><td class="${k.c.trim()}"${k.a}>—</td>`;})()}${metodos.map((m,mi)=>{const x=cmAt("r|tot|p:"+m.id);return `<td class="${sep(mi).trim()}${x.c}" id="cjT_${m.id}"${x.a}>${cjMoney0(c.mp[m.id]||0)}</td>`;}).join("")}</tr></tfoot>
       </table></div>
       ${ro?`<div class="cn-help" style="margin-top:6px">Vista de solo lectura: acá se ven los resultados del mes en curso y de meses anteriores (usá las flechas o el selector de mes). La carga la hace Administración.</div>`:`<div class="cn-help" style="margin-top:6px">Tab pasa a la casilla siguiente · flechas ← → ↑ ↓ (o Enter) saltan a la casilla de al lado, arriba o abajo · lo que dejes vacío cuenta como $0. El conserje se completa solo desde la agenda de Conserjería y se puede cambiar. "$ Entregado" y "$ En caja" son obligatorios en cada turno ya cerrado (se marcan en rojo si faltan). Los totales del mes se muestran redondeados, sin centavos. Doble click (o click derecho) en cualquier casilla para dejar un comentario: la casilla queda marcada con una esquina naranja.</div>`}
+
     </div>
     <div class="card" id="cjRetiros">${cjRetirosHtml(ym)}</div>
     <div class="card" id="cjResumen">${cjResumenHtml(ym,c)}</div>
@@ -29075,6 +29097,32 @@ try{migrarInsumosPackAUnidades();}catch(e){}
 try{checkResetDiario();checkCheckoutAutoRefresh();checkRecordatorios();checkTareasProg();checkCocheraDia10();checkClaveCochAviso();checkCochRepAviso();checkCochPrecios();checkInformeShiftReminder();checkBlancosReport();checkLavaderoAviso();checkSpecialDateMidnight();checkSeasonMidnight();}catch(e){}
 try{checkInformeSnap();}catch(e){}
 setInterval(function(){try{checkInformeSnap();}catch(e){}},60000);
+// (Tanda 304) Sidebar minimizado: al pasar el cursor por un boton se muestra su nombre (globo flotante, no lo recorta el sidebar)
+(function(){
+  var tip=null,cur=null;
+  function lbl(el){
+    var l=el.querySelector(".nb-lbl")||el.querySelector(".sb-foot-txt");
+    if(!l)return (el.getAttribute("title")||"").split(":")[0].trim();
+    var t=[].filter.call(l.childNodes,function(n){return n.nodeType===3;}).map(function(n){return n.textContent;}).join("").trim();
+    return t||l.textContent.trim();
+  }
+  function hide(){cur=null;if(tip)tip.classList.remove("on");}
+  document.addEventListener("mouseover",function(e){
+    var el=e.target&&e.target.closest?e.target.closest(".sb.collapsed .nb,.sb.collapsed .sb-foot-btn"):null;
+    if(!el){if(cur)hide();return;}
+    if(el===cur)return;
+    var t=lbl(el);if(!t){hide();return;}
+    cur=el;
+    if(!tip){tip=document.createElement("div");tip.id="sbTip";tip.className="sb-tip";document.body.appendChild(tip);}
+    tip.textContent=t;
+    var r=el.getBoundingClientRect();
+    tip.style.left=Math.round(r.right+10)+"px";tip.style.top=Math.round(r.top+r.height/2)+"px";
+    tip.classList.add("on");
+  },true);
+  document.addEventListener("mousedown",hide,true);
+  document.addEventListener("scroll",hide,true);
+  window.addEventListener("blur",hide);
+})();
 setInterval(function(){try{checkResetDiario();checkCheckoutAutoRefresh();checkRecordatorios();checkTareasProg();checkCocheraDia10();checkClaveCochAviso();checkCochRepAviso();checkCochPrecios();checkInformeShiftReminder();checkBlancosReport();checkLavaderoAviso();checkAutoTheme();checkSpecialDateMidnight();checkSeasonMidnight();/* (Tanda 234) no reconstruir la pantalla mientras se está tipeando en Control de cajas (se perdería el foco a mitad de carga) */const _ae=document.activeElement;if(!UI.pdfPrev&&!(_ae&&_ae.closest&&_ae.closest(".cj-root,.alq-inline")&&/^(INPUT|TEXTAREA)$/.test(_ae.tagName))&&!(UI.finPanel&&document.querySelector(".fac-desay iframe")))render();/* (Tanda 245) Desayunos mensuales abierto dentro de Facturación - Alquiler: no recargar el iframe cada minuto */}catch(e){}},60000);
 
 // ══ LIQUID GLASS — destello de agua siguiendo el cursor ══════════════════════
