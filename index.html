@@ -2506,10 +2506,29 @@ body.dark .cj-tbl tr.cj-pend td.cj-ek{background:#3b2020}
 .cj-tbl tfoot td{position:sticky;bottom:0;z-index:3;background:var(--cj-foot);font-weight:800;padding:9px 10px;text-align:right;border-top:2px solid var(--cj-line);border-bottom:0}
 .cj-tbl tfoot td.cj-gap{background:var(--cj-foot);border-top:2px solid var(--cj-line)}
 .cj-tbl tfoot td.cj-stk0{z-index:5;text-align:left;width:auto;max-width:none;min-width:0}
+#cjTbl tfoot td{height:38px;box-sizing:border-box}
+#cjTbl tfoot tr.cj-tf1 td{bottom:38px}
+#cjTbl tfoot tr.cj-tf2 td{background:#dcefe8;color:#0f5a4c;font-size:14px}
+#cjTbl tfoot tr.cj-tf2 td.cj-stk0{font-size:12px;letter-spacing:.3px}
+#cjTbl tfoot tr.cj-tf2 td.cj-efec{font-size:16px;text-align:center}
+body.dark #cjTbl tfoot tr.cj-tf2 td{background:#1c3b34;color:#7ee0c8}
 .cj-h{font-weight:800;font-size:14px;margin:2px 0 10px;color:var(--text)}
-.cj-retadd{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
-.cj-retlist{margin:12px 0 6px;display:flex;flex-direction:column;gap:6px}
+.cj-retadd{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;flex:1 1 560px;justify-content:flex-end}
+.cj-ret-top{display:flex;gap:10px 22px;flex-wrap:wrap;align-items:flex-end;justify-content:space-between}
+.cj-ret-ttl{flex:1 1 260px;min-width:0}
+.cj-retlist{margin:10px 0 6px;display:grid;grid-template-columns:repeat(auto-fill,minmax(max(400px,calc((100% - 52px) / 3 - 1px)),1fr));gap:1px 26px}
 .cj-retrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:4px 0}
+.cj-retrow.cj-rr{flex-wrap:nowrap;gap:6px;padding:0;min-width:0}
+.cj-rr .fc{padding:3px 8px;font-size:13.5px;font-weight:600;height:auto}
+.cj-rr .cj-rdate{flex:0 0 auto;width:124px;padding:3px 4px}
+.cj-rr .cj-rdesc{flex:1 1 0;min-width:0;cursor:pointer;text-overflow:ellipsis}
+.cj-rr .cj-ramt{flex:0 0 auto;width:104px;text-align:right}
+.cj-rr .cj-rdel{padding:2px 6px;flex:0 0 auto}
+.cj-ret-top .cj-rdate{width:124px;padding:5px 6px}
+.cj-ret-tip{position:fixed;z-index:100001;max-width:420px;padding:8px 12px;border-radius:10px;background:#1f2d28;color:#fff;font-size:13px;line-height:1.35;box-shadow:0 8px 22px rgba(0,0,0,.3);pointer-events:none;word-break:break-word}
+.cj-ret-pop{position:fixed;z-index:100002;padding:6px;border-radius:12px;background:var(--white);border:2px solid var(--teal2);box-shadow:0 12px 30px rgba(0,0,0,.28)}
+.cj-ret-pop textarea{display:block;width:100%;box-sizing:border-box;resize:none;border:0;outline:none;background:transparent;color:var(--text);font:inherit;font-size:14px;font-weight:600;line-height:1.4;padding:4px 6px}
+.cj-ret-pop-h{font-size:10.5px;color:var(--text3);padding:2px 6px 0}
 .cj-ask{font-size:12px;display:inline-flex;gap:6px;align-items:center}
 .cj-sr{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px dashed var(--border);font-size:13px}
 .cj-sr.tot{font-weight:700}
@@ -19000,6 +19019,7 @@ function cjRefreshTotals(){
   const c=cjCalc(ym);
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   set("cjT_e",cjMoney0(c.entregado));
+  set("cjT_efec",cjMoney0(cjR2((c.mp.pesos||0)+(c.mp.vip||0))));
   cjMetodosMes(ym).forEach(m=>set("cjT_"+m.id,cjMoney0(c.mp[m.id]||0)));
   const sm=document.getElementById("cjSum");if(sm)sm.innerHTML=cjSumHtml(c);
   const sm2=document.getElementById("cjSumCc");if(sm2)sm2.innerHTML=cjSumCcHtml(c);
@@ -19128,7 +19148,7 @@ window.cjRetEdit=(ym,id,k,el)=>{
   if(err){el.classList.add("bad");if(msg){msg.textContent=err;msg.style.display="block";}return;}
   el.classList.remove("bad");if(msg)msg.style.display="none";
   cjMesUpd(ym,m=>{m.ret=(m.ret||[]).map(x=>x.id===id?{...x,[k]:v}:x);});
-  if(k==="m")el.value=cjNumFmt(v);
+  if(k==="m")el.value="$"+cjNumFmt(v);
   const tot=document.getElementById("cjRetTot");if(tot)tot.textContent=cjMoney(cjRetTot((D.cajasMes||{})[ym]));
   cjRefreshTotals();
 };
@@ -19144,24 +19164,57 @@ function cjRetirosHtml(ym){
   const mes=(D.cajasMes||{})[ym]||{},ret=mes.ret||[];
   const f=UI.cjRetForm=UI.cjRetForm||{f:hoyISO(),t:"",m:""};
   if(!f.f)f.f=hoyISO();
-  return `<div class="cj-h">Retiros de efectivo · ${cjMesLbl(ym)}</div>
-    ${ro?"":`<div class="cn-help" style="margin-bottom:8px">Cargá cada retiro con su fecha y un título o comentario (obligatorio). Los retiros se descuentan del total a entregar.</div>
-    <div class="cj-retadd">
-      <div><span class="fl">Fecha</span><input class="fc" type="date" value="${cnEsc(f.f)}" onchange="cjRetF('f',this.value)"></div>
-      <div style="flex:1;min-width:180px"><span class="fl">Título / comentario <span style="color:var(--red)">*</span></span><input class="fc" id="cjRetTit" type="text" maxlength="120" placeholder="Ej: Pago a proveedor" value="${cnEsc(f.t)}" oninput="cjRetF('t',this.value)" onkeydown="if(event.key==='Enter'){document.getElementById('cjRetMon').focus()}"></div>
-      <div style="width:150px"><span class="fl">Monto <span style="color:var(--red)">*</span></span><input class="fc cj-money" id="cjRetMon" type="text" inputmode="decimal" placeholder="0" value="${cnEsc(f.m)}" oninput="cjFmtEl(this);cjRetF('m',this.value)" onkeydown="if(event.key==='Enter')cjRetAdd('${ym}')"></div>
-      <button class="btn btn-p" onclick="cjRetAdd('${ym}')">Agregar retiro</button>
+  // (Tanda 312) Encabezado a la izquierda y formulario de alta a la derecha (mismo renglon); historial debajo en hasta 3 columnas
+  return `<div class="cj-ret-top">
+      <div class="cj-ret-ttl"><div class="cj-h" style="margin-bottom:4px">Retiros de efectivo · ${cjMesLbl(ym)}</div>
+      ${ro?"":`<div class="cn-help">Cargá cada retiro con su fecha y un título o comentario (obligatorio). Los retiros se descuentan del total a entregar.</div>`}</div>
+      ${ro?"":`<div class="cj-retadd">
+        <div><span class="fl">Fecha</span><input class="fc cj-rdate" type="date" value="${cnEsc(f.f)}" onchange="cjRetF('f',this.value)"></div>
+        <div style="flex:1 1 220px;min-width:180px"><span class="fl">Título / comentario <span style="color:var(--red)">*</span></span><input class="fc" id="cjRetTit" type="text" maxlength="120" placeholder="Ej: Pago a proveedor" value="${cnEsc(f.t)}" oninput="cjRetF('t',this.value)" onkeydown="if(event.key==='Enter'){document.getElementById('cjRetMon').focus()}"></div>
+        <div style="width:130px"><span class="fl">Monto <span style="color:var(--red)">*</span></span><input class="fc cj-money" id="cjRetMon" type="text" inputmode="decimal" placeholder="0" value="${cnEsc(f.m)}" oninput="cjFmtEl(this);cjRetF('m',this.value)" onkeydown="if(event.key==='Enter')cjRetAdd('${ym}')"></div>
+        <button class="btn btn-p" onclick="cjRetAdd('${ym}')">Agregar retiro</button>
+      </div>`}
     </div>
-    <div class="cn-err" id="cjRetErr" style="${UI.cjRetErr?"":"display:none;"}margin-top:8px">${cnEsc(UI.cjRetErr||"")}</div>
+    ${ro?"":`<div class="cn-err" id="cjRetErr" style="${UI.cjRetErr?"":"display:none;"}margin-top:8px">${cnEsc(UI.cjRetErr||"")}</div>
     <div class="cn-err" id="cjRetMsg" style="display:none;margin-top:8px"></div>`}
-    ${ret.length?`<div class="cj-retlist">${ret.map(r=>`<div class="cj-retrow">
-      <input class="fc" type="date" style="width:150px" value="${cnEsc(r.f)}" ${ro?"readonly ":""}onchange="cjRetEdit('${ym}','${r.id}','f',this)">
-      <input class="fc" type="text" style="flex:1;min-width:160px" maxlength="120" value="${cnEsc(r.t)}" ${ro?"readonly ":""}onchange="cjRetEdit('${ym}','${r.id}','t',this)">
-      <input class="fc cj-money" type="text" inputmode="decimal" style="width:140px" value="${cnEsc(cjNumFmt(r.m))}" ${ro?"readonly ":""}oninput="cjFmtEl(this)" onblur="cjRetEdit('${ym}','${r.id}','m',this)" onkeydown="if(event.key==='Enter')this.blur()">
-      ${ro?"":UI.cjRetDel===r.id?`<span class="cj-ask">¿Eliminar? <button class="btn btn-sm btn-d" onclick="cjRetDelYes('${ym}','${r.id}')">Sí</button> <button class="btn btn-g btn-sm" onclick="cjRetDelNo()">No</button></span>`:`<button class="btn btn-g btn-sm" title="Eliminar retiro" onclick="cjRetDelAsk('${r.id}')"><i class="ti ti-trash"></i></button>`}
+    ${ret.length?`<div class="cj-retlist">${ret.map(r=>`<div class="cj-retrow cj-rr">
+      <input class="fc cj-rdate" type="date" value="${cnEsc(r.f)}" ${ro?"readonly ":""}onchange="cjRetEdit('${ym}','${r.id}','f',this)">
+      <input class="fc cj-rdesc" type="text" readonly maxlength="120" value="${cnEsc(r.t)}" onmouseenter="cjRetTip(this,true)" onmouseleave="cjRetTip(this,false)" onclick="cjRetPop(this,'${ym}','${r.id}')">
+      <input class="fc cj-money cj-ramt" type="text" inputmode="decimal" data-cur="1" value="$${cnEsc(cjNumFmt(r.m))}" ${ro?"readonly ":""}oninput="cjFmtEl(this)" onblur="cjRetEdit('${ym}','${r.id}','m',this)" onkeydown="if(event.key==='Enter')this.blur()">
+      ${ro?"":UI.cjRetDel===r.id?`<span class="cj-ask">¿Eliminar? <button class="btn btn-sm btn-d" onclick="cjRetDelYes('${ym}','${r.id}')">Sí</button> <button class="btn btn-g btn-sm" onclick="cjRetDelNo()">No</button></span>`:`<button class="btn btn-g btn-sm cj-rdel" title="Eliminar retiro" onclick="cjRetDelAsk('${r.id}')"><i class="ti ti-trash"></i></button>`}
     </div>`).join("")}</div>`:`<div class="cn-help" style="margin:10px 0">${ro?"No hay retiros cargados en este mes.":"Todavía no hay retiros cargados en este mes."}</div>`}
     <div class="cj-sr big"><span>Total retirado en el mes</span><b id="cjRetTot">${cjMoney(cjRetTot(mes))}</b></div>`;
 }
+// (Tanda 312) Descripcion de cada retiro: al pasar el mouse (si no entra) se ve entera en un flotante; con click se expande para editarla
+window.cjRetTip=(inp,on)=>{
+  let t=document.getElementById("cjRetTip");
+  if(!on){if(t)t.remove();return;}
+  if(document.getElementById("cjRetPop")||!inp.value||inp.scrollWidth<=inp.clientWidth+1)return;
+  if(t)t.remove();
+  t=document.createElement("div");t.id="cjRetTip";t.className="cj-ret-tip";t.textContent=inp.value;
+  const r=inp.getBoundingClientRect();
+  t.style.left=Math.max(8,Math.min(r.left,window.innerWidth-440))+"px";t.style.top=(r.bottom+6)+"px";
+  document.body.appendChild(t);
+};
+window.cjRetPop=(inp,ym,id)=>{
+  cjRetTip(inp,false);
+  const old=document.getElementById("cjRetPop");if(old)old.remove();
+  const r=inp.getBoundingClientRect(),ro=!cjCan();
+  const w=Math.min(Math.max(r.width,380),window.innerWidth-24);
+  const pop=document.createElement("div");pop.id="cjRetPop";pop.className="cj-ret-pop";
+  pop.style.left=Math.max(8,Math.min(r.left,window.innerWidth-w-12))+"px";pop.style.top=Math.max(8,r.top-6)+"px";pop.style.width=w+"px";
+  const ta=document.createElement("textarea");ta.value=inp.value;ta.maxLength=120;ta.readOnly=ro;ta.rows=2;
+  pop.appendChild(ta);
+  if(!ro){const h=document.createElement("div");h.className="cj-ret-pop-h";h.textContent="Enter guarda · Esc cancela";pop.appendChild(h);}
+  document.body.appendChild(pop);
+  const fit=()=>{ta.style.height="auto";ta.style.height=Math.min(ta.scrollHeight,120)+"px";};
+  fit();ta.focus();try{ta.setSelectionRange(ta.value.length,ta.value.length);}catch(e){}
+  let done=false;
+  const close=commit=>{if(done)return;done=true;const v=ta.value;pop.remove();if(commit&&!ro&&v!==inp.value){inp.value=v;cjRetEdit(ym,id,"t",inp);}};
+  ta.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();close(true);}else if(e.key==="Escape"){e.preventDefault();close(false);}});
+  ta.addEventListener("input",fit);
+  ta.addEventListener("blur",()=>close(true));
+};
 // ---- resumen / entrega ----
 window.cjPrevSet=(ym,v)=>{
   if(!cjCan())return;
@@ -19318,13 +19371,15 @@ window.cjExcel=()=>{
       aoa.push([cjIsoFull(g.iso),cjTurnoLbl(t).toLocaleUpperCase("es"),nom,money(r.e),money(r.k),...metodos.map(m=>money((r.p||{})[m.id]))]);
     }));
     aoa.push(["TOTAL DEL MES","","",c.entregado,"",...metodos.map(m=>c.mp[m.id]||0)]);
+    const _ip=metodos.findIndex(m=>m.id==="pesos"),_iv=metodos.findIndex(m=>m.id==="vip");
+    if(_ip>=0&&_iv>=0){const row=["TOTAL EFECTIVO (Pesos + Efectivo VIP)","","","","",...metodos.map(()=>"")];row[5+Math.min(_ip,_iv)]=cjR2((c.mp.pesos||0)+(c.mp.vip||0));aoa.push(row);}
     const ws=XLSX.utils.aoa_to_sheet(aoa);
     ws["!cols"]=[{wch:14},{wch:9},{wch:22},{wch:14},{wch:14},...metodos.map(()=>({wch:15}))];
     ws["!merges"]=[{s:{r:0,c:0},e:{r:0,c:4}}];
     for(let R=3;R<aoa.length;R++)for(let C=3;C<aoa[R].length;C++){const cell=ws[XLSX.utils.encode_cell({r:R,c:C})];if(cell&&typeof cell.v==="number")cell.z='"$" #,##0.00';}
-    const res=[["Resumen · "+cjMesLbl(ym)],[],["Facturado en el mes",c.facturado],["Entregado en el mes",c.entregado],["Turnos cerrados sin cargar entregado / en caja",c.pend.length]];
+    const res=[["Resumen · "+cjMesLbl(ym)],[],["Facturado en el mes",c.facturado],["Entregado en el mes",c.entregado],["Total en efectivo (Pesos + Efectivo VIP)",cjR2((c.mp.pesos||0)+(c.mp.vip||0))],["Turnos cerrados sin cargar entregado / en caja",c.pend.length]];
     const ws2=XLSX.utils.aoa_to_sheet(res);ws2["!cols"]=[{wch:46},{wch:16}];
-    ["B3","B4"].forEach(k=>{if(ws2[k])ws2[k].z='"$" #,##0.00';});
+    ["B3","B4","B5"].forEach(k=>{if(ws2[k])ws2[k].z='"$" #,##0.00';});
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,"Control de cajas");
     XLSX.utils.book_append_sheet(wb,ws2,"Resumen");
@@ -19403,7 +19458,15 @@ function cajasSectionHtml(){
         <colgroup><col style="width:54px"><col style="width:64px">${colWt.map((w,i)=>`<col data-w="${w}" data-min="${colMin[i]}" style="width:${colMin[i]}px">`).join("")}</colgroup>
         <thead><tr><th class="cj-stk0 cj-hg1">Fecha</th><th class="cj-stk1 cj-hg1">Turno</th><th class="cj-stk2 cj-hg1">Conserje</th><th class="cj-hg2">$ Entregado</th><th class="cj-hg2">$ En caja</th>${metodos.map((m,mi)=>`<th class="cj-hg3${sep(mi)}">${cnEsc(m.n)}</th>`).join("")}</tr></thead>
         <tbody>${bodyRec}</tbody>
-        <tfoot><tr>${(()=>{const a=cmAt("c|tot|lbl"),b=cmAt("c|tot|e"),k=cmAt("c|tot|k");return `<td class="cj-stk0${a.c}" colspan="3"${a.a}>TOTAL DEL MES</td><td id="cjT_e" class="${b.c.trim()}"${b.a}>${cjMoney0(c.entregado)}</td><td class="${k.c.trim()}"${k.a}>—</td>`;})()}${metodos.map((m,mi)=>{const x=cmAt("r|tot|p:"+m.id);return `<td class="${sep(mi).trim()}${x.c}" id="cjT_${m.id}"${x.a}>${cjMoney0(c.mp[m.id]||0)}</td>`;}).join("")}</tr></tfoot>
+        <tfoot><tr class="cj-tf1">${(()=>{const a=cmAt("c|tot|lbl"),b=cmAt("c|tot|e"),k=cmAt("c|tot|k");return `<td class="cj-stk0${a.c}" colspan="3"${a.a}>TOTAL DEL MES</td><td id="cjT_e" class="${b.c.trim()}"${b.a}>${cjMoney0(c.entregado)}</td><td class="${k.c.trim()}"${k.a}>—</td>`;})()}${metodos.map((m,mi)=>{const x=cmAt("r|tot|p:"+m.id);return `<td class="${sep(mi).trim()}${x.c}" id="cjT_${m.id}"${x.a}>${cjMoney0(c.mp[m.id]||0)}</td>`;}).join("")}</tr>${(()=>{
+          // (Tanda 311) Total en efectivo = Pesos + Efectivo VIP (debajo de los totales de ambos metodos)
+          const ip=metodos.findIndex(m=>m.id==="pesos"),iv=metodos.findIndex(m=>m.id==="vip");
+          if(ip<0||iv<0)return "";
+          const adj=Math.abs(ip-iv)===1,i0=Math.min(ip,iv),x=cmAt("r|tot|efec");
+          const cells=metodos.map((m,mi)=>mi===i0?`<td class="cj-efec${x.c}${sep(mi)}" id="cjT_efec" colspan="${adj?2:1}"${x.a} title="Pesos + Efectivo VIP">${cjMoney0(cjR2((c.mp.pesos||0)+(c.mp.vip||0)))}</td>`:(adj&&mi===i0+1)?"":`<td class="${sep(mi).trim()}"></td>`).join("");
+          return `<tr class="cj-tf2"><td class="cj-stk0" colspan="5">TOTAL EFECTIVO · Pesos + Efectivo VIP</td>${cells}</tr>`;
+        })()}
+        </tfoot>
       </table></div>
       ${ro?`<div class="cn-help" style="margin-top:6px">Vista de solo lectura: acá se ven los resultados del mes en curso y de meses anteriores (usá las flechas o el selector de mes). La carga la hace Administración.</div>`:`<div class="cn-help" style="margin-top:6px">Tab pasa a la casilla siguiente · flechas ← → ↑ ↓ (o Enter) saltan a la casilla de al lado, arriba o abajo · lo que dejes vacío cuenta como $0. El conserje se completa solo desde la agenda de Conserjería y se puede cambiar. "$ Entregado" y "$ En caja" son obligatorios en cada turno ya cerrado (se marcan en rojo si faltan). Los totales del mes se muestran redondeados, sin centavos. Doble click (o click derecho) en cualquier casilla para dejar un comentario: la casilla queda marcada con una esquina naranja.</div>`}
 
