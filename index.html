@@ -1278,6 +1278,11 @@ body.dark [style*="background:rgba(255,255,255,.5)"],body.dark [style*="backgrou
 body.dark .fin-card.fin-on,body.dark .fin-emerge{border-color:#5dcaa5!important}
 body.dark .fin-notch{border-color:#5dcaa5}
 @media(max-width:760px){.fin-notch{left:calc(50% - 9px)}#finCard_deveng{order:1}#finCard_tarifas{order:2}#finCard_cajas{order:3}.fin-grid>.fin-emerge{order:4}#finCard_desay{order:5}}
+.cj-tbl td.cj-hascm::after{content:"";position:absolute;top:0;right:0;width:0;height:0;border-style:solid;border-width:0 13px 13px 0;border-color:transparent #f97316 transparent transparent;pointer-events:none;z-index:4}
+.cj-top>button.cj-comp-btn{cursor:pointer;font:inherit;font-size:18px;font-weight:800;color:var(--text);text-align:center;padding:16px 24px;min-height:54px;gap:12px;transition:transform .15s,box-shadow .15s,border-color .15s}
+.cj-top>button.cj-comp-btn:hover{transform:translateY(-1px);border-color:var(--teal2)!important;box-shadow:0 6px 18px rgba(0,0,0,.14)}
+.cj-top>button.cj-comp-btn:active{transform:none}
+.cj-comp-btn i{font-size:24px!important;color:var(--teal2)}
 .cj-top{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px}
 .cj-top>.card{margin-bottom:0!important}
 @media(max-width:760px){.fin-grid{grid-template-columns:1fr}}
@@ -2427,14 +2432,17 @@ body.dark .cc-code,body.dark .cc-per-h{color:#f0f0f2!important}
 .cc-per-h>.btn,.cc-hb{margin-left:auto}
 .cc-hb{display:flex;gap:6px;align-items:center}
 /* (Tanda 234/235) Control de cajas (Administración) */
-.cj-root{max-width:1500px;--cj-line:rgba(60,80,70,.16);--cj-vline:rgba(60,80,70,.07);--cj-sepc:#1d7a6b;--cj-sticky:#eef2ee;--cj-foot:#e3ebe6;--cj-cell:rgba(255,255,255,.5)}
+.cj-root{max-width:none;width:100%;--cj-line:rgba(60,80,70,.16);--cj-vline:rgba(60,80,70,.07);--cj-sepc:#1d7a6b;--cj-sticky:#eef2ee;--cj-foot:#e3ebe6;--cj-cell:rgba(255,255,255,.5)}
 body.dark .cj-root{--cj-line:rgba(255,255,255,.12);--cj-vline:rgba(255,255,255,.05);--cj-sepc:#5dcaa5;--cj-sticky:#25292a;--cj-foot:#2c3233;--cj-cell:rgba(255,255,255,.03)}
 .cj-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .cj-sum{display:flex;gap:6px 18px;flex-wrap:wrap;font-size:12px;margin:0 2px 8px;color:var(--text2)}
 .cj-warn{color:var(--red);font-weight:700}
 body.dark .cj-warn{color:#f87171}
-.cj-scroll{overflow:auto;max-height:68vh;border:1px solid var(--cj-line);border-radius:var(--r2);width:fit-content;max-width:100%}
-.cj-tbl{border-collapse:separate;border-spacing:0;font-size:12px;width:auto}
+.cj-scroll{overflow:auto;max-height:68vh;border:1px solid var(--cj-line);border-radius:var(--r2);width:100%;max-width:100%}
+.cj-tbl{border-collapse:separate;border-spacing:0;font-size:12px;width:100%;min-width:max-content}
+#cjTbl2 .cj-stk2{width:34%}
+#cjTbl td .cj-in{font-weight:600;font-style:italic}
+#cjTbl td .cj-in::placeholder{font-style:italic}
 .cj-tbl th,.cj-tbl td{border-bottom:1px solid var(--cj-line);border-right:1px solid var(--cj-vline);padding:0;background:var(--cj-cell);white-space:nowrap;color:var(--text);position:relative}
 .cj-tbl th{position:sticky;top:0;z-index:3;background:linear-gradient(135deg,#1a6a5c,#1f8a76);color:#fff;padding:9px 10px;font-weight:700;text-align:center;font-size:11px;border-bottom:0;border-right:1px solid rgba(255,255,255,.14)}
 .cj-tbl th.cj-gap,.cj-tbl td.cj-gap{width:18px;min-width:18px;max-width:18px;padding:0;border-right:0}
@@ -6426,6 +6434,7 @@ function _renderOverlays(){
   if(UI.mod==="cochEdit"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modCochEdit());}
   if(UI.mod==="cochDel"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modCochDel());}
   if(UI.mod==="cjComp"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modCjComp());}
+  if(UI.mod==="cjCm"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modCjCm());}
   try{facDesayFit();}catch(e){}
   if(UI.mod==="facDet"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modFacDet());}
   if(UI.mod==="alqDel"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modAlqDel());}
@@ -6733,7 +6742,7 @@ function rSel(){
            (ver el listener global de la Tanda 93 más abajo en el script) o tocando "Ingresar" siguen
            funcionando igual que siempre. -->
       ${showSel?(askClave?`<div class="sel-clave"><h4>Clave de acceso</h4>
-        <input id="rol-clave" class="adm-inp" style="max-width:220px;text-align:center;font-size:16px" type="password" placeholder="Clave" value="${UI.rolClave||''}" oninput="UI.rolClave=this.value">
+        <input id="rol-clave" class="adm-inp" style="max-width:220px;text-align:center;font-size:16px" type="password" placeholder="Clave" value="${UI.rolClave||''}" oninput="rolClaveInput(this.value)">
         ${UI.rolErr?`<div style="color:#b91c1c;font-size:12px;margin-top:6px">${UI.rolErr}</div>`:''}
         <button class="sel-enter show" style="margin-top:14px" onclick="enterRole()">Ingresar \u2192</button></div>`:`<div class="sel-clave">
         ${UI.rolErr?`<div style="color:#b91c1c;font-size:12px;margin-bottom:6px">${UI.rolErr}</div>`:''}
@@ -7298,6 +7307,18 @@ function testSeasonBtnsHtml(){
 }
 window.selC=c=>{UI.rolCard=c;UI.rolName=null;UI.rolClave='';UI.rolErr='';render();};
 window.selN=(id,n)=>{UI.rolName=id;UI.rolNombre=n;UI.rolClave='';UI.rolErr='';render();};
+// (Tanda 293) Ingreso automático: apenas lo escrito coincide con la clave del usuario elegido se entra, sin tocar "Ingresar".
+// Mientras no coincide no se hace nada (no cuenta como intento fallido ni muestra error); Enter y el botón siguen funcionando.
+window.rolClaveInput=(v)=>{
+  UI.rolClave=v;
+  try{
+    const A=UI.rolCard;let person=null;
+    if(A==='mu')person=D.mu.find(m=>m.id===UI.rolName);
+    if(!person)person=D.users.find(u=>u.id===UI.rolName);
+    const cl=person&&person.clave?String(person.clave):"";
+    if(cl&&cl===String(v||"").trim())enterRole();
+  }catch(e){}
+};
 window.enterRole=()=>{
   const A=UI.rolCard;
   // find selected person + clave
@@ -7750,7 +7771,7 @@ window.areaNavGo=(role,key)=>{UI.areaSec=UI.areaSec||{};UI.areaSec[role]=key;UI.
 // (Tanda 291) Finanzas (Gerencia y Administración) con submenú en el sidebar: la primera vez solo despliega las opciones;
 // elegir una la abre en ventana completa (sin la botonera) y minimiza el sidebar (se reabre a mano con el logo);
 // volver a apretar "Finanzas" lleva al inicio de Finanzas (los cuadros de siempre, que abren sus paneles debajo).
-const FIN_SUBS=[["fac","📑","Historial de facturación mensual"],["alq","🏠","Historial de alquileres"],["deveng","📈","Devengamiento"],["tarifas","💲","Tarifario"],["cajas","🧮","Control de cajas"],["desay","🥐","Desayunos mensuales"]];
+const FIN_SUBS=[["fac","📑","Historial de facturación mensual"],["alq","🏠","Historial de alquileres"],["deveng","📈","Devengamiento"],["tarifas","💲","Tarifario"],["cajas","🧮","Recaudaciones"],["desay","🥐","Desayunos mensuales"]];
 // Minimiza el sidebar con la misma animación de ancho de siempre (.sb tiene transition:width), sin volver a dibujar todo.
 function finSbCollapseSmooth(){
   if(UI.sbCollapsed||window.innerWidth<=860)return;
@@ -18819,8 +18840,10 @@ function cjCfgSave(metodos){
 function cjRender(){
   cjFlush();
   const s=document.getElementById("cjScroll"),t=s?s.scrollTop:0,l=s?s.scrollLeft:0;
+  const sb=document.getElementById("cjScroll2"),tb=sb?sb.scrollTop:0,lb=sb?sb.scrollLeft:0;
   render();
   const s2=document.getElementById("cjScroll");if(s2){s2.scrollTop=t;s2.scrollLeft=l;}
+  const s3=document.getElementById("cjScroll2");if(s3){s3.scrollTop=tb;s3.scrollLeft=lb;}
 }
 // ---- edición en la planilla (sin render por tecla) ----
 function cjFmtEl(el){
@@ -18862,7 +18885,13 @@ window.cjKey=(e,el)=>{
     if(k==="ArrowRight"&&el.selectionEnd!==el.value.length)return;
   }
   const r=+el.dataset.r+dr,c=+el.dataset.c+dc;
-  const nx=document.querySelector('.cj-in[data-r="'+r+'"][data-c="'+c+'"]');
+  let nx=document.querySelector('.cj-in[data-r="'+r+'"][data-c="'+c+'"]');
+  // (Tanda 295) Al final de la fila, la flecha derecha salta al Conserje de la fila de abajo (y la izquierda, al revés).
+  if(!nx&&dc===1){nx=document.querySelector('.cj-in[data-r="'+(+el.dataset.r+1)+'"][data-c="0"]');}
+  else if(!nx&&dc===-1&&+el.dataset.r>0){
+    const prev=[...document.querySelectorAll('.cj-in[data-r="'+(+el.dataset.r-1)+'"]')];
+    nx=prev.reduce((a,b)=>(!a||+b.dataset.c>+a.dataset.c)?b:a,null);
+  }
   e.preventDefault();
   if(nx){nx.focus();}
 };
@@ -18873,12 +18902,57 @@ function cjRefreshTotals(){
   set("cjT_e",cjMoney0(c.entregado));
   cjMetodosMes(ym).forEach(m=>set("cjT_"+m.id,cjMoney0(c.mp[m.id]||0)));
   const sm=document.getElementById("cjSum");if(sm)sm.innerHTML=cjSumHtml(c);
+  const sm2=document.getElementById("cjSumCc");if(sm2)sm2.innerHTML=cjSumCcHtml(c);
   cjResumenPatch(ym);const ae=document.activeElement;
   const hs=document.getElementById("cjHist");if(hs&&!(ae&&hs.contains(ae)))hs.innerHTML=cjHistHtml();
 }
 function cjSumHtml(c){
   const pend=c.pend.length?`<span class="cj-warn">⚠ ${c.pend.length} turno${c.pend.length>1?"s":""} cerrado${c.pend.length>1?"s":""} sin cargar entregado / en caja${c.pend.length<=6?": "+c.pend.map(p=>cjIsoLbl(p.iso)+" "+cjTurnoLbl(p.t)).join(", "):""}</span>`:`<span style="color:var(--green)">✓ Todos los turnos cerrados tienen entregado y en caja</span>`;
-  return `<span><b>Facturado en el mes:</b> ${cjMoney0(c.facturado)}</span><span><b>Entregado en el mes:</b> ${cjMoney0(c.entregado)}</span>${pend}`;
+  return `<span><b>Facturado en el mes:</b> ${cjMoney0(c.facturado)}</span>`;
+}
+function cjSumCcHtml(c){
+  const pend=c.pend.length?`<span class="cj-warn">⚠ ${c.pend.length} turno${c.pend.length>1?"s":""} cerrado${c.pend.length>1?"s":""} sin cargar entregado / en caja${c.pend.length<=6?": "+c.pend.map(p=>cjIsoLbl(p.iso)+" "+cjTurnoLbl(p.t)).join(", "):""}</span>`:`<span style="color:var(--green)">✓ Todos los turnos cerrados tienen entregado y en caja</span>`;
+  return `<span><b>Entregado en el mes:</b> ${cjMoney0(c.entregado)}</span>${pend}`;
+}
+// ---- (Tanda 295) Comentarios por casilla (doble click o click derecho) -- D.cajasMes[ym].cm = {clave:texto} ----
+// Clave: "<planilla r|c>|<fecha>|<turno>|<campo>" (campo c/e/k/p:<id>/t), "<planilla>|<fecha>|d" (casilla del día),
+// "<planilla>|tot|<campo>" (totales del mes). Solo Administración escribe; Gerencia puede leerlos.
+function cjCmGet(ym,key){return ((((D.cajasMes||{})[ym]||{}).cm)||{})[key]||"";}
+function cjCmLabel(key){
+  const p=key.split("|"),ym=UI.cjYm,ms=cjMetodosMes(ym);
+  const planilla=p[0]==="r"?"Recaudaciones":"Control de cajas";
+  const campo=f=>f==="c"?"Conserje":f==="e"?"$ Entregado":f==="k"?"$ En caja":f==="t"?"Turno":f==="lbl"?"Total del mes":f.indexOf("p:")===0?((ms.find(m=>m.id===f.slice(2))||{}).n||"Método"):f;
+  if(p[1]==="tot")return planilla+" · Total del mes"+(p[2]&&p[2]!=="lbl"?" · "+campo(p[2]):"");
+  const dia=cjIsoLbl(p[1]);
+  if(p[2]==="d")return planilla+" · Día "+dia;
+  return planilla+" · "+dia+" · "+cjTurnoLbl(p[2])+" · "+campo(p[3]);
+}
+window.cjCmOpen=(e,td)=>{
+  if(e){e.preventDefault();e.stopPropagation();}
+  const key=td&&td.dataset&&td.dataset.cm;if(!key)return;
+  const cur=cjCmGet(UI.cjYm,key);
+  if(!cjCan()&&!cur)return;
+  cjFlush();
+  UI.cjCm={key,txt:cur,ym:UI.cjYm};UI.mod="cjCm";render();
+  setTimeout(()=>{const t=document.getElementById("cjCmTxt");if(t){t.focus();try{t.setSelectionRange(t.value.length,t.value.length);}catch(x){}}},30);
+};
+window.cjCmSave=()=>{
+  const c=UI.cjCm;if(!c||!cjCan())return;
+  const txt=String(c.txt||"").trim();
+  cjMesUpd(c.ym,m=>{const cm={...(m.cm||{})};if(txt)cm[c.key]=txt;else delete cm[c.key];if(Object.keys(cm).length)m.cm=cm;else delete m.cm;});
+  UI.cjCm=null;UI.mod=null;render();
+};
+window.cjCmDel=()=>{if(UI.cjCm)UI.cjCm.txt="";cjCmSave();};
+function modCjCm(){
+  const c=UI.cjCm||{key:"",txt:""},ro=!cjCan(),has=!!cjCmGet(c.ym,c.key);
+  return `<div class="ov" onclick="closeMod(event)"><div class="mod" onclick="event.stopPropagation()" style="max-width:440px">
+    <div class="mh"><h2>Comentario</h2><button class="btn btn-g btn-sm mh-x" onclick="UI.cjCm=null;closeMod()" aria-label="Cerrar"><i class="ti ti-x"></i></button></div>
+    <div class="mc">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:8px;font-weight:700">${cnEsc(cjCmLabel(c.key))}</div>
+      <textarea id="cjCmTxt" class="fc" style="min-height:120px;width:100%;box-sizing:border-box" ${ro?"readonly ":""}placeholder="Escribí el comentario..." oninput="UI.cjCm.txt=this.value">${cnEsc(c.txt||"")}</textarea>
+      <div class="mf">${ro?`<button class="btn btn-sm" onclick="UI.cjCm=null;closeMod()">Cerrar</button>`:`${has?`<button class="btn btn-sm btn-d" onclick="cjCmDel()"><i class="ti ti-trash"></i> Eliminar</button>`:""}<button class="btn btn-sm" onclick="UI.cjCm=null;closeMod()">Cancelar</button><button class="btn btn-p btn-sm" onclick="cjCmSave()"><i class="ti ti-check"></i> Guardar</button>`}</div>
+    </div>
+  </div></div>`;
 }
 // ---- métodos de pago (modal) ----
 window.cjMetOpen=()=>{if(!cjCan())return;UI.mod="cajasMet";UI.cjMetErr="";UI.cjMetDel=null;render();};
@@ -19137,20 +19211,35 @@ function cajasSectionHtml(){
   const metodos=cjMetodosMes(ym),groups=cjShifts(ym),c=cjCalc(ym),hoy=hoyISO(),now=Date.now();
   const sep=i=>i===0?" cj-sep":"";
   let r=0;
-  const body=groups.map((g,gi)=>g.ts.map((t,ti)=>{
+  const cmAt=key=>{const t=cjCmGet(ym,key);return {a:` data-cm="${key}" ondblclick="cjCmOpen(event,this)" oncontextmenu="cjCmOpen(event,this)"${t?` title="${cnEsc(t)}"`:""}`,c:t?" cj-hascm":""};};
+  // (Tanda 294) "Control de cajas" pasa a llamarse "Recaudaciones". Dentro, se separan dos planillas: Recaudaciones por turno
+  // (lo cobrado por cada método de pago) y Control de cajas (conserje + $ Entregado / $ En caja de cada turno).
+  // Las casillas conservan sus índices (data-r / data-c) para que las flechas y Enter sigan saltando de una planilla a la otra.
+  let bodyRec="",bodyCc="";
+  groups.forEach((g,gi)=>g.ts.forEach((t,ti)=>{
     const rec=cjRec(g.iso,t),idx=r++;
     const nombre=cjCap(rec.c!==undefined?rec.c:((((D.consAg||{})[g.iso]||{})[t]||{}).nombre||""));
     const pend=cjCerrado(g.iso,t,now)&&(typeof rec.e!=="number"||typeof rec.k!=="number");
     const inp=(cc,f,val,ph,txt)=>`<span class="cj-mir">${cnEsc(val||ph)}</span><input class="cj-in${txt?" cj-txt":""}" type="text" ${txt?"":'inputmode="decimal" data-cur="1" '}${ro?"readonly ":""}autocomplete="off" data-live-field="1" data-r="${idx}" data-c="${cc}" data-i="${g.iso}" data-t="${t}" data-f="${f}" placeholder="${ph}" value="${cnEsc(val)}" oninput="cjIn(this)" onfocus="cjFocus(this)" onmouseup="cjMouseUp(event,this)" onkeydown="cjKey(event,this)" onblur="cjBlur(this)">`;
     const cur=v=>v==null?"":"$"+cjNumFmt(v);
-    return `<tr data-i="${g.iso}" data-t="${t}" class="cj-r${ti===0?" cj-gs":""}${g.iso===hoy?" cj-today":""}${pend?" cj-pend":""}">
-      ${ti===0?`<td class="cj-stk0 cj-date" rowspan="${g.ts.length}"><b>${cjIsoLbl(g.iso)}</b><br><span>${cjDow(g.iso)}</span></td>`:""}
-      <td class="cj-stk1 cj-tn cj-c-${t}">${cjTurnoLbl(t)}</td>
-      <td class="cj-stk2 cj-tc cj-c-${t}">${inp(0,"c",nombre,"Conserje",true)}</td>
-      <td class="cj-ek">${inp(1,"e",cur(rec.e),"—")}</td>
-      <td class="cj-ek">${inp(2,"k",cur(rec.k),"—")}</td>
-      ${metodos.map((m,mi)=>`<td class="${sep(mi).trim()}">${inp(3+mi,"p:"+m.id,cur((rec.p||{})[m.id]),"$0")}</td>`).join("")}
-    </tr>`;}).join("")).join("");
+    const dTdR=cmAt("r|"+g.iso+"|d"),dTdC=cmAt("c|"+g.iso+"|d");
+    const dateTdFn=m=>ti===0?`<td class="cj-stk0 cj-date${m.c}" rowspan="${g.ts.length}"${m.a}><b>${cjIsoLbl(g.iso)}</b><br><span>${cjDow(g.iso)}</span></td>`:"";
+    const trOpen=`<tr data-i="${g.iso}" data-t="${t}" class="cj-r${ti===0?" cj-gs":""}${g.iso===hoy?" cj-today":""}${pend?" cj-pend":""}">`;
+    const tR=cmAt("r|"+g.iso+"|"+t+"|t"),tC=cmAt("c|"+g.iso+"|"+t+"|t");
+    bodyRec+=`${trOpen}
+      ${dateTdFn(dTdR)}
+      <td class="cj-stk1 cj-tn cj-c-${t}${tR.c}"${tR.a}>${cjTurnoLbl(t)}</td>
+      ${metodos.map((m,mi)=>{const x=cmAt("r|"+g.iso+"|"+t+"|p:"+m.id);return `<td class="${sep(mi).trim()}${x.c}"${x.a}>${inp(3+mi,"p:"+m.id,cur((rec.p||{})[m.id]),"$0")}</td>`;}).join("")}
+    </tr>`;
+    const xc=cmAt("c|"+g.iso+"|"+t+"|c"),xe=cmAt("c|"+g.iso+"|"+t+"|e"),xk=cmAt("c|"+g.iso+"|"+t+"|k");
+    bodyCc+=`${trOpen}
+      ${dateTdFn(dTdC)}
+      <td class="cj-stk1 cj-tn cj-c-${t}${tC.c}"${tC.a}>${cjTurnoLbl(t)}</td>
+      <td class="cj-stk2 cj-tc cj-c-${t}${xc.c}"${xc.a}>${inp(0,"c",nombre,"Conserje",true)}</td>
+      <td class="cj-ek${xe.c}"${xe.a}>${inp(1,"e",cur(rec.e),"—")}</td>
+      <td class="cj-ek${xk.c}"${xk.a}>${inp(2,"k",cur(rec.k),"—")}</td>
+    </tr>`;
+  }));
   return `<div class="cj-root">
     <div class="cj-top">
     <div class="card cj-bar" style="flex:1 1 360px;min-width:0">
@@ -19161,16 +19250,26 @@ function cajasSectionHtml(){
       <div style="flex:1;font-size:12px;color:var(--text3);min-width:200px"><b style="color:var(--text);font-size:14px">${cjMesLbl(ym)}</b> · desde el turno noche del ${cjIsoFull(groups[0].iso)} hasta el turno tarde del ${cjIsoFull(groups[groups.length-1].iso)}</div>
       ${ro?`<span class="cj-ro">👁 Solo lectura</span>`:`<button class="btn btn-g btn-sm" onclick="cjMetOpen()"><i class="ti ti-settings"></i> Métodos de pago</button>`}
     </div>
-    ${ro?"":`<div class="card cj-bar" style="flex:1 1 360px;min-width:0;justify-content:center"><button class="btn btn-g btn-sm" onclick="cjCompOpen()" title="Descargar un comprobante de pago en efectivo"><i class="ti ti-receipt"></i> Comprobante de pago en efectivo</button></div>`}
+    ${ro?"":`<button type="button" class="card cj-bar cj-comp-btn" style="flex:1 1 360px;min-width:0;justify-content:center" onclick="cjCompOpen()" title="Emitir un comprobante de pago en efectivo"><i class="ti ti-receipt"></i> Emitir comprobante de pago en efectivo</button>`}
     </div>
     <div class="card" style="padding:10px">
+      <div class="cj-h" style="margin-top:0">Control de cajas · ${cjMesLbl(ym)}</div>
       <div class="cj-sum" id="cjSum">${cjSumHtml(c)}</div>
       <div class="cj-scroll" id="cjScroll"><table class="cj-tbl" id="cjTbl">
-        <thead><tr><th class="cj-stk0">Fecha</th><th class="cj-stk1">Turno</th><th class="cj-stk2">Conserje</th><th>$ Entregado</th><th>$ En caja</th>${metodos.map((m,mi)=>`<th class="${sep(mi).trim()}">${cnEsc(m.n)}</th>`).join("")}</tr></thead>
-        <tbody>${body}</tbody>
-        <tfoot><tr><td class="cj-stk0" colspan="3">TOTAL DEL MES</td><td id="cjT_e">${cjMoney0(c.entregado)}</td><td>—</td>${metodos.map((m,mi)=>`<td class="${sep(mi).trim()}" id="cjT_${m.id}">${cjMoney0(c.mp[m.id]||0)}</td>`).join("")}</tr></tfoot>
+        <thead><tr><th class="cj-stk0">Fecha</th><th class="cj-stk1">Turno</th>${metodos.map((m,mi)=>`<th class="${sep(mi).trim()}">${cnEsc(m.n)}</th>`).join("")}</tr></thead>
+        <tbody>${bodyRec}</tbody>
+        <tfoot><tr>${(()=>{const x=cmAt("r|tot|lbl");return `<td class="cj-stk0${x.c}" colspan="2"${x.a}>TOTAL DEL MES</td>`;})()}${metodos.map((m,mi)=>{const x=cmAt("r|tot|p:"+m.id);return `<td class="${sep(mi).trim()}${x.c}" id="cjT_${m.id}"${x.a}>${cjMoney0(c.mp[m.id]||0)}</td>`;}).join("")}</tr></tfoot>
       </table></div>
-      ${ro?`<div class="cn-help" style="margin-top:6px">Vista de solo lectura: acá se ven los resultados del mes en curso y de meses anteriores (usá las flechas o el selector de mes). La carga la hace Administración.</div>`:`<div class="cn-help" style="margin-top:6px">Tab pasa a la casilla siguiente · flechas ← → ↑ ↓ (o Enter) saltan a la casilla de al lado, arriba o abajo · lo que dejes vacío cuenta como $0. El conserje se completa solo desde la agenda de Conserjería y se puede cambiar. "$ Entregado" y "$ En caja" son obligatorios en cada turno ya cerrado (se marcan en rojo si faltan). Los totales del mes se muestran redondeados, sin centavos.</div>`}
+    </div>
+    <div class="card" style="padding:10px" id="cjCcCard">
+      <div class="cj-h" style="margin-top:0">Control de cajas · ${cjMesLbl(ym)}</div>
+      <div class="cj-sum" id="cjSumCc">${cjSumCcHtml(c)}</div>
+      <div class="cj-scroll" id="cjScroll2"><table class="cj-tbl" id="cjTbl2">
+        <thead><tr><th class="cj-stk0">Fecha</th><th class="cj-stk1">Turno</th><th class="cj-stk2">Conserje</th><th>$ Entregado</th><th>$ En caja</th></tr></thead>
+        <tbody>${bodyCc}</tbody>
+        <tfoot><tr>${(()=>{const a=cmAt("c|tot|lbl"),b=cmAt("c|tot|e"),k=cmAt("c|tot|k");return `<td class="cj-stk0${a.c}" colspan="3"${a.a}>TOTAL DEL MES</td><td id="cjT_e" class="${b.c.trim()}"${b.a}>${cjMoney0(c.entregado)}</td><td class="${k.c.trim()}"${k.a}>—</td>`;})()}</tr></tfoot>
+      </table></div>
+      ${ro?`<div class="cn-help" style="margin-top:6px">Vista de solo lectura: acá se ven los resultados del mes en curso y de meses anteriores (usá las flechas o el selector de mes). La carga la hace Administración.</div>`:`<div class="cn-help" style="margin-top:6px">Tab pasa a la casilla siguiente · flechas ← → ↑ ↓ (o Enter) saltan a la casilla de al lado, arriba o abajo · lo que dejes vacío cuenta como $0. El conserje se completa solo desde la agenda de Conserjería y se puede cambiar. "$ Entregado" y "$ En caja" son obligatorios en cada turno ya cerrado (se marcan en rojo si faltan). Los totales del mes se muestran redondeados, sin centavos. Doble click (o click derecho) en cualquier casilla para dejar un comentario: la casilla queda marcada con una esquina naranja.</div>`}
     </div>
     <div class="card" id="cjRetiros">${cjRetirosHtml(ym)}</div>
     <div class="card" id="cjResumen">${cjResumenHtml(ym,c)}</div>
@@ -19389,7 +19488,7 @@ function cjImportHtml(){
     <div id="cjImpSum" style="margin-top:10px">${cjImpSumHtml(imp,fin)}</div>`;
 }
 
-// ═══════════════ (Tanda 243) COMPROBANTE DE PAGO EN EFECTIVO (Control de cajas) ═══════════════
+// ═══════════════ (Tanda 243) COMPROBANTE DE PAGO EN EFECTIVO (Recaudaciones) ═══════════════
 // Hoja A4 "Hotel hace entrega" (como el modelo en PDF): logo, fecha, importe en números y en letras, a quién se entrega y
 // concepto opcional, con líneas de firma y aclaración. Antes de descargar se piden importe y nombre (obligatorios) y el
 // comentario de a qué corresponde (opcional). Sale ORIGINAL y DUPLICADO (2 hojas).
@@ -19483,7 +19582,7 @@ window.cjCompGo=()=>{
     const {base64,filename}=cjBuildComp({imp,nom,conc,fecha:hoyISO()});
     const a=document.createElement("a");a.href="data:application/pdf;base64,"+base64;a.download=filename;document.body.appendChild(a);a.click();a.remove();
   }catch(e){c.err="No se pudo generar el PDF (¿cargó bien jsPDF?).";const el=document.getElementById("cjCompErr");if(el){el.textContent=c.err;el.style.display="";}return;}
-  logChange("Control de cajas: comprobante de pago en efectivo de $"+cjNumFmt(imp)+" a "+nom+(conc?" ("+conc+")":""));
+  logChange("Recaudaciones: comprobante de pago en efectivo de $"+cjNumFmt(imp)+" a "+nom+(conc?" ("+conc+")":""));
   UI.cjComp=null;UI.mod=null;render();
 };
 function modCjComp(){
@@ -19969,7 +20068,7 @@ function facSoloLecturaHtml(){
     ${alqCalCardHtml()}
     ${finCardHtml("deveng","Devengamiento","Se abre en ventana completa.","Abrir Devengamiento","Cerrar Devengamiento","ti-chart-bar")}
     ${finCardHtml("tarifas","Tarifario","Se abre en ventana completa.","Abrir Tarifario","Cerrar Tarifario","ti-currency-dollar")}
-    ${finCardHtml("cajas","Control de cajas","Se abre en ventana completa.","Abrir Control de cajas","Cerrar Control de cajas","ti-calculator")}
+    ${finCardHtml("cajas","Recaudaciones","Se abre en ventana completa.","Abrir Recaudaciones","Cerrar Recaudaciones","ti-calculator")}
     ${finCardHtml("desay","Desayunos mensuales","Se abre en ventana completa.","Abrir Desayunos mensuales","Cerrar Desayunos mensuales","ti-bread")}
     ${UI.finPanel==="cajas"?finCajasPanelHtml():""}
   </div>${finPanelHtml()}</div>`;
