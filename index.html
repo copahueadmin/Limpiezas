@@ -26186,7 +26186,7 @@ window.ccEstSet=(id,v,sel)=>{
     c.est=prev;
     ccNcOpen(id,true);return;
   }
-  if(c.est==="Nota Crédito"&&v!=="Nota Crédito"){delete c.nc;delete c.ncNo;}
+  if(c.est==="Nota Crédito"&&v!=="Nota Crédito"){const oR=c.nc&&c.nc.ref;delete c.nc;delete c.ncNo;if(oR){c.est=v;ccNcRelease(oR);}}
   c.est=v;ccSave();
   ccListRefresh();ccSumRefresh();
 };
@@ -26223,6 +26223,13 @@ function ccAutoGen(c,NC){
 // (Tanda 409) Vínculo automático nota de crédito <-> factura: misma reserva e igual importe (con signo contrario).
 // Quedan sin vincular solo las notas que no coinciden en importe con otra factura de esa reserva (probables notas parciales).
 const ccC100=v=>Math.round((+v||0)*100);
+// (Tanda 417) Al vincularse automáticamente una nota de crédito total, la factura original pasa sola a estado «Nota Crédito» (se recuerda el estado anterior por si el vínculo se quita)
+function ccNcMarca(y){if(y&&y.est!=="Nota Crédito"){y.estAnt=y.est||"";y.est="Nota Crédito";}}
+function ccNcRelease(refId){
+  const y=refId&&ccGet(refId);if(!y||y.est!=="Nota Crédito"||y.estAnt===undefined||y.nc)return;
+  if(ccD().ch.some(n=>n.id!==y.id&&n.est==="Nota Crédito"&&n.nc&&n.nc.ref===y.id))return;
+  y.est=y.estAnt;delete y.estAnt;
+}
 function ccNcAuto(onlyId){
   const d=ccD(),refd=new Set(),byR={};let n=0;
   d.ch.forEach(x=>{if(x.est==="Nota Crédito"&&x.nc&&x.nc.ref)refd.add(x.nc.ref);const r=ccNcRva(x);if(r)(byR[r]=byR[r]||[]).push(x);});
@@ -26234,10 +26241,10 @@ function ccNcAuto(onlyId){
     const g=(byR[r]||[]).filter(y=>y.id!==x.id);
     if(a<0){ // nota con importe negativo: busca la factura original con el mismo importe en positivo
       const c=g.filter(y=>y.est!=="Nota Crédito"&&ccC100(y.imp)===-a&&!refd.has(y.id)&&!ccLocked(y));
-      if(c.length){const y=near(c);x.nc={ref:y.id,tipo:"total",a:1};refd.add(y.id);n++;}
+      if(c.length){const y=near(c);x.nc={ref:y.id,tipo:"total",a:1};refd.add(y.id);ccNcMarca(y);n++;}
     }else{ // ítem marcado como nota de crédito pero con importe positivo
       const c1=g.filter(y=>y.est!=="Nota Crédito"&&ccC100(y.imp)===a&&!refd.has(y.id)&&!ccLocked(y));
-      if(c1.length){const y=near(c1);x.nc={ref:y.id,tipo:"total",a:1};refd.add(y.id);n++;return;}
+      if(c1.length){const y=near(c1);x.nc={ref:y.id,tipo:"total",a:1};refd.add(y.id);ccNcMarca(y);n++;return;}
       const c2=g.filter(y=>y.est==="Nota Crédito"&&!y.nc&&!y.ncNo&&ccC100(y.imp)===-a&&ccEditable(y));
       if(c2.length){const y=near(c2);y.nc={ref:x.id,tipo:"total",a:1};refd.add(x.id);n++;}
     }
@@ -26254,7 +26261,7 @@ function ccNcReassign(){
     const c=d.ch.filter(z=>z.id!==x.id&&z.est!=="Nota Crédito"&&ccNcRva(z)===r&&ccC100(z.imp)===a&&!ccLocked(z)&&(z.id===y.id||!refd.has(z.id))&&(z.f||"9")<(y.f||"9"));
     if(!c.length)return;
     const o=c.slice().sort((p,q)=>(p.f||"9").localeCompare(q.f||"9")||(d.ch.indexOf(p)-d.ch.indexOf(q)))[0];
-    refd.delete(y.id);refd.add(o.id);x.nc={ref:o.id,tipo:"total",a:1};n++;
+    refd.delete(y.id);refd.add(o.id);x.nc={ref:o.id,tipo:"total",a:1};ccNcMarca(o);n++;
   });
   return n;
 }
@@ -26303,7 +26310,9 @@ window.ccNcSave=()=>{
   const p=UI.ccNc;if(!p)return;
   const c=ccGet(p.id);if(!c||!ccEditable(c))return;
   c.est="Nota Crédito";
+  const oldRef=c.nc&&c.nc.ref;
   if(p.ref&&ccGet(p.ref)){c.nc={ref:p.ref,tipo:p.tipo==="parcial"?"parcial":"total",m:1};delete c.ncNo;}else{delete c.nc;c.ncNo=1;} // «sin vincular» elegido a propósito: el automático no lo toca
+  if(oldRef&&oldRef!==p.ref)ccNcRelease(oldRef);
   ccSave();UI.ccNc=null;UI.mod=null;render();
 };
 function modCcNc(){
@@ -26628,7 +26637,7 @@ function ccScope(){
   return {kind:"one",ym:ccYm()};
 }
 const ccIn=(x,sc)=>sc.kind==="all"||(sc.kind==="rng"?(x.m>=sc.a&&x.m<=sc.b):x.m===sc.ym);
-function ccScopeLbl(sc){sc=sc||ccScope();return UI.ccHi?"destacados de todos los meses":sc.kind==="all"?"todos los períodos":sc.kind==="rng"?(sc.a===sc.b?cjMesLbl(sc.a):cjMesLbl(sc.a)+" a "+cjMesLbl(sc.b)):cjMesLbl(sc.ym);}
+function ccScopeLbl(sc){sc=sc||ccScope();return UI.ccHi?"destacados ("+ccHiRangeTxt().replace(/^Período: /,"").replace(/^D/,"d")+")":sc.kind==="all"?"todos los períodos":sc.kind==="rng"?(sc.a===sc.b?cjMesLbl(sc.a):cjMesLbl(sc.a)+" a "+cjMesLbl(sc.b)):cjMesLbl(sc.ym);}
 const CC_FCOLS={f:"Fecha",rva:"Reserva",razon:"Razón social",imp:"Importe",fac:"Nº Factura",est:"Estado",chk:"Ok",comp:"Comprobante",cm:"Comentarios"};
 function ccColLabel(c,k,NC){
   if(k==="f")return ccFechaC(c.f)||"(vacío)";
@@ -26690,11 +26699,19 @@ function ccSumHtml(){
   </div>`;
 }
 function ccSumRefresh(){const e=document.getElementById("ccSum");if(e)e.innerHTML=ccSumHtml();}
+// (Tanda 418) período que abarcan los destacados (primer y último mes con algún cargo destacado)
+function ccHiRange(){
+  const NC=ccNcMap();let a="",b="";
+  ccD().ch.forEach(x=>{if(!x.m||!ccDestacado(x,NC))return;if(!a||x.m<a)a=x.m;if(!b||x.m>b)b=x.m;});
+  return a?{a,b}:null;
+}
+function ccHiRangeTxt(){const r=ccHiRange();return r?(r.a===r.b?"Período: "+ccMesTxt(r.a):"Desde "+ccMesTxt(r.a)+" hasta "+ccMesTxt(r.b)):"No hay cargos destacados";}
 function ccHiCount(){const NC=ccNcMap();return ccD().ch.filter(x=>ccDestacado(x,NC)).length;}
 function ccEstSelRefresh(){
   const b=document.getElementById("ccHiBtn");if(!b)return;
   b.classList.toggle("btn-p",!!UI.ccHi);b.classList.toggle("btn-g",!UI.ccHi);
   const n=ccHiCount(),tx=(UI.ccHi?"✓ ":"")+"⭐ Destacados ("+n+")";if(b.textContent!==tx)b.textContent=tx;
+  const r=document.getElementById("ccHiRng");if(r){const t=UI.ccHi?ccHiRangeTxt():"";r.style.display=UI.ccHi?"":"none";if(r.textContent!==t)r.textContent=t;}
 }
 window.ccEstFilter=e=>{
   UI.ccCF=UI.ccCF||{};const lbl=e==="_none"?"Sin estado":e,cur=UI.ccCF.est;
@@ -26786,7 +26803,8 @@ function ccRowHtml(c,showMes,NC){
   const esNC=c.est==="Nota Crédito",lbl=esNC?"N.C.":(c.est||"Sin estado");
   const pill=`<span class="cc-sel cc-e-${ccEstCls(c.est)}${esNC?" cc-short":""}">${cnEsc(lbl)}${ro?"":`<i class="cc-car">▾</i>`}</span>`;
   const est=ro?`<span class="cc-selw">${pill}</span>`:`<span class="cc-selw">${pill}<select class="cc-selx" title="Cambiar estado" onchange="ccEstSet('${c.id}',this.value,this)">${CC_EST.map(e=>`<option value="${e}"${(c.est||"")===e?" selected":""}>${e||"Sin estado"}</option>`).join("")}</select></span>`;
-  const ncBtn=!ro&&esNC?`<button type="button" class="cc-mini${c.nc?" cc-mini-lk":" cc-mini-rec"}" onclick="ccNcOpen('${c.id}')" title="${c.nc?"":"Recomendado: "}Elegir la factura sobre la que se hizo la nota de crédito (total o parcial)"><i class="ti ti-link"></i> ${c.nc?"Factura":"Vincular"}</button>`:"";
+  const ntsR0=((NC||ccNcMap())[c.id]||[]);
+  const ncBtn=!ro&&esNC&&!(!c.nc&&ntsR0.length)?`<button type="button" class="cc-mini${c.nc?" cc-mini-lk":" cc-mini-rec"}" onclick="ccNcOpen('${c.id}')" title="${c.nc?"":"Recomendado: "}Elegir la factura sobre la que se hizo la nota de crédito (total o parcial)"><i class="ti ti-link"></i> ${c.nc?"Factura":"Vincular"}</button>`:"";
   // (Tanda 414) El vínculo nota de crédito <-> factura original se ve de los dos lados: la original muestra un botón por cada nota que la anula
   const ntsR=((NC||ccNcMap())[c.id]||[]),oRef=esNC&&c.nc&&c.nc.ref?ccGet(c.nc.ref):null;
   const revBtn=ntsR.map(n=>`<button type="button" class="cc-mini cc-mini-nc" onclick="ccNcGo('${n.id}')" title="Anulada por la nota de crédito ${cnEsc(n.fac||"s/n")} (${n.nc.tipo==="parcial"?"parcial":"total"}) por ${cnEsc(ccMoney(n.imp))}. Tocá para ir a la nota"><i class="ti ti-link"></i> N.C. ${cnEsc(ccLast7(n.fac))}</button>`).join("")
@@ -26819,7 +26837,8 @@ function ccHeadHtml(){
   return `<tr>${th("f","Fecha")}${th("rva","Reserva")}${th("razon","Razón social")}${th("imp","Importe","r")}${th("fac","Nº Factura")}${th("est","Estado")}${plain("chk","Ok","c","Confirmación de Gerencia: al tildarlo el cargo queda bloqueado para Administración")}${plain("comp","Comprobante de pago")}${plain("cm","Comentarios")}<th></th></tr>`;
 }
 function ccNcAutoOnce(){
-  const d=ccD();if(!ccCan()||(d.ncAuto409&&d.ncAuto412&&d.cmMat413))return;
+  const d=ccD();if(!ccCan()||(d.ncAuto409&&d.ncAuto412&&d.cmMat413&&d.ncMarca417))return;
+  if(!d.ncMarca417){d.ncMarca417=1;let m=0;d.ch.forEach(x=>{if(x.est==="Nota Crédito"&&x.nc&&x.nc.a&&x.nc.tipo==="total"){const y=ccGet(x.nc.ref);if(y&&y.est!=="Nota Crédito"&&!ccLocked(y)){ccNcMarca(y);m++;}}});if(m){ccSave();setTimeout(()=>{try{ccListRefresh();ccSumRefresh();}catch(e){}},300);}}
   if(!d.cmMat413){d.cmMat413=1;const m=ccAutoMat();if(m){ccSave();setTimeout(()=>{try{ccListRefresh();}catch(e){}},300);}}
   d.ncAuto409=1;let n=ccNcAuto();
   if(!d.ncAuto412){d.ncAuto412=1;n+=ccNcReassign();}
@@ -27040,7 +27059,7 @@ function ccSectionHtml(){
     <div class="card" style="padding:10px">
       <div class="cc-filt">
         <input class="fc" id="ccQ" type="search" style="flex:1 1 260px;min-width:180px" placeholder="Buscar por factura, empresa, reserva, importe, fecha, comentario..." value="${cnEsc(UI.ccQ||"")}" oninput="ccQ(this.value)">
-        <button type="button" class="btn ${UI.ccHi?"btn-p":"btn-g"} btn-sm" id="ccHiBtn" onclick="ccHiTog()" title="Ver de todos los meses lo que requiere atención: facturas Pendientes, Sin estado, Para controlar y notas de crédito sin vincular a su factura original">${UI.ccHi?"✓ ":""}⭐ Destacados (${ccHiCount()})</button>
+        <button type="button" class="btn ${UI.ccHi?"btn-p":"btn-g"} btn-sm" id="ccHiBtn" onclick="ccHiTog()" title="Ver de todos los meses lo que requiere atención: facturas Pendientes, Sin estado, Para controlar y notas de crédito sin vincular a su factura original">${UI.ccHi?"✓ ":""}⭐ Destacados (${ccHiCount()})</button><span id="ccHiRng" class="cc-count" style="${UI.ccHi?"":"display:none;"}font-weight:700;color:var(--teal2)">${UI.ccHi?ccHiRangeTxt():""}</span>
         <label class="cc-chk-l" title="Muestra y filtra todo el histórico cargado, de todos los meses"><input type="checkbox" ${UI.ccAll?"checked":""} onchange="ccAllTog(this.checked)"> Buscar en todos los períodos</label>
         <label class="cc-chk-l" title="Elegir desde qué mes hasta qué mes buscar (sin días)"><input type="checkbox" ${UI.ccRng&&UI.ccRng.on?"checked":""} onchange="ccRngTog(this.checked)"> Buscar entre períodos</label>
         ${UI.ccRng&&UI.ccRng.on?`<span class="cc-rng">Desde <input class="fc" type="month" value="${cnEsc(UI.ccRng.from||ym)}" onchange="ccRngSet('from',this.value)"> hasta <input class="fc" type="month" value="${cnEsc(UI.ccRng.to||ym)}" onchange="ccRngSet('to',this.value)"></span>`:""}
