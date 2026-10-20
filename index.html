@@ -2763,7 +2763,13 @@ body.dark .cc-r.cc-dark .cc-lnk,body.dark .cc-r.cc-dark .cc-auto,body.dark .cc-r
 .cc-cli-r .fc{width:100%;box-sizing:border-box}
 .cc-cli-a textarea{resize:vertical;font-size:12.5px}
 .cc-cli-chip{display:inline-block;margin:0 5px 4px 0;padding:2px 9px;border-radius:999px;border:1px solid var(--cc-line);font-size:12px;font-weight:600}
-@media (max-width:700px){.cc-cli-r{grid-template-columns:1fr}}
+.cc-cli-new{border:1.5px solid var(--teal2);border-radius:var(--r2);padding:10px;background:var(--cc-hd,transparent)}
+.cc-sug-box{margin-top:10px;border:1px dashed var(--cc-line);border-radius:var(--r2);padding:10px}
+.cc-sug-list{display:flex;flex-direction:column;gap:6px;max-height:calc(22vh/var(--fz,1));overflow:auto;margin-top:4px}
+.cc-sug{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:5px 8px;border-radius:var(--r2);background:var(--cc-hd,rgba(127,127,127,.08))}
+.cc-cli-r[data-rid]{grid-template-columns:minmax(150px,1fr) minmax(220px,2fr) auto}
+.cc-cli-new .cc-cli-r{grid-template-columns:minmax(150px,1fr) minmax(220px,2fr) auto}
+@media (max-width:700px){.cc-cli-r,.cc-cli-r[data-rid],.cc-cli-new .cc-cli-r{grid-template-columns:1fr}}
 .cc-autobox{background:rgba(107,79,176,.1);border:1px solid rgba(107,79,176,.3);border-radius:var(--r2);padding:8px 10px;font-size:12.5px}
 .cc-multi{margin-top:10px;border-top:1px solid var(--cc-line);padding-top:8px}
 .cc-sel-h{font-size:12px;font-weight:800;margin-bottom:4px}.cc-sel-t{font-size:12.5px;margin-top:6px;text-align:right}
@@ -26191,28 +26197,24 @@ function ccAutos(c,NC){
 window.ccNcOpen=(id,fromEst)=>{
   const c=ccGet(id);if(!c||!ccEditable(c))return;
   UI.ccNc={id,ref:(c.nc&&c.nc.ref)||"",tipo:(c.nc&&c.nc.tipo)||"total",q:"",err:"",fromEst:!!fromEst};
+  if(!UI.ccNc.ref){const r=ccNcResults();if(r.length===1)UI.ccNc.ref=r[0].id;} // una sola factura con esa reserva: queda elegida
   UI.mod="ccNc";render();
-  setTimeout(()=>{const e=document.getElementById("ccNcQ");if(e)e.focus();},30);
 };
+// (Tanda 407) la nota de credito solo se puede vincular a una factura con EXACTAMENTE el mismo numero de reserva (no hay otras opciones)
+const ccNcRva=x=>String(x&&x.rva!=null?x.rva:"").trim();
 function ccNcResults(){
   const p=UI.ccNc;if(!p)return[];
   const me=ccGet(p.id);if(!me)return[];
-  const toks=ccNorm(p.q).trim().split(/\s+/).filter(Boolean);
-  let list=ccD().ch.filter(x=>x.id!==p.id&&!x.chk&&(!x.pg||!ccMembers(x.pg).some(y=>y.chk)));
-  const rz=ccNorm(me.razon).trim().slice(0,10),sc=x=>(String(x.rva)===String(me.rva)&&me.rva?3:0)+(Math.abs(x.imp||0)===Math.abs(me.imp||0)&&me.imp?2:0)+(rz&&ccNorm(x.razon).trim().slice(0,10)===rz?1:0);
-  if(toks.length)list=list.filter(x=>{const h=ccHay(x),hd=h.replace(/[.,]/g,"");return toks.every(t=>h.indexOf(t)>=0||hd.indexOf(t.replace(/[.,]/g,""))>=0);});
-  else list=list.filter(x=>sc(x)>0);
-  list=list.filter(x=>x.est!=="Nota Crédito"||toks.length);
-  list.sort((a,b)=>sc(b)-sc(a)||(b.f||"").localeCompare(a.f||""));
-  return list;
+  const rv=ccNcRva(me);if(!rv)return[];
+  return ccD().ch.filter(x=>x.id!==p.id&&!x.chk&&(!x.pg||!ccMembers(x.pg).some(y=>y.chk))&&x.est!=="Nota Crédito"&&ccNcRva(x)===rv).sort((a,b)=>(b.f||"").localeCompare(a.f||""));
 }
 function ccNcResHtml(){
   const p=UI.ccNc;if(!p)return"";
-  const res=ccNcResults(),q=String(p.q||"").trim();
-  if(!res.length)return `<div class="cn-help" style="padding:8px 2px">${q?"No se encontraron facturas con esa búsqueda.":"Buscá la factura emitida por número, empresa, reserva, importe o fecha de emisión."}</div>`;
-  return (q?"":`<div class="cn-help" style="margin:0 0 4px">Facturas que coinciden en empresa, reserva o importe (escribí arriba para buscar otras)</div>`)+res.slice(0,60).map(x=>`<div class="cc-pr${p.ref===x.id?" cc-pr-on":""}" onclick="ccNcPick('${x.id}')"><span class="cc-pr-p">${p.ref===x.id?"●":"○"}</span><span class="cc-pr-f">${cnEsc(x.fac||"s/n")}</span><span class="cc-pr-n">${cnEsc(x.razon||"—")}</span><span class="cc-pr-m">Rva ${cnEsc(x.rva||"—")}</span><span class="cc-pr-m">${ccFecha(x.f)}</span><span class="cc-pr-i">${ccMoney(x.imp)}</span><span class="cc-pr-s cc-e-${ccEstCls(x.est)}">${cnEsc(x.est||"Sin estado")}</span></div>`).join("")+(res.length>60?`<div class="cn-help">Mostrando 60 de ${res.length}: afiná la búsqueda.</div>`:"");
+  const me=ccGet(p.id)||{},rv=ccNcRva(me),res=ccNcResults();
+  if(!rv)return `<div class="cn-help" style="padding:8px 2px">Esta nota de crédito no tiene número de reserva. Cargalo en la fila para poder vincularla con la factura de esa misma reserva (o guardala sin vincular).</div>`;
+  if(!res.length)return `<div class="cn-help" style="padding:8px 2px">No hay ninguna factura cargada con la reserva <b>${cnEsc(rv)}</b>. Podés guardar la nota sin vincular y vincularla después, cuando esté cargada la factura.</div>`;
+  return `<div class="cn-help" style="margin:0 0 4px">${res.length===1?"Factura":"Facturas"} de la reserva <b>${cnEsc(rv)}</b></div>`+res.map(x=>`<div class="cc-pr${p.ref===x.id?" cc-pr-on":""}" onclick="ccNcPick('${x.id}')"><span class="cc-pr-p">${p.ref===x.id?"●":"○"}</span><span class="cc-pr-f">${cnEsc(x.fac||"s/n")}</span><span class="cc-pr-n">${cnEsc(x.razon||"—")}</span><span class="cc-pr-m">Rva ${cnEsc(x.rva||"—")}</span><span class="cc-pr-m">${ccFecha(x.f)}</span><span class="cc-pr-i">${ccMoney(x.imp)}</span><span class="cc-pr-s cc-e-${ccEstCls(x.est)}">${cnEsc(x.est||"Sin estado")}</span></div>`).join("");
 }
-window.ccNcQ=v=>{UI.ccNc.q=v;const e=document.getElementById("ccNcRes");if(e)e.innerHTML=ccNcResHtml();};
 window.ccNcPick=id=>{const p=UI.ccNc;if(!p)return;p.ref=p.ref===id?"":id;const e=document.getElementById("ccNcRes");if(e)e.innerHTML=ccNcResHtml();const s=document.getElementById("ccNcSel");if(s)s.innerHTML=ccNcSelHtml();const sb=document.getElementById("ccNcSaveBtn");if(sb)sb.textContent=UI.ccNc.ref?"Guardar":"Guardar sin vincular";};
 function ccNcSelHtml(){
   const p=UI.ccNc,o=p&&p.ref?ccGet(p.ref):null;
@@ -26233,7 +26235,6 @@ function modCcNc(){
       <div class="cc-autobox" style="margin-bottom:10px"><b>${cnEsc(c.razon||"Sin nombre")}</b> · ${ccMoney(c.imp)} · Nota ${cnEsc(c.fac||"s/n")} · Rva ${cnEsc(c.rva||"—")} · ${ccFecha(c.f)}</div>
       <label class="fl" style="font-size:12px;font-weight:700;display:block;margin:6px 0 4px">¿Sobre qué factura emitida se hizo esta nota de crédito?</label>
       <div id="ccNcSel">${ccNcSelHtml()}</div>
-      <input id="ccNcQ" class="fc" style="width:100%;box-sizing:border-box;margin:10px 0 6px" type="text" autocomplete="off" placeholder="Buscar por n.º de factura, empresa, reserva, importe o fecha de emisión..." value="${cnEsc(p.q||"")}" oninput="ccNcQ(this.value)">
       <div id="ccNcRes" class="cc-res">${ccNcResHtml()}</div>
       <div style="display:flex;gap:18px;margin-top:12px;font-size:13px;flex-wrap:wrap;align-items:center"><b>La nota de crédito es:</b>
         <label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="radio" name="ccNcT" ${p.tipo!=="parcial"?"checked":""} onchange="UI.ccNc.tipo='total'"> Total <span class="cn-help" style="margin:0">(la factura original también se marca en oscuro)</span></label>
@@ -26328,12 +26329,14 @@ const ccCliName=(razon,list)=>{const c=ccCliMatch(razon,list);return c&&c.nombre
 function ccCliPend(list){return ccD().ch.filter(c=>ccEditable(c)&&c.razon&&ccCliName(c.razon,list)!==c.razon);}
 window.ccCliOpen=()=>{
   const cl=ccD().cli||[];
-  UI.ccCli={rows:cl.map(c=>({id:c.id,nombre:c.nombre||"",alias:(c.alias||[]).join("\n")})),retro:true,err:"",msg:""};
+  UI.ccCli={rows:cl.map(c=>({id:c.id,nombre:c.nombre||"",on:c.nombre||"",alias:(c.alias||[]).join("\n")})),retro:true,err:"",msg:"",q:"",nn:"",na:""};
   UI.mod="ccCli";render();
 };
 function ccCliDraftList(){
   const p=UI.ccCli;if(!p)return[];
-  return p.rows.map(r=>({id:r.id,nombre:String(r.nombre||"").trim(),alias:String(r.alias||"").split(/\n|;/).map(x=>x.trim()).filter(Boolean)})).filter(r=>r.nombre);
+  return p.rows.map(r=>{const nm=String(r.nombre||"").trim(),on=String(r.on||"").trim(),al=String(r.alias||"").split(/\n|;/).map(x=>x.trim()).filter(Boolean);
+    if(nm&&on&&ccCliKey(on)!==ccCliKey(nm)&&!al.some(a=>ccCliKey(a)===ccCliKey(on)))al.push(on); // el nombre anterior pasa a ser una forma de facturarlo
+    return{id:r.id,nombre:nm,alias:al};}).filter(r=>r.nombre);
 }
 function ccCliPrevHtml(){
   const p=UI.ccCli;if(!p)return"";
@@ -26344,11 +26347,50 @@ window.ccCliIn=(id,k,v)=>{
   const p=UI.ccCli;if(!p)return;const r=p.rows.find(x=>x.id===id);if(!r)return;
   r[k]=v;p.err="";const e=document.getElementById("ccCliPrev");if(e)e.innerHTML=ccCliPrevHtml();
 };
-window.ccCliAdd=()=>{
+// (Tanda 408) El alta queda arriba; los clientes creados van debajo (el más nuevo primero), con buscador y sugerencias
+window.ccCliNewIn=(k,v)=>{const p=UI.ccCli;if(p){p[k]=v;p.err="";}};
+window.ccCliAdd=(pre)=>{
   const p=UI.ccCli;if(!p||!ccCan())return;
-  const id=ccId();p.rows.push({id,nombre:"",alias:""});render();
-  setTimeout(()=>{const e=document.getElementById("ccCliN_"+id);if(e)e.focus();},30);
+  const nm=String(pre&&pre.nombre!=null?pre.nombre:p.nn||"").trim(),al=String(pre&&pre.alias!=null?pre.alias:p.na||"");
+  if(!nm){p.err="Escribí el nombre predeterminado del cliente nuevo.";render();setTimeout(()=>{const e=document.getElementById("ccCliNewN");if(e)e.focus();},30);return;}
+  const nk=ccCliKey(nm);
+  if(p.rows.some(r=>ccCliKey(r.nombre)===nk)){p.err="Ya existe un cliente llamado «"+nm+"». Buscalo en la lista para editarlo.";render();return;}
+  const id=ccId();p.rows.unshift({id,nombre:nm,on:"",alias:al,nuevo:1});
+  p.nn="";p.na="";p.err="";p.q="";render();
 };
+window.ccCliFilt=v=>{
+  const p=UI.ccCli;if(!p)return;p.q=v;
+  const toks=ccNorm(v).split(/\s+/).filter(Boolean);let vis=0;
+  document.querySelectorAll(".cc-cli-r[data-rid]").forEach(el=>{
+    const r=p.rows.find(x=>x.id===el.getAttribute("data-rid"));
+    const txt=ccNorm((r?r.nombre+" "+r.alias:"")),ok=toks.every(t=>txt.indexOf(t)>=0);
+    el.style.display=ok?"":"none";if(ok)vis++;
+  });
+  document.querySelectorAll(".cc-sug[data-s]").forEach(el=>{
+    const txt=el.getAttribute("data-s");el.style.display=toks.every(t=>txt.indexOf(t)>=0)?"":"none";
+  });
+  const e=document.getElementById("ccCliNoRes");if(e)e.style.display=(toks.length&&!vis&&p.rows.length)?"":"none";
+};
+// Razones sociales de TODOS los cargos (desde el inicio) que aparecen más de 3 veces y todavía no tienen un cliente que las unifique
+function ccCliSug(){
+  const list=ccCliDraftList(),g={};
+  ccD().ch.forEach(c=>{
+    const r=String(c.razon||"").trim();if(!r)return;
+    const k=ccNorm(r).replace(/[^a-z0-9]+/g,"");if(!k)return;
+    if(ccCliMatch(r,list))return;
+    const o=g[k]||(g[k]={n:0,v:{}});o.n++;o.v[r]=(o.v[r]||0)+1;
+  });
+  return Object.keys(g).filter(k=>g[k].n>3).map(k=>{const vs=Object.keys(g[k].v).sort((a,b)=>g[k].v[b]-g[k].v[a]||a.length-b.length);return{k,n:g[k].n,nombre:vs[0],vars:vs};}).sort((a,b)=>b.n-a.n||a.nombre.localeCompare(b.nombre));
+}
+window.ccCliSugAdd=k=>{
+  const x=ccCliSug().find(y=>y.k===k);if(!x)return;
+  ccCliAdd({nombre:x.nombre,alias:x.vars.slice(1).join("\n")});
+};
+function ccCliCounts(){
+  const list=ccCliDraftList(),n={};
+  ccD().ch.forEach(c=>{const m=c.razon&&ccCliMatch(c.razon,list);if(m)n[m.id]=(n[m.id]||0)+1;});
+  return n;
+}
 window.ccCliDel=id=>{const p=UI.ccCli;if(!p||!ccCan())return;p.rows=p.rows.filter(x=>x.id!==id);render();};
 window.ccCliRetroTog=v=>{if(UI.ccCli)UI.ccCli.retro=!!v;};
 function ccCliApplyAll(){
@@ -26366,6 +26408,8 @@ window.ccCliSave=()=>{
     for(const a of al.concat([nm])){const k=ccCliKey(a);if(keys[k]&&keys[k]!==r.id){p.err="«"+a+"» está en más de un cliente.";render();return;}keys[k]=r.id;}
   }
   const list=ccCliDraftList();
+  list.forEach(c=>{const r=p.rows.find(x=>x.id===c.id);const on=r&&String(r.on||"").trim();
+    if(on&&ccCliKey(on)!==ccCliKey(c.nombre)&&!c.alias.some(a=>ccCliKey(a)===ccCliKey(on)))c.alias.push(on);});
   ccD().cli=list;
   let n=0;if(p.retro)n=ccCliApplyAll();
   ccSave();
@@ -26375,19 +26419,30 @@ window.ccCliSave=()=>{
   if(UI.ccCliDone){const m=UI.ccCliDone;UI.ccCliDone="";setTimeout(()=>{const e=document.getElementById("ccCount");if(e){e.insertAdjacentHTML("afterend",`<span class="cc-count" id="ccCliOkMsg" style="color:var(--teal2);font-weight:700">✓ ${m}</span>`);setTimeout(()=>{const x=document.getElementById("ccCliOkMsg");if(x)x.remove();},6000);}},50);}
 };
 function modCcCli(){
-  const p=UI.ccCli||{rows:[]},ro=!ccCan();
-  const row=r=>ro?`<div class="cc-cli-r"><div class="cc-cli-n"><b>${cnEsc(r.nombre)}</b></div><div class="cc-cli-a">${r.alias.split("\n").filter(Boolean).map(a=>`<span class="cc-cli-chip">${cnEsc(a)}</span>`).join("")||`<span class="cn-help" style="margin:0">Sin alias</span>`}</div></div>`
-  :`<div class="cc-cli-r"><div class="cc-cli-n"><label class="cc-cli-l">Nombre predeterminado</label><input id="ccCliN_${r.id}" class="fc" type="text" autocomplete="off" placeholder="ej. EDEN S.A." value="${cnEsc(r.nombre)}" oninput="ccCliIn('${r.id}','nombre',this.value)"></div>
+  const p=UI.ccCli||{rows:[]},ro=!ccCan(),cnt=ccCliCounts();
+  const cn=r=>{const n=cnt[r.id]||0;return `<span class="cn-help" style="margin:2px 0 0;display:block">${n} cargo${n===1?"":"s"} con este cliente${r.nuevo?" · <b style='color:var(--teal2)'>nuevo, falta Guardar</b>":""}</span>`;};
+  const row=r=>ro?`<div class="cc-cli-r" data-rid="${r.id}"><div class="cc-cli-n"><b>${cnEsc(r.nombre)}</b>${cn(r)}</div><div class="cc-cli-a">${r.alias.split("\n").filter(Boolean).map(a=>`<span class="cc-cli-chip">${cnEsc(a)}</span>`).join("")||`<span class="cn-help" style="margin:0">Sin alias</span>`}</div></div>`
+  :`<div class="cc-cli-r" data-rid="${r.id}"><div class="cc-cli-n"><label class="cc-cli-l">Nombre predeterminado</label><input id="ccCliN_${r.id}" class="fc" type="text" autocomplete="off" placeholder="ej. EDEN S.A." value="${cnEsc(r.nombre)}" oninput="ccCliIn('${r.id}','nombre',this.value)">${cn(r)}</div>
     <div class="cc-cli-a"><label class="cc-cli-l">Otras formas en que se lo factura (una por línea)</label><textarea class="fc" rows="3" spellcheck="false" placeholder="ej. EMPRESA DISTRIBUIDOR&#10;EDEN SA*" oninput="ccCliIn('${r.id}','alias',this.value)">${cnEsc(r.alias)}</textarea></div>
     <button type="button" class="cc-x" onclick="ccCliDel('${r.id}')" title="Quitar este cliente"><i class="ti ti-trash"></i></button></div>`;
+  const sug=ccCliSug();
+  const sugHtml=sug.length?`<div class="cc-sug-box"><div class="cc-cli-l" style="font-size:12px;margin-bottom:2px">💡 Recomendados para renombrar <span style="font-weight:600">(aparecen más de 3 veces en todas las cuentas corrientes y no tienen cliente)</span></div>
+    <div class="cc-sug-list">${sug.slice(0,60).map(x=>`<div class="cc-sug" data-s="${cnEsc(ccNorm(x.vars.join(" ")))}"><div style="min-width:0"><b>${cnEsc(x.nombre)}</b> <span class="cc-cli-chip" style="margin:0 0 0 4px">${x.n} cargos</span>${x.vars.length>1?`<div class="cn-help" style="margin:2px 0 0">También figura como: ${x.vars.slice(1,6).map(v=>cnEsc(v)).join(" · ")}${x.vars.length>6?" …":""}</div>`:""}</div>${ro?"":`<button type="button" class="btn btn-g btn-sm" onclick="ccCliSugAdd('${x.k}')"><i class="ti ti-plus"></i> Crear cliente</button>`}</div>`).join("")}${sug.length>60?`<div class="cn-help">Se muestran los 60 más repetidos de ${sug.length}.</div>`:""}</div></div>`:"";
   return `<div class="ov" onclick="closeMod(event)"><div class="mod" onclick="event.stopPropagation()" style="max-width:780px;width:calc(96vw/var(--fz,1))">
     <div class="mh"><h2>Clientes y nombres de facturación</h2><button class="btn btn-g btn-sm mh-x" onclick="UI.ccCli=null;closeMod()" aria-label="Cerrar"><i class="ti ti-x"></i></button></div>
     <div class="mc">
       <div class="cn-help" style="margin:0 0 8px">Definí el nombre con el que querés que figure cada cliente en las cuentas corrientes. Si al cargar un cargo (pegado masivo, a mano o editando) la razón social coincide con alguna de las otras formas, se cambia sola por el nombre predeterminado. No importan mayúsculas, acentos ni puntos. Si terminás un alias con <b>*</b> vale para todo lo que empiece así (ej. <i>EMPRESA DISTRIBUIDOR*</i>).</div>
-      <div class="cc-cli-list">${p.rows.length?p.rows.map(row).join(""):`<div class="cn-help" style="padding:10px 2px">${ro?"Todavía no hay clientes definidos.":"Todavía no hay clientes. Tocá «Nuevo cliente» para crear el primero."}</div>`}</div>
+      ${ro?"":`<div class="cc-cli-new"><div class="cc-cli-l" style="font-size:12px;margin-bottom:6px">➕ Crear cliente nuevo</div>
+        <div class="cc-cli-r" style="border:0;padding:0"><div class="cc-cli-n"><label class="cc-cli-l">Nombre predeterminado</label><input id="ccCliNewN" class="fc" type="text" autocomplete="off" placeholder="ej. EDEN S.A." value="${cnEsc(p.nn||"")}" oninput="ccCliNewIn('nn',this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();ccCliAdd();}"></div>
+        <div class="cc-cli-a"><label class="cc-cli-l">Otras formas en que se lo factura (una por línea, opcional)</label><textarea class="fc" rows="2" spellcheck="false" placeholder="ej. EMPRESA DISTRIBUIDOR&#10;EDEN SA*" oninput="ccCliNewIn('na',this.value)">${cnEsc(p.na||"")}</textarea></div>
+        <button type="button" class="btn btn-p btn-sm" onclick="ccCliAdd()" style="align-self:end"><i class="ti ti-plus"></i> Agregar</button></div></div>`}
       ${p.err?`<div class="cj-warn" style="margin-top:8px">⚠ ${cnEsc(p.err)}</div>`:""}
-      ${ro?"":`<div style="margin-top:8px"><button class="btn btn-g btn-sm" onclick="ccCliAdd()"><i class="ti ti-plus"></i> Nuevo cliente</button></div>
-      <div class="cn-help" id="ccCliPrev" style="margin:10px 0 2px">${ccCliPrevHtml()}</div>
+      ${ro?"":sugHtml}
+      <div style="display:flex;gap:8px;align-items:center;margin:12px 0 6px;flex-wrap:wrap"><div class="cc-cli-l" style="font-size:12px;margin:0">Clientes creados (${p.rows.length})</div>
+        <input id="ccCliQ" class="fc" type="search" autocomplete="off" placeholder="Buscar cliente o alias…" value="${cnEsc(p.q||"")}" oninput="ccCliFilt(this.value)" style="flex:1;min-width:180px;max-width:320px"></div>
+      <div class="cc-cli-list">${p.rows.length?p.rows.map(row).join(""):`<div class="cn-help" style="padding:10px 2px">${ro?"Todavía no hay clientes definidos.":"Todavía no hay clientes. Completá el nombre arriba y tocá «Agregar» para crear el primero."}</div>`}
+        <div class="cn-help" id="ccCliNoRes" style="display:none;padding:8px 2px">Ningún cliente coincide con la búsqueda.</div></div>
+      ${ro?"":`<div class="cn-help" id="ccCliPrev" style="margin:10px 0 2px">${ccCliPrevHtml()}</div>
       <label style="font-size:12.5px;display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" ${p.retro?"checked":""} onchange="ccCliRetroTog(this.checked)"> Al guardar, aplicar también a los cargos ya cargados</label>`}
       <div class="mf"><button class="btn btn-sm" onclick="UI.ccCli=null;closeMod()">${ro?"Cerrar":"Cancelar"}</button>${ro?"":`<button class="btn btn-p btn-sm" onclick="ccCliSave()">Guardar</button>`}</div>
     </div></div></div>`;
