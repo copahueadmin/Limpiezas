@@ -2824,7 +2824,8 @@ body.dark .cc-cfpop{background:#262a2b}
 .cc-cf-i span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cc-cf-i em{font-style:normal;font-size:11px;color:var(--text3)}
 .cc-th{position:fixed;z-index:100060;background:#fff;color:#111;border:1px solid #c5c9d0;border-radius:12px;box-shadow:0 16px 44px rgba(0,0,0,.38);padding:8px;max-width:340px;pointer-events:none}
 .cc-th-n{font-size:11.5px;font-weight:700;margin:0 2px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:320px}
-.cc-th-b img{display:block;max-width:320px;max-height:380px;border-radius:6px;background:#f2f3f5}
+.cc-th-b img{display:block;width:100%;height:auto;max-height:82vh;object-fit:contain;border-radius:6px;background:#f2f3f5}
+.cc-th.big{width:min(780px,94vw);max-width:94vw}.cc-th.big .cc-th-n{max-width:none;font-size:13px}
 .cc-th-m{font-size:12px;color:#444;max-width:300px;padding:6px 4px;line-height:1.4}
 .cc-tbl tr.cc-nb td input.cc-in,.cc-tbl tr.cc-nb td .cc-ro,.cc-tbl tr.cc-nb td.cc-bd input.cc-in,.cc-tbl tr.cc-nb td.cc-bd .cc-ro,.cc-tbl tr.cc-nb input.cc-in.r,.cc-tbl tr.cc-nb .cc-ro.cc-imp,.cc-tbl tr.cc-nb td .cc-mc,.cc-tbl tr.cc-nb td .cc-auto{font-weight:400!important}
 .cc-rng{display:inline-flex;gap:6px;align-items:center;font-size:12px;white-space:nowrap}.cc-rng .fc{width:auto;padding:4px 6px}
@@ -7248,7 +7249,7 @@ function applyRemoteRefresh(){
   loadD();
   detectNotifs();
   if(typeof ROLE!=="undefined"&&ROLE==="rec")detectIssueNotifsForRec();
-  if(typeof ROLE!=="undefined"&&ROLE!=="sel")render();
+  if(typeof ROLE!=="undefined"&&ROLE!=="sel")softRender();
 }
 function applySnapshotData(key,data){
   if(!data||typeof data.v!=="string")return;
@@ -8209,7 +8210,7 @@ function syncCheck(){
       // El usuario está escribiendo: no reconstruir el DOM ahora, esperar al próximo ciclo
       return;
     }
-    lastV=v;loadD();detectNotifs();if(ROLE==="rec")detectIssueNotifsForRec();if(ROLE!=="sel")render();
+    lastV=v;loadD();detectNotifs();if(ROLE==="rec")detectIssueNotifsForRec();if(ROLE!=="sel")softRender();
   }
 }
 
@@ -26121,10 +26122,11 @@ window.ccBulkAdd=()=>{
   const ok=ccBulkOkRows(),ym=ccYm(),d=ccD();
   if(!ok.length){const el=document.getElementById("ccBulkPrev");if(el)el.insertAdjacentHTML("afterbegin",`<div class="cj-warn" style="margin:4px 0;font-size:12px">No hay cargos válidos para agregar: pegá las columnas (cada renglón necesita al menos importe y nombre o factura).</div>`);return;}
   ok.forEach(r=>d.ch.push({id:ccId(),m:ym,f:r.f,rva:r.rva,razon:r.razon,imp:r.imp,fac:r.fac,est:r.imp<0?"Nota Crédito":"Pendiente",chk:0,comp:"",link:"",cm:""})); // (Tanda 382) importe negativo = Nota Crédito
+  const nVin=ccNcAuto();
   ccSave();
   UI.ccBulk=null;UI.mod=null;UI.ccQ="";UI.ccCF={};UI.ccAll=false;UI.ccRng=null;
   render();
-  ccFlash(`Se agregaron ${ok.length} cargo${ok.length===1?"":"s"} a ${cjMesLbl(ym)}.`);
+  ccFlash(`Se agregaron ${ok.length} cargo${ok.length===1?"":"s"} a ${cjMesLbl(ym)}.`+(nVin?` Se vincularon ${nVin} nota${nVin===1?"":"s"} de crédito con su factura.`:""));
 };
 function modCcBulk(){
   const b=UI.ccBulk||{},n=ccBulkOkRows().length;
@@ -26143,7 +26145,7 @@ window.ccSet=(id,k,v)=>{
   const tr=document.querySelector(`tr[data-cc="${id}"]`);
   if(k==="imp"){const n=cjParseAmount(v);c.imp=n==null?0:n;
     // (Tanda 382) Importe con signo menos = Nota de Crédito: el estado se marca solo (después se vincula con la factura original)
-    if(c.imp<0&&c.est!=="Nota Crédito"){c.est="Nota Crédito";ccSave();ccListRefresh();ccSumRefresh();ccFlash("Importe negativo: se marcó como Nota Crédito. Tocá «Vincular» para elegir la factura original.");return;}
+    if(c.imp<0&&c.est!=="Nota Crédito"){c.est="Nota Crédito";delete c.ncNo;const nA=ccNcAuto();ccSave();ccListRefresh();ccSumRefresh();ccFlash(nA?"Importe negativo: se marcó como Nota Crédito y se vinculó sola con su factura (misma reserva e importe).":"Importe negativo: se marcó como Nota Crédito. Tocá «Vincular» para elegir la factura original.");return;}
   }
   else if(k==="f"){const p=ccParseDate(v);if(!p){const i=tr&&tr.querySelector('[data-k="f"]');if(i)i.value=ccFechaC(c.f);return;}c.f=p;}
   else if(k==="razon"){c.razon=ccCliName(String(v==null?"":v).trim());}
@@ -26153,6 +26155,7 @@ window.ccSet=(id,k,v)=>{
   if(tr&&k==="f"){const i=tr.querySelector('[data-k="f"]');if(i)i.value=ccFechaC(c.f);}
   if(tr&&k==="razon"){const i=tr.querySelector('[data-k="razon"]');if(i)i.value=c.razon;}
   ccSumRefresh();ccFit();
+  if(k==="imp"||k==="rva")ccNcAutoRun();
 };
 // Confirmación de Gerencia (columna "Ok"): bloquea el cargo para Administración
 window.ccTick=(id,v)=>{
@@ -26173,9 +26176,13 @@ window.ccEstSet=(id,v,sel)=>{
   if(v==="Nota Crédito"&&c.est!=="Nota Crédito"){
     // Al marcar una nota de crédito se elige la factura emitida que anula (total o parcial)
     sel.value=c.est;
+    const prev=c.est;c.est="Nota Crédito";delete c.ncNo;
+    const nAuto=ccNcAuto(id);
+    if(nAuto||ccNcMap()[id]){ccSave();ccListRefresh();ccSumRefresh();ccFlash("Se vinculó automáticamente con su factura (misma reserva e importe).");return;}
+    c.est=prev;
     ccNcOpen(id,true);return;
   }
-  if(c.est==="Nota Crédito"&&v!=="Nota Crédito")delete c.nc;
+  if(c.est==="Nota Crédito"&&v!=="Nota Crédito"){delete c.nc;delete c.ncNo;}
   c.est=v;ccSave();
   ccListRefresh();ccSumRefresh();
 };
@@ -26194,10 +26201,41 @@ function ccAutos(c,NC){
   (NC[c.id]||[]).forEach(n=>out.push("Tiene nota de crédito "+(n.nc.tipo==="parcial"?"parcial":"total")+": "+(n.fac||"s/n")));
   return out;
 }
+// (Tanda 409) Vínculo automático nota de crédito <-> factura: misma reserva e igual importe (con signo contrario).
+// Quedan sin vincular solo las notas que no coinciden en importe con otra factura de esa reserva (probables notas parciales).
+const ccC100=v=>Math.round((+v||0)*100);
+function ccNcAuto(onlyId){
+  const d=ccD(),refd=new Set(),byR={};let n=0;
+  d.ch.forEach(x=>{if(x.est==="Nota Crédito"&&x.nc&&x.nc.ref)refd.add(x.nc.ref);const r=ccNcRva(x);if(r)(byR[r]=byR[r]||[]).push(x);});
+  const near=(arr,f)=>arr.slice().sort((a,b)=>{const da=(a.f||"")<=f?0:1,db=(b.f||"")<=f?0:1;if(da!==db)return da-db;return da?(a.f||"").localeCompare(b.f||""):(b.f||"").localeCompare(a.f||"");})[0];
+  d.ch.forEach(x=>{
+    if(onlyId&&x.id!==onlyId)return;
+    if(x.est!=="Nota Crédito"||x.nc||x.ncNo||refd.has(x.id)||!ccEditable(x))return;
+    const r=ccNcRva(x),a=ccC100(x.imp);if(!r||!a)return;
+    const g=(byR[r]||[]).filter(y=>y.id!==x.id);
+    if(a<0){ // nota con importe negativo: busca la factura original con el mismo importe en positivo
+      const c=g.filter(y=>y.est!=="Nota Crédito"&&ccC100(y.imp)===-a&&!refd.has(y.id)&&!ccLocked(y));
+      if(c.length){const y=near(c,x.f||"9");x.nc={ref:y.id,tipo:"total"};refd.add(y.id);n++;}
+    }else{ // ítem marcado como nota de crédito pero con importe positivo
+      const c1=g.filter(y=>y.est!=="Nota Crédito"&&ccC100(y.imp)===a&&!refd.has(y.id)&&!ccLocked(y));
+      if(c1.length){const y=near(c1,x.f||"9");x.nc={ref:y.id,tipo:"total"};refd.add(y.id);n++;return;}
+      const c2=g.filter(y=>y.est==="Nota Crédito"&&!y.nc&&!y.ncNo&&ccC100(y.imp)===-a&&ccEditable(y));
+      if(c2.length){const y=near(c2,x.f||"9");y.nc={ref:x.id,tipo:"total"};refd.add(x.id);n++;}
+    }
+  });
+  return n;
+}
+function ccNcAutoRun(){
+  const n=ccNcAuto();
+  if(n){ccSave();ccListRefresh();ccSumRefresh();ccFlash("Se vincul"+(n===1?"ó 1 nota":"aron "+n+" notas")+" de crédito automáticamente con su factura (misma reserva e importe).");}
+  return n;
+}
 window.ccNcOpen=(id,fromEst)=>{
   const c=ccGet(id);if(!c||!ccEditable(c))return;
   UI.ccNc={id,ref:(c.nc&&c.nc.ref)||"",tipo:(c.nc&&c.nc.tipo)||"total",q:"",err:"",fromEst:!!fromEst};
-  if(!UI.ccNc.ref){const r=ccNcResults();if(r.length===1)UI.ccNc.ref=r[0].id;} // una sola factura con esa reserva: queda elegida
+  if(!UI.ccNc.ref){const r=ccNcResults(),a=ccC100(c.imp),ig=r.filter(y=>ccC100(y.imp)===-a||(a>0&&ccC100(y.imp)===a));
+    if(ig.length>=1)UI.ccNc.ref=ig[0].id; // coincide el importe: queda elegida
+    else if(r.length===1)UI.ccNc.ref=r[0].id;} // una sola factura con esa reserva: queda elegida
   UI.mod="ccNc";render();
 };
 // (Tanda 407) la nota de credito solo se puede vincular a una factura con EXACTAMENTE el mismo numero de reserva (no hay otras opciones)
@@ -26224,7 +26262,7 @@ window.ccNcSave=()=>{
   const p=UI.ccNc;if(!p)return;
   const c=ccGet(p.id);if(!c||!ccEditable(c))return;
   c.est="Nota Crédito";
-  if(p.ref&&ccGet(p.ref))c.nc={ref:p.ref,tipo:p.tipo==="parcial"?"parcial":"total"};else delete c.nc;
+  if(p.ref&&ccGet(p.ref)){c.nc={ref:p.ref,tipo:p.tipo==="parcial"?"parcial":"total"};delete c.ncNo;}else{delete c.nc;c.ncNo=1;} // «sin vincular» elegido a propósito: el automático no lo toca
   ccSave();UI.ccNc=null;UI.mod=null;render();
 };
 function modCcNc(){
@@ -26729,10 +26767,57 @@ function ccHeadHtml(){
   const plain=(k,t,cls,tt)=>`<th${cls?` class="${cls}"`:""}${tt?` title="${tt}"`:""}>${t}${fb(k)}</th>`;
   return `<tr>${th("f","Fecha")}${th("rva","Reserva")}${th("razon","Razón social")}${th("imp","Importe","r")}${th("fac","Nº Factura")}${th("est","Estado")}${plain("chk","Ok","c","Confirmación de Gerencia: al tildarlo el cargo queda bloqueado para Administración")}${plain("comp","Comprobante de pago")}${plain("cm","Comentarios")}<th></th></tr>`;
 }
+function ccNcAutoOnce(){
+  const d=ccD();if(!ccCan()||d.ncAuto409)return;
+  d.ncAuto409=1;const n=ccNcAuto();if(n)ccSave();
+  if(n)setTimeout(()=>{try{ccListRefresh();ccFlash("Se vincularon automáticamente "+n+" nota"+(n===1?"":"s")+" de crédito con su factura (misma reserva e importe).");}catch(e){}},400);
+}
 function ccBodyHtml(){
+  ccNcAutoOnce();
   const ro=!ccCan(),l=ccList(),sc=ccScope(),showMes=sc.kind!=="one",NC=ccNcMap();
   if(!l.length)return `<tr><td colspan="10" class="cc-empty">${(UI.ccQ||Object.keys(UI.ccCF||{}).length)?"No hay cargos que coincidan con el filtro.":`No hay cargos cargados en ${ccScopeLbl(sc)}.${ro?"":" Usá «Agregar cargos» para pegarlos desde el PDF."}`}</td></tr>`;
-  return l.map(c=>ccRowHtml(c,showMes,NC)).join("");
+  const C=window._ccRC={};
+  return l.map(c=>{const h=ccRowHtml(c,showMes,NC);C[c.id]=h;return h;}).join("");
+}
+// (Tanda 410) Actualización suave de Cuentas corrientes: ante cambios que llegan de la base (o el reloj de cada minuto) NO se reconstruye la pantalla:
+// solo se reemplaza la fila / el resumen / el encabezado que cambió; no se mueve el scroll, no se repite la animación y no se pierde el foco.
+const ccActive=()=>!!document.getElementById("ccTbl");
+function ccSoftSync(){
+  const tb=document.getElementById("ccBody");if(!tb)return;
+  ccNcAutoOnce();
+  const sc=ccScope(),showMes=sc.kind!=="one",NC=ccNcMap(),l=ccList(),ae=document.activeElement;
+  const C=window._ccRC||(window._ccRC={});
+  const typing=el=>!!(ae&&el&&el.contains(ae)&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName));
+  if(!l.length){
+    if(tb.querySelector("tr[data-cc]")||!tb.querySelector(".cc-empty")){tb.innerHTML=ccBodyHtml();}
+  }else{
+    const em=tb.querySelector(".cc-empty");if(em&&em.closest("tr"))em.closest("tr").remove();
+    const cur={};tb.querySelectorAll(":scope>tr[data-cc]").forEach(tr=>{cur[tr.getAttribute("data-cc")]=tr;});
+    const want=new Set(l.map(x=>x.id));
+    Object.keys(cur).forEach(id=>{if(!want.has(id)&&!typing(cur[id])){cur[id].remove();delete C[id];delete cur[id];}});
+    let prev=null;
+    l.forEach(c=>{
+      let tr=cur[c.id];const h=ccRowHtml(c,showMes,NC);
+      if(!tr||(C[c.id]!==h&&!typing(tr))){
+        const t=document.createElement("tbody");t.innerHTML=h;const n=t.firstElementChild;
+        if(n){if(tr)tr.replaceWith(n);tr=n;cur[c.id]=n;C[c.id]=h;}
+      }
+      if(!tr)return;
+      const exp=prev?prev.nextElementSibling:tb.firstElementChild;
+      if(tr!==exp)tb.insertBefore(tr,exp);
+      prev=tr;
+    });
+  }
+  const put=(id,html)=>{const e=document.getElementById(id);if(!e||C["_"+id]===html||typing(e))return;e.innerHTML=html;C["_"+id]=html;};
+  put("ccHead",ccHeadHtml());put("ccSum",ccSumHtml());
+  const ct=document.getElementById("ccCount");
+  if(ct){const tot=cjR2(l.reduce((s,x)=>s+(x.imp||0),0)),tx=`${l.length} cargo${l.length===1?"":"s"} · ${ccMoney(tot)}`;if(ct.textContent!==tx)ct.textContent=tx;}
+  const tt=document.getElementById("ccTitle");if(tt){const tx="Cuentas corrientes · "+ccScopeLbl(sc);if(tt.textContent!==tx)tt.textContent=tx;}
+}
+// Reemplaza a render() en las actualizaciones que no inició la persona (datos nuevos de la nube, otra pestaña, reloj)
+function softRender(){
+  if(ccActive()){try{ccSoftSync();return;}catch(e){console.warn("ccSoftSync",e);}}
+  render();
 }
 function ccListRefresh(){
   const b=document.getElementById("ccBody"),h=document.getElementById("ccHead"),n=document.getElementById("ccCount");
@@ -26800,7 +26885,7 @@ const _ccThFail={};let _ccThT=null,_ccThEl=null,_ccThA=null;
 function ccThInfo(url){
   url=String(url||"");
   const m=url.match(/\/d\/([\w-]{15,})/)||url.match(/[?&]id=([\w-]{15,})/);
-  if(m&&/(^|\/\/|\.)(drive|docs)\.google\.com/.test(url))return {kind:"drive",src:"https://drive.google.com/thumbnail?id="+m[1]+"&sz=w600"};
+  if(m&&/(^|\/\/|\.)(drive|docs)\.google\.com/.test(url))return {kind:"drive",src:"https://drive.google.com/thumbnail?id="+m[1]+"&sz=w1400"};
   if(/\.(png|jpe?g|gif|webp|bmp|svg)(\?|#|$)/i.test(url))return {kind:"img",src:url};
   return {kind:"none",src:""};
 }
@@ -26823,7 +26908,7 @@ function ccThShow(a){
     msg(info.kind==="none"?"Este enlace no tiene vista previa. Hacé clic para abrirlo.":"No se pudo cargar la miniatura (el archivo debe estar compartido o tener abierta la sesión de Google en este navegador). Hacé clic para abrirlo.");return;
   }
   const img=new Image();img.referrerPolicy="no-referrer";img.alt="Vista previa del comprobante";
-  img.onload=()=>{if(_ccThEl!==el)return;const b=el.querySelector(".cc-th-b");b.innerHTML="";b.appendChild(img);ccThPos();};
+  img.onload=()=>{if(_ccThEl!==el)return;const b=el.querySelector(".cc-th-b");b.innerHTML="";b.appendChild(img);el.classList.add("big");ccThPos();};
   img.onerror=()=>{_ccThFail[info.src]=1;msg("No se pudo cargar la miniatura (el archivo debe estar compartido o tener abierta la sesión de Google en este navegador). Hacé clic para abrirlo.");};
   img.src=info.src;
   ccThPos();
@@ -36881,7 +36966,7 @@ setInterval(function(){try{checkInformeSnap();}catch(e){}},60000);
   },true);
   window.addEventListener("blur",function(){var sb=document.querySelector(".sb.sb-hov");if(sb)collapse(sb);});
 })();
-setInterval(function(){try{checkResetDiario();checkCheckoutAutoRefresh();checkRecordatorios();recMailCheck();tarifCovCheck();checkTareasProg();checkCocheraDia10();checkClaveCochAviso();checkNoShow();checkCochRepAviso();checkCochPrecios();checkInformeShiftReminder();checkBlancosReport();checkLavaderoAviso();checkAutoTheme();checkSpecialDateMidnight();checkSeasonMidnight();/* (Tanda 234) no reconstruir la pantalla mientras se está tipeando en Control de cajas (se perdería el foco a mitad de carga) */const _ae=document.activeElement;if(!UI.pdfPrev&&!(_ae&&_ae.closest&&_ae.closest(".cj-root,.alq-inline")&&/^(INPUT|TEXTAREA)$/.test(_ae.tagName))&&!(UI.finPanel&&document.querySelector(".fac-desay iframe")))render();/* (Tanda 245) Desayunos mensuales abierto dentro de Facturación - Alquiler: no recargar el iframe cada minuto */}catch(e){}},60000);
+setInterval(function(){try{checkResetDiario();checkCheckoutAutoRefresh();checkRecordatorios();recMailCheck();tarifCovCheck();checkTareasProg();checkCocheraDia10();checkClaveCochAviso();checkNoShow();checkCochRepAviso();checkCochPrecios();checkInformeShiftReminder();checkBlancosReport();checkLavaderoAviso();checkAutoTheme();checkSpecialDateMidnight();checkSeasonMidnight();/* (Tanda 234) no reconstruir la pantalla mientras se está tipeando en Control de cajas (se perdería el foco a mitad de carga) */const _ae=document.activeElement;if(!UI.pdfPrev&&!(_ae&&_ae.closest&&_ae.closest(".cj-root,.alq-inline")&&/^(INPUT|TEXTAREA)$/.test(_ae.tagName))&&!(UI.finPanel&&document.querySelector(".fac-desay iframe")))softRender();/* (Tanda 245) Desayunos mensuales abierto dentro de Facturación - Alquiler: no recargar el iframe cada minuto */}catch(e){}},60000);
 
 // ══ LIQUID GLASS — destello de agua siguiendo el cursor ══════════════════════
 (function(){
@@ -37012,7 +37097,7 @@ document.addEventListener("keydown",e=>{
   e.preventDefault();
   doDelete();
 });
-window.addEventListener("storage",e=>{if(e.key&&e.key.startsWith("ch_")){loadD();render();}});
+window.addEventListener("storage",e=>{if(e.key&&e.key.startsWith("ch_")){loadD();softRender();}});
 setInterval(syncCheck,3000);
 // (Tanda 51 / ítem 8) Antes este intervalo de 1s re-renderizaba TODA la vista de mucama sin
 // importar qué había abierto encima -- si estaba abierto el modal de vacaciones/francos/soporte (o
