@@ -5,6 +5,13 @@
   functions = "netlify/functions"
   publish = "."
 
+# (Tanda 450) Las dos "AIza..." del index.html son claves WEB de Firebase (apiKey de firebaseConfig): son públicas por diseño -- viajan en el
+# navegador de cualquiera -- y la seguridad de los datos la dan las reglas de Firestore, no esa clave. El escáner de secretos de Netlify las
+# marca como "probable secreto" y hace fallar el deploy; con esto se le indica que las ignore (el resto del escaneo, incluida la clave de
+# Resend, sigue activo).
+[build.environment]
+  SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES = "AIzaSyAno1K0dY3DpcTzkt1oiVLsAtW8rfqEocU,AIzaSyCfNMmtXTD6xM3x8FGALYaeL7G_kT6O1kQ"
+
 # (Tanda 105 / ítem 3) send-birthday-emails.js revisa quién cumple años hoy y le manda el mail de
 # felicitaciones. Ver el comentario al principio de ese archivo para la configuración que hace falta
 # (variables de entorno nuevas, además de RESEND_API_KEY que ya existía desde la Tanda 26).
