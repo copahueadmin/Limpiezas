@@ -22,6 +22,16 @@
 [functions."send-birthday-emails"]
   schedule = "*/15 * * * *"
 
+# (Tanda 116 / ítem 2) send-probation-alerts.js revisa a quién le pasaron 136 días desde su fecha de
+# ingreso (1 mes y medio para terminar el período de prueba) y le manda un mail importante a Gerencia.
+# Usa las MISMAS 3 variables de entorno que ya tiene configuradas send-birthday-emails.js
+# (FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY/RESEND_API_KEY) -- no hace falta cargar nada nuevo. A
+# diferencia del cumpleaños (que solo aplica "hoy"), el umbral de 136 días sigue aplicando indefinidamente
+# hasta que se manda el mail, así que alcanza con revisarlo una vez por día (no hace falta cada 15
+# minutos) -- ver el comentario al principio de ese archivo para el detalle.
+[functions."send-probation-alerts"]
+  schedule = "1 3 * * *"
+
 # (Tanda 106 / ítem 5) El acceso oculto a Admin pasó de "#admin" (hash) a "/copahueadmin" (path real,
 # con una regla [[redirects]] acá para que Netlify no devolviera 404 al pedir esa ruta directamente).
 # (Tanda 112 / ítem 1) Esa ruta "/copahueadmin" ya no existe -- el acceso oculto pasa a ser un gesto
