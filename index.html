@@ -10698,6 +10698,7 @@ function _renderOverlays(){
   if(UI.mod==="ccDel"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modCcDel());}
   try{facDesayFit();}catch(e){}
   if(UI.mod==="facDet"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modFacDet());}
+  if(UI.mod==="facInf"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modFacInf());}
   if(UI.mod==="facEdit"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modFacEdit());}
   if(UI.mod==="alqDel"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modAlqDel());}
   if(UI.mod==="alqGa"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modAlqGa());}
@@ -24125,6 +24126,7 @@ const FAC_CAMPOS=[
 ];
 // (Tanda 436) Bloques ("aglomeraciones") del informe. Cada uno puede sumar ítems propios (D.facItems[g]=[{id,l}]),
 // cuyo importe se guarda en el mes como rec["x_<g>_<id>"] (con la etiqueta en rec.xl para que el mes conserve el nombre si el ítem se quita después).
+const FAC_COL={datos:"59,130,246",aloj:"16,150,120",coch:"217,119,6",event:"139,92,246",comis:"219,39,119"};
 const FAC_GRUPOS=[
   {g:"aloj",t:"Ingresos por Alojamiento",tot:"Total Alojamiento Neto",tk:"alojTotal"},
   {g:"coch",t:"Ingresos por Cocheras",tot:"Total Cocheras Neto",tk:"cocherasTotal"},
@@ -24167,8 +24169,8 @@ function facMesBloqueado(ym){
 }
 function facIsoLbl(iso){const a=iso.split("-");return a[2]+"/"+a[1]+"/"+a[0];}
 window.facMesReabrir=(ym)=>{
-  if(ROLE!=="ger"&&ROLE!=="admin")return;
-  if(!confirm("¿Reabrir la edición del informe de "+cjMesLbl(ym)+"? Coordinación podrá volver a modificarlo."))return;
+  if(ROLE!=="ger"&&ROLE!=="admin"&&ROLE!=="coord")return;
+  if(!confirm("¿Reabrir la edición del informe de "+cjMesLbl(ym)+"? Se podrá volver a modificar."))return;
   const rec={...((D.facturacionMensual||{})[ym]||{}),reabierto:true,reabiertoPor:RNAME||ROLE,reabiertoTs:Date.now()};
   D.facturacionMensual={...D.facturacionMensual,[ym]:rec};
   lsS(K.facturacionMensual,D.facturacionMensual);
@@ -24360,6 +24362,8 @@ window.facGuardarMes=(ym)=>{
   setTimeout(()=>{if(UI.facGuardadoOk===ym){UI.facGuardadoOk=null;render();}},2500);
 };
 const fmtMoney=n=>"$"+(Number(n)||0).toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2});
+// (Tanda 442) El PDF del informe replica el estilo del formulario: un flotante de color por bloque (barra lateral, punto, subtotal)
+// con las casillas en cuadros blancos, y el total general destacado al final.
 function buildFacturacionPDF(ym){
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({unit:"pt",format:"a4"});
@@ -24367,26 +24371,67 @@ function buildFacturacionPDF(ym){
   const tot=facMesTotales(rec);
   const [yy,mm]=ym.split("-");
   const mesLbl=new Date(Number(yy),Number(mm)-1,1).toLocaleDateString("es-AR",{month:"long",year:"numeric"});
-  let y=50;
-  doc.setFont("helvetica","bold");doc.setFontSize(18);
-  doc.text("Informe "+mesLbl.charAt(0).toUpperCase()+mesLbl.slice(1),40,y);y+=26;
-  doc.setFont("helvetica","normal");doc.setFontSize(11);
-  doc.text(facCamposDatos().map(c=>`${c.l}: ${rec[c.k]||0}`).join("   ·   "),40,y);y+=26;
-  FAC_GRUPOS.forEach((G,i)=>{
-    const filas=facCamposGrupo(G.g,rec).filter(c=>!c.extra||(rec[c.k]!==undefined&&rec[c.k]!=="")).map(c=>[c.l,fmtMoney(rec[c.k])]);
-    filas.push([G.tot,fmtMoney(tot[G.tk])]);
-    doc.autoTable({
-      startY:y,theme:"grid",
-      head:[[G.t,"Monto"]],
-      body:filas,
-      styles:{fontSize:10},headStyles:{fillColor:[28,47,36]},columnStyles:{0:{cellWidth:360},1:{halign:"right",cellWidth:155}},
-      didParseCell:(d)=>{if(d.section==="body"&&d.row.index===filas.length-1)d.cell.styles.fontStyle="bold";},
+  const W=595,H=842,M=40,CW=W-2*M;
+  const rgb=k=>FAC_COL[k].split(",").map(Number);
+  const mix=(c,t)=>c.map(v=>Math.round(v*t+255*(1-t)));
+  let y=44;
+  const nuevaPag=(h)=>{if(y+h>H-46){doc.addPage();y=44;}};
+  // encabezado
+  doc.setFont("helvetica","bold");doc.setFontSize(21);doc.setTextColor(28,47,36);
+  doc.text("Informe "+mesLbl.charAt(0).toUpperCase()+mesLbl.slice(1),M,y+14);
+  doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(110,110,110);
+  doc.text("Hotel Copahue · Facturación mensual",W-M,y+13,{align:"right"});
+  y+=24;
+  doc.setDrawColor(201,160,74);doc.setLineWidth(1.5);doc.line(M,y,W-M,y);
+  y+=12;
+  const celda=(x,yy2,w,label,valor)=>{
+    doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(95,95,95);
+    doc.text(String(label).toUpperCase(),x,yy2+7);
+    doc.setFillColor(255,255,255);doc.setDrawColor(150,160,155);doc.setLineWidth(0.8);
+    doc.roundedRect(x,yy2+11,w,21,5,5,"FD");
+    doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(17,24,39);
+    doc.text(valor,x+w-8,yy2+25,{align:"right"});
+  };
+  const panel=(g,titulo,derecha,filas)=>{
+    const col=rgb(g),n=filas.length,rows=Math.ceil(n/2);
+    const h=30+rows*38+6;
+    nuevaPag(h);
+    const f=mix(col,.13),bd=mix(col,.6);
+    doc.setFillColor(f[0],f[1],f[2]);doc.setDrawColor(bd[0],bd[1],bd[2]);doc.setLineWidth(1);
+    doc.roundedRect(M,y,CW,h,8,8,"FD");
+    doc.setFillColor(col[0],col[1],col[2]);
+    doc.roundedRect(M,y,6,h,3,3,"F");doc.rect(M+3,y,3,h,"F");
+    // título
+    doc.setFillColor(col[0],col[1],col[2]);doc.circle(M+22,y+17,3.6,"F");
+    doc.setFont("helvetica","bold");doc.setFontSize(12);doc.setTextColor(28,28,34);
+    doc.text(titulo,M+31,y+21);
+    if(derecha){
+      doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(95,95,95);
+      const t2=derecha.l+": ";const vw=(()=>{doc.setFont("helvetica","bold");doc.setFontSize(11);return doc.getTextWidth(derecha.v);})();
+      doc.setFont("helvetica","bold");doc.setFontSize(11);doc.setTextColor(17,24,39);doc.text(derecha.v,W-M-12,y+21,{align:"right"});
+      doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(95,95,95);doc.text(t2,W-M-12-vw-2,y+21,{align:"right"});
+    }
+    const cw=(CW-12-26-12)/2;
+    filas.forEach((r,i)=>{
+      const cx=M+16+(i%2)*(cw+12),cy=y+28+Math.floor(i/2)*38;
+      celda(cx,cy,cw,r[0],r[1]);
     });
-    y=doc.lastAutoTable.finalY+(i<FAC_GRUPOS.length-1?16:0);
+    y+=h+8;
+  };
+  // pasajeros y desayunos
+  panel("datos","Pasajeros y desayunos",null,facCamposDatos().map(c=>[c.l,(rec[c.k]===undefined||rec[c.k]==="")?"0":facFmtAR(rec[c.k],"num")]));
+  FAC_GRUPOS.forEach(G=>{
+    const filas=facCamposGrupo(G.g,rec).filter(c=>!c.extra||(rec[c.k]!==undefined&&rec[c.k]!=="")).map(c=>[c.l,fmtMoney(rec[c.k])]);
+    panel(G.g,G.t,{l:G.tot,v:fmtMoney(tot[G.tk])},filas);
   });
-  y=doc.lastAutoTable.finalY+20;
-  doc.setFont("helvetica","bold");doc.setFontSize(13);
-  doc.text("TOTAL INGRESOS NETOS: "+fmtMoney(tot.totalIngresosNetos),40,y);
+  // total general
+  nuevaPag(46);
+  y+=4;
+  doc.setFillColor(28,47,36);doc.roundedRect(M,y,CW,38,10,10,"F");
+  doc.setFont("helvetica","bold");doc.setFontSize(12);doc.setTextColor(255,255,255);
+  doc.text("TOTAL INGRESOS NETOS",M+18,y+24);
+  doc.setFontSize(16);doc.setTextColor(230,195,106);
+  doc.text(fmtMoney(tot.totalIngresosNetos),W-M-18,y+25,{align:"right"});
   const base64=doc.output("datauristring").split(",")[1];
   return {base64,filename:`facturacion-${ym}.pdf`};
 }
@@ -24402,33 +24447,112 @@ window.facDescargarPDF=(ym)=>{
 // mandar a todos juntos (Resend acepta "to" con varias direcciones separadas por coma). Se guardan por
 // mes en D.facReportEmails y se prellenan con el último valor cargado, igual que en Blancos.
 function facRepUltimoEmail(){
-  const meses=Object.keys(D.facReportEmails||{}).sort();
-  for(let i=meses.length-1;i>=0;i--){if(D.facReportEmails[meses[i]])return D.facReportEmails[meses[i]];}
+  const E=D.facReportEmails||{};
+  if(E._last)return E._last;
+  const meses=Object.keys(E).filter(k=>/^\d{4}-\d{2}$/.test(k)).sort();
+  for(let i=meses.length-1;i>=0;i--){if(E[meses[i]])return E[meses[i]];}
   return"";
+}
+// (Tanda 444) Direcciones usadas al enviar informes: D.facReportEmails._last (último grupo enviado, se sugiere de entrada)
+// y D.facReportEmails._hist (lista de direcciones usadas, la más reciente primero) para sugerirlas en cada envío.
+function facMailLista(txt){return String(txt||"").split(/[,;\s]+/).map(x=>x.trim()).filter(Boolean);}
+function facRepGuardarDest(ym,to){
+  const lst=facMailLista(to);
+  const E={...(D.facReportEmails||{})};
+  E[ym]=lst.join(", ");E._last=lst.join(", ");
+  const hist=[];lst.concat(Array.isArray(E._hist)?E._hist:[]).forEach(x=>{if(hist.findIndex(h=>h.toLowerCase()===x.toLowerCase())<0)hist.push(x);});
+  E._hist=hist.slice(0,15);
+  D.facReportEmails=E;lsS(K.facReportEmails,E);
+}
+function facMailSugHtml(inputId,ym){
+  const hist=(D.facReportEmails&&Array.isArray(D.facReportEmails._hist))?D.facReportEmails._hist:[];
+  if(!hist.length)return"";
+  return `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:11px"><span style="color:var(--text3)">Sugeridos (ya usados):</span>${hist.map(a=>`<button type="button" class="btn btn-g btn-sm" style="padding:1px 8px;font-size:11px;border-radius:12px" onclick="facMailChip('${inputId}','${a.replace(/'/g,"")}','${ym}')">${a}</button>`).join("")}</div>`;
 }
 window.facRepSaveEmails=(ym,val)=>{
   D.facReportEmails={...(D.facReportEmails||{}),[ym]:(val||"").trim()};
   lsS(K.facReportEmails,D.facReportEmails);
 };
-window.facRepSendEmail=(ym)=>{
-  const to=(D.facReportEmails&&D.facReportEmails[ym])||facRepUltimoEmail();
-  if(!to){UI.facRepErr="Cargá al menos un email de destino antes de enviar.";render();return;}
-  UI.facRepErr="";
-  const {base64,filename}=buildFacturacionPDF(ym);
+window.facMailChip=(inputId,addr,ym)=>{
+  const el=document.getElementById(inputId);if(!el)return;
+  const cur=facMailLista(el.value);
+  if(cur.findIndex(x=>x.toLowerCase()===addr.toLowerCase())<0)cur.push(addr);
+  el.value=cur.join(", ");
+  if(inputId==="facEmailInp")facRepSaveEmails(ym,el.value);
+};
+function facRepEnviarImpl(ym,to,preferirPdfGuardado){
+  const man=(D.facManualPdfs||{})[ym];
+  let base64,filename;
+  if(man&&preferirPdfGuardado){base64=String(man.dataUrl).split(",")[1]||"";filename=man.filename||("facturacion-"+ym+".pdf");}
+  else{const r=buildFacturacionPDF(ym);base64=r.base64;filename=r.filename;}
   const [yy,mm]=ym.split("-");
   const mesLbl=new Date(Number(yy),Number(mm)-1,1).toLocaleDateString("es-AR",{month:"long",year:"numeric"});
-  sendEmailWithPdf({
+  return sendEmailWithPdf({
     to,
     subject:"Informe de facturación — "+mesLbl,
     text:"Adjunto el informe de facturación mensual de "+mesLbl+".",
     pdfBase64:base64,pdfFilename:filename,
-  }).then(ok=>{
+  }).then(ok=>{if(ok)facRepGuardarDest(ym,to);return ok;});
+}
+window.facRepSendEmail=(ym)=>{
+  const inp=document.getElementById("facEmailInp");
+  const to=facMailLista(inp?inp.value:((D.facReportEmails&&D.facReportEmails[ym])||facRepUltimoEmail())).join(", ");
+  if(!to||to.indexOf("@")<0){UI.facRepErr="Cargá al menos un email de destino antes de enviar.";render();return;}
+  UI.facRepErr="";
+  facRepEnviarImpl(ym,to,false).then(ok=>{
     UI.facRepSentOk=ok?ym:null;
     if(!ok)UI.facRepErr="No se pudo enviar el mail (¿el sitio está desplegado en Netlify con la función y RESEND_API_KEY configuradas?).";
     render();
     setTimeout(()=>{if(UI.facRepSentOk===ym){UI.facRepSentOk=null;render();}},4000);
   });
 };
+// (Tanda 444) Ventana del informe (clic en el historial): ver en pantalla, descargar el PDF o enviarlo por mail.
+window.facInfEnviar=()=>{
+  const ym=UI.facInfYm;
+  const el=document.getElementById("facInfEmail");
+  const to=facMailLista(el?el.value:"").join(", ");
+  if(!to||to.split(", ").some(x=>x.indexOf("@")<0)){UI.facInfMsg={t:"err",m:"Revisá los emails: tiene que haber al menos uno y todos con «@»."};render();return;}
+  UI.facInfBusy=true;UI.facInfMsg=null;UI.facInfTo=to;render();
+  facRepEnviarImpl(ym,to,true).then(ok=>{
+    UI.facInfBusy=false;
+    UI.facInfMsg=ok?{t:"ok",m:"✓ Enviado a "+to+". Quedó guardado para sugerirlo la próxima vez."}:{t:"err",m:"No se pudo enviar el mail (¿el sitio está desplegado en Netlify con la función y RESEND_API_KEY configuradas?)."};
+    render();
+  }).catch(()=>{UI.facInfBusy=false;UI.facInfMsg={t:"err",m:"No se pudo enviar el mail."};render();});
+};
+window.facInfCerrar=()=>{UI.facInfYm=null;UI.facInfMsg=null;UI.facInfTo=null;UI.mod=null;render();};
+function facInformeVistaHtml(ym){
+  const rec=facMesGet(ym),tot=facMesTotales(rec);
+  const cel=(l,v)=>`<div><div style="font-size:9px;text-transform:uppercase;letter-spacing:.3px;color:#555;margin-bottom:2px">${l}</div><div style="background:#fff;color:#111827;border:1.5px solid #8a9a93;border-radius:8px;padding:5px 10px;text-align:right;font-weight:700;font-size:14px">${v}</div></div>`;
+  const pn=(g,t,der,celdas)=>`<div style="border:1.5px solid rgba(${FAC_COL[g]},.6);border-left:7px solid rgba(${FAC_COL[g]},.95);background:rgba(${FAC_COL[g]},.13);border-radius:12px;padding:8px 14px 10px;margin-top:8px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px"><b style="font-size:14px;display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:rgb(${FAC_COL[g]});display:inline-block"></span>${t}</b>${der}</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px 14px">${celdas}</div></div>`;
+  return pn("datos","Pasajeros y desayunos","",facCamposDatos().map(c=>cel(c.l,(rec[c.k]===undefined||rec[c.k]==="")?"0":facFmtAR(rec[c.k],"num"))).join(""))
+    +FAC_GRUPOS.map(G=>pn(G.g,G.t,`<span style="font-size:12px;opacity:.85">${G.tot}: <b style="font-size:14px">${fmtMoney(tot[G.tk])}</b></span>`,facCamposGrupo(G.g,rec).filter(c=>!c.extra||(rec[c.k]!==undefined&&rec[c.k]!=="")).map(c=>cel(c.l,fmtMoney(rec[c.k]))).join(""))).join("")
+    +`<div style="background:#1c2f24;color:#fff;border-radius:12px;padding:12px 18px;margin-top:10px;display:flex;justify-content:space-between;align-items:center"><b style="font-size:13px">TOTAL INGRESOS NETOS</b><b style="font-size:19px;color:#e6c36a">${fmtMoney(tot.totalIngresosNetos)}</b></div>`;
+}
+function modFacInf(){
+  const ym=UI.facInfYm;if(!ym)return"";
+  const man=(D.facManualPdfs||{})[ym],tieneData=!!(D.facturacionMensual&&D.facturacionMensual[ym]);
+  const emailVal=UI.facInfTo!=null?UI.facInfTo:(((D.facReportEmails&&D.facReportEmails[ym])||facRepUltimoEmail())||"");
+  const msg=UI.facInfMsg;
+  const reabrir=tieneData&&!man&&facMesBloqueado(ym)?`<div style="font-size:11px;color:#92400e;background:#fef3c7;border:1px solid #fcd34d;border-radius:var(--r);padding:6px 10px;margin-bottom:8px">🔒 Informe cerrado desde el ${facIsoLbl(facMesCierreISO(ym))}. <button class="btn btn-sm" style="margin-left:6px" onclick="facMesReabrir('${ym}')">🔓 Reabrir edición</button></div>`:"";
+  return `<div class="ov" onclick="closeMod(event)"><div class="mod" onclick="event.stopPropagation()" style="max-width:780px;width:calc(96vw/var(--fz,1))">
+    <div class="mh"><h2>Informe de ${cjMesLbl(ym)}</h2><button class="btn btn-g btn-sm mh-x" onclick="facInfCerrar()" aria-label="Cerrar"><i class="ti ti-x"></i></button></div>
+    <div class="mc" style="max-height:calc(74vh/var(--fz,1));overflow:auto">
+      ${reabrir}
+      ${man?`<object data="${man.dataUrl}" type="application/pdf" style="width:100%;height:52vh;border:1px solid var(--border);border-radius:8px"><div style="padding:14px;font-size:12px">No se puede mostrar el PDF acá. Usá «Descargar PDF».</div></object>`:(tieneData?facInformeVistaHtml(ym):`<div style="font-size:12px;color:var(--text3)">Este mes no tiene datos cargados.</div>`)}
+    </div>
+    <div style="padding:10px 16px 14px;border-top:1px solid var(--border)">
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+        <div style="flex:1;min-width:240px"><div class="fl" style="margin-bottom:3px">Enviar por mail (separá con coma)</div><input id="facInfEmail" class="fc" type="text" value="${String(emailVal).replace(/"/g,"&quot;")}" placeholder="ejemplo@hotelcopahue.com" onkeydown="if(event.key==='Enter'){event.preventDefault();facInfEnviar()}"></div>
+        <button class="btn btn-p btn-sm" ${UI.facInfBusy?"disabled":""} onclick="facInfEnviar()"><i class="ti ti-mail"></i> ${UI.facInfBusy?"Enviando…":"Enviar por mail"}</button>
+        <button class="btn btn-sm" onclick="facHistorialMesDescargar('${ym}')"><i class="ti ti-download"></i> Descargar PDF</button>
+      </div>
+      ${facMailSugHtml("facInfEmail",ym)}
+      ${msg?`<div style="margin-top:8px;font-size:12px;padding:7px 10px;border-radius:var(--r);${msg.t==="ok"?"background:#eaf3de;border:1px solid #c0dd97;color:#1f4d12":"background:#fbe9e9;border:1px solid #f0b8b8;color:#a32d2d"}">${msg.m}</div>`:""}
+    </div>
+  </div></div>`;
+}
 // (Tanda 53 / ítem 13) Ahora visible desde Gerencia/Administración/Coordinación por igual, todas
 // leyendo y escribiendo el mismo D.facturacionMensual (ya sincronizado por Firebase desde la Tanda 49
 // -- no hizo falta ningún cambio de datos, alcanzó con llamar a esta misma función desde las 3 áreas,
@@ -27511,7 +27635,7 @@ function facturacionSectionHtml(){
   };
   const gridCss="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px 14px";
   // (Tanda 438) cada bloque (y el de pasajeros/desayunos) con su propio tono para distinguirlos
-  const COL={datos:"59,130,246",aloj:"16,150,120",coch:"217,119,6",event:"139,92,246",comis:"219,39,119"};
+  const COL=FAC_COL;
   const panel=(g,titulo,derecha,cuerpo)=>`<div class="fac-pn" style="border:1.5px solid rgba(${COL[g]},.6);border-left:7px solid rgba(${COL[g]},.95);background:rgba(${COL[g]},.13);border-radius:12px;padding:7px 14px 8px;margin-top:7px;box-shadow:0 2px 8px rgba(${COL[g]},.14)">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:5px"><h3 style="margin:0;font-size:15px;display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:50%;background:rgba(${COL[g]},1);display:inline-block"></span>${titulo}</h3>${derecha}</div>
       ${cuerpo}
@@ -27534,7 +27658,7 @@ function facturacionSectionHtml(){
             ${bloq?"":(puedeCrear&&rec.ts&&!rec.reabierto?`<span style="font-size:11px;color:var(--text3)">✏️ Podés modificar los datos de este informe hasta el ${facIsoLbl(facMesCierreISO(ym))}.</span>`:"")}
             ${rec.reabierto?`<span style="font-size:11px;color:#166534">🔓 Edición reabierta por ${rec.reabiertoPor||"Gerencia"}.</span>`:""}
           </div>
-          ${bloq?`<div style="font-size:12px;color:#92400e;background:#fef3c7;border:1px solid #fcd34d;border-radius:var(--r);padding:6px 10px;margin-top:6px">🔒 Este informe se cerró el ${facIsoLbl(facMesCierreISO(ym))} (se puede modificar hasta el 10 del mes siguiente). Para corregirlo, pedile a Gerencia o Administración que lo reabra.</div>`:""}
+          ${bloq?`<div style="font-size:12px;color:#92400e;background:#fef3c7;border:1px solid #fcd34d;border-radius:var(--r);padding:6px 10px;margin-top:6px">🔒 Este informe se cerró el ${facIsoLbl(facMesCierreISO(ym))} (se puede modificar hasta el 10 del mes siguiente). <button class="btn btn-sm" style="margin-left:6px" onclick="facMesReabrir('${ym}')">🔓 Reabrir edición</button></div>`:""}
         </div>
         <div class="card" style="margin-bottom:10px;padding:2px 14px 12px">
           <style>.fac-pn .fg{margin-bottom:0}.fac-pn .fl{margin-bottom:2px}html body .fc.fac-big{font-size:15px!important;font-weight:700!important;text-align:right;padding:3px 10px!important;min-height:32px;height:32px;line-height:1.2;font-variant-numeric:tabular-nums;box-sizing:border-box;width:100%;background:#fff!important;background-color:#fff!important;color:#111827!important;border:1.5px solid #7c8d86!important;border-radius:8px;box-shadow:none!important;-webkit-text-fill-color:#111827}html body .fc.fac-big:focus{border-color:var(--teal,#1d7a6b)!important;outline:2px solid rgba(29,122,107,.35);outline-offset:0}html body .fc.fac-big::placeholder{font-weight:500;color:#6b7280;opacity:1;-webkit-text-fill-color:#6b7280}html body.dark .fc.fac-big{background:#16201c!important;background-color:#16201c!important;color:#f3f4f6!important;border-color:#6f8a7d!important;-webkit-text-fill-color:#f3f4f6}html body.dark .fc.fac-big::placeholder{color:#9ca3af;-webkit-text-fill-color:#9ca3af}</style>
@@ -27546,7 +27670,7 @@ function facturacionSectionHtml(){
                campo (facMesSetField() ya autoguarda por campo), pero el usuario pidió una confirmación
                explícita y bien visible al terminar de cargar todo. -->
           ${puedeCrear?`<div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:16px">
-            <div class="fg" style="flex:1;min-width:260px;margin:0"><span class="fl">Email(s) para enviar el informe (separados por coma)</span><input class="fc" type="text" value="${emailVal}" placeholder="ejemplo@hotelcopahue.com" onchange="facRepSaveEmails('${ym}',this.value)"></div>
+            <div class="fg" style="flex:1;min-width:260px;margin:0"><span class="fl">Email(s) para enviar el informe (separados por coma)</span><input id="facEmailInp" class="fc" type="text" value="${emailVal}" placeholder="ejemplo@hotelcopahue.com" onchange="facRepSaveEmails('${ym}',this.value)">${facMailSugHtml("facEmailInp",ym)}</div>
             <button class="btn btn-sm" style="height:34px" onclick="facRepSendEmail('${ym}')">Enviar informe por mail</button>
             ${recEdit?`${UI.facGuardadoOk===ym?`<span style="color:#166534;font-size:12px;font-weight:700">✓ Guardado</span>`:""}
             <button class="btn btn-p" style="padding:12px 30px;font-size:15px;font-weight:800;border-radius:12px" onclick="facGuardarMes('${ym}')"><i class="ti ti-check"></i> Guardar</button>`:""}
@@ -27599,7 +27723,7 @@ function facHistorialCalendarioHtml(puedeCrear){
     const bg=tieneManual?"#ede9fe":tieneData?"#dcf5ef":"var(--white)";
     const bd=tieneManual?"#7c3aed":tieneData?"#1d7a6b":"var(--border)";
     const fg=tieneManual?"#5b21b6":tieneData?"#0f5c50":"var(--text3)";
-    return `<div style="position:relative;border:1.5px solid ${bd};${sel?"box-shadow:0 0 0 2px "+bd+";":""}background:${bg};border-radius:10px;padding:10px 4px;text-align:center;${tieneAlgo?"cursor:pointer":"cursor:default;opacity:.55"}" ${tieneAlgo?`onclick="facHistorialMesClick('${ym}')" title="${puedeCrear?"Descargar PDF de ":"Ver resumen de "}${lbl} ${anio}"`:`title="Sin datos cargados"`}>
+    return `<div style="position:relative;border:1.5px solid ${bd};${sel?"box-shadow:0 0 0 2px "+bd+";":""}background:${bg};border-radius:10px;padding:10px 4px;text-align:center;${tieneAlgo?"cursor:pointer":"cursor:default;opacity:.55"}" ${tieneAlgo?`onclick="facHistorialMesClick('${ym}')" title="Ver, descargar o enviar el informe de ${lbl} ${anio}"`:`title="Sin datos cargados"`}>
       <div style="font-size:12px;font-weight:800;color:${fg}">${lbl}</div>
       ${tieneAlgo?`<div style="font-size:8px;margin-top:2px;font-weight:700;color:${fg}">${tieneManual?"PDF":"✓"}${!tieneManual&&facMesBloqueado(ym)?" 🔒":""}</div>`:""}
       ${tieneManual&&puedeCrear?`<button class="btn btn-g btn-sm" style="position:absolute;top:1px;right:1px;padding:0 3px;font-size:9px;line-height:1.6" onclick="event.stopPropagation();facManualPdfQuitar('${ym}')" title="Eliminar PDF cargado"><i class="ti ti-trash"></i></button>`:""}
@@ -27743,7 +27867,7 @@ async function facImportarEnMes(ym,buf){
 function facImpChequeo(ym){
   if(!ym)return"Elegí el mes.";
   const r=(D.facturacionMensual||{})[ym];
-  if(r&&facMesBloqueado(ym))return"Ese mes ya está cerrado (se pudo modificar hasta el 10 del mes siguiente). Pedile a Gerencia o Administración que lo reabra.";
+  if(r&&facMesBloqueado(ym))return"Ese mes ya está cerrado (se podía modificar hasta el 10 del mes siguiente). Elegilo en el formulario y apretá «Reabrir edición» para poder importar datos.";
   if(r&&r.ts&&!confirm(cjMesLbl(ym)+" ya tiene datos cargados. ¿Reemplazar con los que se encuentren en el PDF? (los campos que el PDF no tenga se mantienen)"))return"__cancel";
   return"";
 }
@@ -27780,8 +27904,7 @@ window.facManualPdfConvertir=async(ym)=>{
 };
 const MESES_ABREV=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 window.facHistorialMesClick=(ym)=>{
-  if(ROLE!=="coord"){UI.facVer=ym;UI.mod="facDet";render();return;}
-  facHistorialMesDescargar(ym);
+  UI.facInfYm=ym;UI.facInfMsg=null;UI.facInfTo=null;UI.mod="facInf";render();
 };
 window.facHistorialMesDescargar=(ym)=>{
   if(D.facManualPdfs&&D.facManualPdfs[ym])facManualPdfDescargar(ym);
