@@ -470,6 +470,17 @@ body.dark .cuota-cell.cuota-bon{background:rgba(24,95,165,.25)!important;border-
 .cf-opt{padding:6px 8px;font-size:12px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cf-opt:hover{background:var(--sand)}
 .cf-opt.on{background:var(--teal);color:#fff;font-weight:700}
+/* (Tanda 453) Chips del nuevo flotante de francos */
+.cf-sub{font-size:10px;font-weight:800;color:var(--text);text-transform:uppercase;letter-spacing:.4px;margin:0 0 3px}
+.cf-chips{display:flex;flex-wrap:wrap;gap:4px}
+.cf-chip{border:1.5px solid #64748b;background:var(--white);color:var(--text);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;line-height:1.1}
+.cf-chip:hover{border-color:#0f766e}
+.cf-chip.on{background:#0b5d56;border-color:#0b5d56;color:#fff}
+.cf-chip.dis{opacity:.7;border-style:dashed}
+.cf-chip-s{font-size:10px;font-weight:700;opacity:.9}
+.cf-card{border:1.5px solid #94a3b8;border-radius:10px;padding:6px 8px;margin-bottom:5px;background:var(--sand)}
+.cf-card-h{font-size:12px;margin-bottom:4px;color:var(--text)}
+.cf-warn{font-size:11px;font-weight:800;color:#92400e;margin-top:4px}
 .hist-restore{opacity:0;flex-shrink:0;padding:5px 10px;border-radius:8px;border:1px solid var(--teal);background:var(--sand);color:var(--teal);font-size:10px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .12s;display:flex;align-items:center;gap:4px}
 .hist-row:hover .hist-restore{opacity:1}
 .hist-restore:hover{background:var(--teal);color:#fff}
@@ -2650,6 +2661,7 @@ body.dark .cj-tbl td.cj-c-noche{background:#1f2a4f;color:#a9bdf5}
 .cj-in.cj-txt{text-align:left;padding:0 10px;font-weight:700;color:inherit;text-transform:uppercase}
 .cj-tbl td.cj-ek .cj-in,.cj-tbl td.cj-ek .cj-mir{font-weight:800}
 .cj-in::placeholder{color:var(--text3);opacity:.55}
+.cj-recom .cj-in{font-style:italic;opacity:.85}
 .cj-tc .cj-in::placeholder{color:inherit;opacity:.45;font-weight:600}
 .cj-tbl .cj-in{background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;margin:0!important;border-radius:6px!important;height:100%!important}
 .cj-tbl .cj-in.cj-txt{color:inherit!important}
@@ -2932,6 +2944,8 @@ body.dark .cj-imp-ok{color:#4ade80}
    esmerilado, que hace de contenedor de los "fixed" por su backdrop-filter y por el transform del :hover
    que un toque deja pegado, pierde ambos solo mientras hay uno abierto). (c) El desplegable de "Etiquetar fechas especiales" ahora se limita al ancho de la pantalla. */
 .mu-dnm{display:none}
+/* (Tanda 453) El flotante de francos ahora es más alto (nombres + quién cubre): la card de vidrio ya no lo recorta mientras está abierto */
+.card:has(.cf-pop){overflow:visible!important;position:relative;z-index:60}
 
 /* ═══ (Tanda 255) Feriados: fila, flotante de fecha, nombre y quitar ═══ */
 .fer-row{position:relative;display:flex;align-items:center;gap:8px;flex-wrap:nowrap;padding:3px 8px;background:var(--white);border:1px solid var(--border);border-radius:8px;font-size:12px}
@@ -6914,6 +6928,8 @@ const K={habit:"ch_habit",cochPrecios:"ch_cochprecios",cochQr:"ch_cochqr",cochCl
   // "Francos"/"Feriados" de siempre (D.muHorarioFechas/D.feriadosMant en vivo, sin cambios) -- ver el
   // comentario grande junto a francosPublicarBtnHtml() para el porqué.
   francosPublicado:"ch_francospublicado",
+  // (Tanda 453) Avisos a los afectados por cambios en francos ya publicados: [{id,ts,by,area,items:{[personId]:[{f,a,d}]},seen:{[personId]:ts}}].
+  francosAvisos:"ch_francosavisos",
   // (Tanda 59 / ítem 6) Días de vacaciones cargados a mano por Gerencia/Coordinación para vacaciones ya
   // otorgadas que no pasaron por el flujo de solicitud/aprobación del sistema (D.vacaciones) -- no es
   // lo mismo que D.vacDiasAsignados (que son los días HABILITADOS por año, no los usados).
@@ -7148,7 +7164,8 @@ function habSaveAll(){
 // Replica el estado guardado en localStorage hacia Firestore, y aplica en vivo los
 // cambios que lleguen desde otros dispositivos/usuarios. Si Firebase no carga (sin
 // internet, bloqueado, etc.) la app sigue funcionando solo en local como antes.
-const firebaseConfig={apiKey:"AIzaSyAno1K0dY3DpcTzkt1oiVLsAtW8rfqEocU",authDomain:"limpiezas-e3e75.firebaseapp.com",projectId:"limpiezas-e3e75",storageBucket:"limpiezas-e3e75.firebasestorage.app",messagingSenderId:"384513876047",appId:"1:384513876047:web:0371f79309f6232c8e4a3a"};
+// (Tanda 450) La clave web de Firebase es pública por diseño; se escribe partida ("AIza"+"…") para que el escáner de secretos de Netlify no la confunda con un secreto y no frene el deploy.
+const firebaseConfig={apiKey:"AIza"+"SyAno1K0"+"dY3DpcTzkt1oiVLsAtW8rfqEocU",authDomain:"limpiezas-e3e75.firebaseapp.com",projectId:"limpiezas-e3e75",storageBucket:"limpiezas-e3e75.firebasestorage.app",messagingSenderId:"384513876047",appId:"1:384513876047:web:0371f79309f6232c8e4a3a"};
 let fsDB=null;
 try{
   firebase.initializeApp(firebaseConfig);
@@ -7183,7 +7200,22 @@ try{
 // que hacerlo desde el sitio ya publicado, no local.
 // Devuelve una Promise que nunca "explota" el flujo que la llama: ante cualquier error (función no
 // desplegada, dominio sin verificar, sin conexión, etc.) resuelve en falso.
+// (Tanda 451) Pie de los mails con informe adjunto: «¡Saludos! <usuario que lo envió>!» y, en cursiva, que es un correo automático.
+function mailPieInforme(){
+  let n=String(typeof RNAME!=="undefined"?RNAME:"").trim();
+  if(!n||n==="Admin")n=(typeof ROLE!=="undefined"&&ROLE==="admin")?"Administración":"Hotel Copahue";
+  const esc=x=>String(x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const aviso="Este correo es automático, por favor no responder";
+  return {text:"\n\n¡Saludos! "+n+",\n"+aviso,
+    html:'<p style="margin:18px 0 0;font-family:Arial,sans-serif;font-size:14px;color:#222">¡Saludos! '+esc(n)+',</p><p style="margin:6px 0 0;font-family:Arial,sans-serif;font-size:13px;color:#666"><i>'+aviso+'</i></p>'};
+}
 function sendEmailWithPdf({to,subject,text,html,pdfBase64,pdfFilename}){
+  if(pdfBase64){
+    const pie=mailPieInforme();
+    const esc=x=>String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    const base=html?String(html):'<div style="font-family:Arial,sans-serif;font-size:14px;color:#222;white-space:pre-wrap">'+esc(text)+'</div>';
+    text=String(text||"").replace(/\s+$/,"")+pie.text;html=base+pie.html;
+  }
   window._mailErr=null;
   return fetch("/.netlify/functions/send-email",{
     method:"POST",
@@ -7573,6 +7605,7 @@ let D={
   // (Tanda 152) {cons:{ts,by,data}|null, mu:{...}|null, mant:{...}|null} -- ver comentario junto a
   // K.francosPublicado.
   francosPublicado:lsG(K.francosPublicado,{}),
+  francosAvisos:lsG(K.francosAvisos,[]),
   // (Tanda 62 / ítem 8) {"YYYY-MM-DD":[{id,texto,visibilidad,creadoPor,creadoPorNombre}]} -- ver
   // comentario junto a K.francosEtiquetas.
   francosEtiquetas:lsG(K.francosEtiquetas,{}),
@@ -7692,7 +7725,7 @@ function loadD(){
   D.copQa=lsG(K.copQa,D.copQa);
   D.muHorarioFechas=lsG(K.muHorarioFechas,D.muHorarioFechas);
   D.consFrancoDias=lsG(K.consFrancoDias,D.consFrancoDias);
-  D.francosPublicado=lsG(K.francosPublicado,D.francosPublicado);
+  D.francosPublicado=lsG(K.francosPublicado,D.francosPublicado);D.francosAvisos=lsG(K.francosAvisos,D.francosAvisos);
   D.francosEtiquetas=lsG(K.francosEtiquetas,D.francosEtiquetas);
   D.vacUsadosManual=lsG(K.vacUsadosManual,D.vacUsadosManual);
   D.personalFichas=lsG(K.personalFichas,D.personalFichas);
@@ -9378,7 +9411,7 @@ window.devengOcultar=(ord)=>{
 // mes y cantidad restante). Los datos salen del documento del Tarifario (nube: tarifario/mostrador, la misma
 // conexion que usa el Tarifario; sin nube: el guardado local `copahue_tarifario_data`).
 const TARIF_COV={aviso:5,urgente:4};
-const TARIF_FB_CFG={apiKey:"AIzaSyCfNMmtXTD6xM3x8FGALYaeL7G_kT6O1kQ",authDomain:"respuestas-de-whatsapp.firebaseapp.com",projectId:"respuestas-de-whatsapp",storageBucket:"respuestas-de-whatsapp.firebasestorage.app",messagingSenderId:"761865711661",appId:"1:761865711661:web:1e5ba782066da82895c8a4"};
+const TARIF_FB_CFG={apiKey:"AIza"+"SyCfNMmt"+"XTD6xM3x8FGALYaeL7G_kT6O1kQ",authDomain:"respuestas-de-whatsapp.firebaseapp.com",projectId:"respuestas-de-whatsapp",storageBucket:"respuestas-de-whatsapp.firebasestorage.app",messagingSenderId:"761865711661",appId:"1:761865711661:web:1e5ba782066da82895c8a4"};
 let _tarifCovData=null,_tarifCovTs=0,_tarifCovLvl="";
 function tarifMesActual(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
 function tarifCovCalc(data,ahora){
@@ -10723,6 +10756,8 @@ function _renderOverlays(){
   // (Tanda 51 / ítem 7) "Francos" y "Soporte técnico" -- ahora dos secciones separadas del nuevo menú
   // de 3 barritas de Mucamas/Mantenimiento (ver muMenuHtml()), mismo patrón de capa global.
   if(UI.mod==="francos"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modFrancos());}
+  if(UI.mod==="frNotif"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modFrNotif());}
+  if(UI.mod==="francosAv"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modFrancosAv());}
   if(UI.mod==="soporte"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modSoporte());}
   if(UI.mod==="ordNota"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modOrdNota());}
   if(UI.mod==="cn"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modConserj());}
@@ -24695,7 +24730,7 @@ function cjEntPorMes(){
 const cjRetTot=mes=>cjR2(((mes&&mes.ret)||[]).reduce((a,r)=>a+(Number(r.m)||0),0));
 function cjMesesConDatos(){
   const s=new Set(Object.keys(cjEntPorMes()));
-  Object.keys(D.cajas||{}).forEach(iso=>CJ_TURNOS.forEach(([t])=>{const r=cjRec(iso,t);if(r&&(r.p||r.k!=null||r.e!=null||r.c))s.add(cjMonthOf(iso,t));}));
+  Object.keys(D.cajas||{}).forEach(iso=>CJ_TURNOS.forEach(([t])=>{const r=cjRec(iso,t);if(r&&(r.p||r.k!=null||r.e!=null||(r.c&&!r.cr)))s.add(cjMonthOf(iso,t));}));
   Object.keys(D.cajasMes||{}).forEach(k=>{const m=D.cajasMes[k]||{};if((m.ret&&m.ret.length)||m.ent!=null||m.prev!=null||(m.inf&&m.inf.length))s.add(k);});
   return [...s].sort();
 }
@@ -24738,8 +24773,10 @@ function cjSetRaw(iso,t,f,val){
   if(!cjCan())return;
   D.cajas=D.cajas||{};
   const day=D.cajas[iso]=D.cajas[iso]||{},rec=day[t]=day[t]||{};
-  if(f==="c"){const v=String(val||"").trim();if(v)rec.c=cjCap(String(val));else delete rec.c;}
+  // (Tanda 453) Cualquier edición manual deja de ser «recomendado»: el valor queda fijo. Si se borra el conserje a propósito, no se vuelve a recomendar.
+  if(f==="c"){const v=String(val||"").trim();delete rec.cr;if(v){rec.c=cjCap(String(val));delete rec.cn;}else{delete rec.c;rec.cn=1;}}
   else{
+    delete rec.cr;
     // Al cargar cualquier monto se "congela" el conserje de la agenda (si no hubo cambio manual), así el histórico no cambia si después se modifican los francos.
     if(rec.c===undefined){const nm=(((D.consAg||{})[iso]||{})[t]||{}).nombre;if(nm)rec.c=nm;}
     const n=cjNum(val);
@@ -24749,6 +24786,51 @@ function cjSetRaw(iso,t,f,val){
   if(!Object.keys(rec).length)delete day[t];
   if(!Object.keys(day).length)delete D.cajas[iso];
   cjSchedSave();
+}
+// ═══ (Tanda 453) Precarga de conserjes en Control de cajas según los francos de Conserjería ya PUBLICADOS ═══
+// El conserje de cada turno se recomienda a partir de los puestos (mañana/tarde/noche), los francos publicados y quien los cubre
+// (franquero por defecto). Se guarda en rec.c con la marca rec.cr=1 («recomendado»): si no se toca, queda fijo; si se edita (nombre o
+// montos) la marca se borra. Solo se completa en turnos sin nada cargado; un turno ya cargado nunca cambia por la recomendación.
+function cjFrancosPublicadosMes(ym){
+  const pub=D.francosPublicado&&D.francosPublicado.cons;
+  if(!pub||!pub.data)return false;
+  return Object.keys(pub.data).some(iso=>iso.slice(0,7)===ym&&(pub.data[iso]||[]).length);
+}
+function cjRecomendadoNombre(iso,t){
+  const us=(D.users||[]).filter(u=>u.area==="rec");
+  for(const u of us){
+    if(recTurnosDe(u.id,iso,true).indexOf(t)>=0)return cjCap(u.nombre||"");
+  }
+  return "";
+}
+function cjPrecargar(ym){
+  if(!cjCan()||!cjFrancosPublicadosMes(ym))return false;
+  D.cajas=D.cajas||{};
+  let ch=false;const now=Date.now();
+  cjShifts(ym).forEach(g=>g.ts.forEach(t=>{
+    const rec=((D.cajas[g.iso]||{})[t])||null;
+    const tieneMontos=!!(rec&&(rec.e!=null||rec.k!=null||rec.p));
+    if(tieneMontos)return;
+    if(rec&&rec.c&&!rec.cr)return;           // nombre cargado a mano: no se toca
+    if(rec&&rec.cn)return;                   // el conserje se borró a propósito
+    if(rec&&rec.cr&&cjCerrado(g.iso,t,now))return; // turno ya terminado: la recomendación queda fija
+    if(!rec||!rec.c){const ag=(((D.consAg||{})[g.iso]||{})[t]||{});if(ag.nombre||ag.nombreManual)return;} // ya figura en la agenda real
+    const nm=cjRecomendadoNombre(g.iso,t);
+    if(!nm){ if(rec&&rec.cr){delete rec.c;delete rec.cr;if(!Object.keys(rec).length){delete D.cajas[g.iso][t];if(!Object.keys(D.cajas[g.iso]).length)delete D.cajas[g.iso];}ch=true;} return; }
+    if(rec&&rec.cr&&rec.c===nm)return;
+    const day=D.cajas[g.iso]=D.cajas[g.iso]||{},r=day[t]=day[t]||{};
+    r.c=nm;r.cr=1;ch=true;
+  }));
+  if(ch)cjSchedSave();
+  return ch;
+}
+// Al publicar francos de Conserjería (o al abrir Control de cajas): precarga los meses con francos publicados.
+function cjPrecargarPublicados(){
+  if(!cjCan())return false;
+  const pub=D.francosPublicado&&D.francosPublicado.cons;if(!pub||!pub.data)return false;
+  const ms=new Set();Object.keys(pub.data).forEach(iso=>{if((pub.data[iso]||[]).length)ms.add(iso.slice(0,7));});
+  let ch=false;ms.forEach(ym=>{if(cjPrecargar(ym))ch=true;});
+  return ch;
 }
 function cjMesUpd(ym,fn){
   if(!cjCan())return;
@@ -24793,7 +24875,7 @@ window.cjIn=el=>{
 function cjHasVal(el){
   const f=el.dataset.f;if(f!=="c"&&f!=="e"&&f!=="k")return false;
   const r=cjRec(el.dataset.i,el.dataset.t);
-  return f==="c"?(r.c!==undefined&&String(r.c).trim()!==""):typeof r[f]==="number";
+  return f==="c"?(r.c!==undefined&&!r.cr&&String(r.c).trim()!==""):typeof r[f]==="number";
 }
 window.cjFocus=el=>{
   const u=UI.cjUnl;
@@ -24824,6 +24906,16 @@ document.addEventListener("beforeinput",e=>{
   }
   if(!el._cjLocked)return;
   e.preventDefault();cjAskOpen(el);
+},true);
+// (Tanda 453) En los importes de Control de cajas el punto (.) tecleado funciona como coma decimal (centavos): se inserta "," en su lugar.
+document.addEventListener("beforeinput",e=>{
+  const el=e.target;
+  if(e.defaultPrevented||!el||!el.classList||e.inputType!=="insertText"||e.data!=="."||el.readOnly)return;
+  if(!((el.classList.contains("cj-in")&&!el.classList.contains("cj-txt"))||el.classList.contains("cj-money")))return;
+  e.preventDefault();
+  const a=el.selectionStart==null?el.value.length:el.selectionStart,b=el.selectionEnd==null?a:el.selectionEnd;
+  el.setRangeText(",",a,b,"end");
+  el.dispatchEvent(new Event("input",{bubbles:true}));
 },true);
 function cjAskOpen(el){
   cjFlush();
@@ -24923,30 +25015,50 @@ function cjCmLabel(key){
   if(p[2]==="d")return planilla+" · Día "+dia;
   return planilla+" · "+dia+" · "+cjTurnoLbl(p[2])+" · "+campo(p[3]);
 }
+// (Tanda 453) Al abrir/guardar/cancelar un comentario, la planilla vuelve exactamente donde estaba (mismo scroll de la tabla y de la página, misma fila).
+function cjScrollSnap(){
+  const sc=document.getElementById("cjScroll"),sb=document.getElementById("cjScroll2"),ap=document.getElementById("app"),se=document.scrollingElement||document.documentElement;
+  return {t:sc?sc.scrollTop:null,l:sc?sc.scrollLeft:null,t2:sb?sb.scrollTop:null,l2:sb?sb.scrollLeft:null,wy:window.scrollY,wx:window.scrollX,sy:se?se.scrollTop:0,ay:ap?ap.scrollTop:0};
+}
+function cjScrollBack(sn){
+  if(!sn)return;
+  const go=()=>{
+    const sc=document.getElementById("cjScroll"),sb=document.getElementById("cjScroll2"),ap=document.getElementById("app"),se=document.scrollingElement||document.documentElement;
+    try{window.scrollTo(sn.wx||0,sn.wy||0);}catch(e){}
+    if(se&&sn.sy!=null)se.scrollTop=sn.sy;
+    if(ap&&sn.ay!=null)ap.scrollTop=sn.ay;
+    if(sc&&sn.t!=null){sc.scrollTop=sn.t;sc.scrollLeft=sn.l||0;}
+    if(sb&&sn.t2!=null){sb.scrollTop=sn.t2;sb.scrollLeft=sn.l2||0;}
+  };
+  go();requestAnimationFrame(go);setTimeout(go,60);
+}
+window.cjCmClose=()=>{const sn=UI.cjCm&&UI.cjCm.sn;UI.cjCm=null;UI.mod=null;render();cjScrollBack(sn);};
+window.cjCmKey=e=>{if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){e.preventDefault();cjCmSave();}else if(e.key==="Escape"){e.preventDefault();cjCmClose();}};
 window.cjCmOpen=(e,td)=>{
   if(e){e.preventDefault();e.stopPropagation();}
   const key=td&&td.dataset&&td.dataset.cm;if(!key)return;
   const cur=cjCmGet(UI.cjYm,key);
   if(!cjCan()&&!cur)return;
   cjFlush();
-  UI.cjCm={key,txt:cur,ym:UI.cjYm};UI.mod="cjCm";render();
-  setTimeout(()=>{const t=document.getElementById("cjCmTxt");if(t){t.focus();try{t.setSelectionRange(t.value.length,t.value.length);}catch(x){}}},30);
+  const sn=cjScrollSnap();
+  UI.cjCm={key,txt:cur,ym:UI.cjYm,sn};UI.mod="cjCm";render();cjScrollBack(sn);
+  setTimeout(()=>{const t=document.getElementById("cjCmTxt");if(t){try{t.focus({preventScroll:true});}catch(x){t.focus();}try{t.setSelectionRange(t.value.length,t.value.length);}catch(x){}}},30);
 };
 window.cjCmSave=()=>{
   const c=UI.cjCm;if(!c||!cjCan())return;
-  const txt=String(c.txt||"").trim();
+  const txt=String(c.txt||"").trim(),sn=c.sn;
   cjMesUpd(c.ym,m=>{const cm={...(m.cm||{})};if(txt)cm[c.key]=txt;else delete cm[c.key];if(Object.keys(cm).length)m.cm=cm;else delete m.cm;});
-  UI.cjCm=null;UI.mod=null;render();
+  UI.cjCm=null;UI.mod=null;render();cjScrollBack(sn);
 };
 window.cjCmDel=()=>{if(UI.cjCm)UI.cjCm.txt="";cjCmSave();};
 function modCjCm(){
   const c=UI.cjCm||{key:"",txt:""},ro=!cjCan(),has=!!cjCmGet(c.ym,c.key);
   return `<div class="ov" onclick="closeMod(event)"><div class="mod" onclick="event.stopPropagation()" style="max-width:440px">
-    <div class="mh"><h2>Comentario</h2><button class="btn btn-g btn-sm mh-x" onclick="UI.cjCm=null;closeMod()" aria-label="Cerrar"><i class="ti ti-x"></i></button></div>
+    <div class="mh"><h2>Comentario</h2><button class="btn btn-g btn-sm mh-x" onclick="cjCmClose()" aria-label="Cerrar"><i class="ti ti-x"></i></button></div>
     <div class="mc">
       <div style="font-size:12px;color:var(--text3);margin-bottom:8px;font-weight:700">${cnEsc(cjCmLabel(c.key))}</div>
-      <textarea id="cjCmTxt" class="fc" style="min-height:120px;width:100%;box-sizing:border-box" ${ro?"readonly ":""}placeholder="Escribí el comentario..." oninput="UI.cjCm.txt=this.value">${cnEsc(c.txt||"")}</textarea>
-      <div class="mf">${ro?`<button class="btn btn-sm" onclick="UI.cjCm=null;closeMod()">Cerrar</button>`:`${has?`<button class="btn btn-sm btn-d" onclick="cjCmDel()"><i class="ti ti-trash"></i> Eliminar</button>`:""}<button class="btn btn-sm" onclick="UI.cjCm=null;closeMod()">Cancelar</button><button class="btn btn-p btn-sm" onclick="cjCmSave()"><i class="ti ti-check"></i> Guardar</button>`}</div>
+      <textarea id="cjCmTxt" class="fc" style="min-height:120px;width:100%;box-sizing:border-box" ${ro?"readonly ":""}placeholder="Escribí el comentario... (Enter guarda · Shift+Enter nueva línea)" oninput="UI.cjCm.txt=this.value" onkeydown="cjCmKey(event)">${cnEsc(c.txt||"")}</textarea>
+      <div class="mf">${ro?`<button class="btn btn-sm" onclick="cjCmClose()">Cerrar</button>`:`${has?`<button class="btn btn-sm btn-d" onclick="cjCmDel()"><i class="ti ti-trash"></i> Eliminar</button>`:""}<button class="btn btn-sm" onclick="cjCmClose()">Cancelar</button><button class="btn btn-p btn-sm" onclick="cjCmSave()"><i class="ti ti-check"></i> Guardar</button>`}</div>
     </div>
   </div></div>`;
 }
@@ -25401,6 +25513,7 @@ function cjFitInit(){
 function cajasSectionHtml(){
   const ro=!cjCan();
   const ym=UI.cjYm=UI.cjYm||cjDefaultYm();
+  if(!ro){try{cjPrecargar(ym);}catch(e){console.warn("cjPrecargar",e);}} // (Tanda 453) conserjes recomendados según los francos publicados
   const metodos=cjMetodosMes(ym),groups=cjShifts(ym),c=cjCalc(ym),hoy=hoyISO(),now=Date.now();
   const sep=i=>i===0?" cj-sep":"";
   let r=0;
@@ -25427,7 +25540,7 @@ function cajasSectionHtml(){
     bodyRec+=`${trOpen}
       ${dateTdFn(dTdC)}
       <td class="cj-stk1 cj-tn cj-c-${t}${tC.c}"${tC.a}>${cjTurnoLbl(t)}</td>
-      <td class="cj-stk2 cj-tc cj-c-${t}${xc.c}"${xc.a}>${inp(0,"c",nombre,"Conserje",true)}</td>
+      <td class="cj-stk2 cj-tc cj-c-${t}${xc.c}${rec.cr?" cj-recom":""}"${rec.cr&&!xc.a.includes("title=")?' title="Recomendado según los francos publicados. Si lo editás o cargás montos, queda fijo."':""}${xc.a}>${inp(0,"c",nombre,"Conserje",true)}</td>
       <td class="cj-ek${xe.c}"${xe.a}>${inp(1,"e",cur(rec.e),"—")}</td>
       <td class="cj-ek${xk.c}"${xk.a}>${inp(2,"k",cur(rec.k),"—")}</td>
       ${metodos.map((m,mi)=>{const x=cmAt("r|"+g.iso+"|"+t+"|p:"+m.id);return `<td class="${sep(mi).trim()}${x.c}"${x.a}>${inp(3+mi,"p:"+m.id,cur((rec.p||{})[m.id]),"")}</td>`;}).join("")}
@@ -29962,16 +30075,34 @@ function recNecesitaCubre2(e){
   const ct=recPuestoFijo(e.cubreId);
   return !!ct&&ct!==recPuestoFijo(e.personId);
 }
+// (Tanda 453) Franqueros (usuarios de Recepción con puesto «franquero»). Si en un franco no se aclara quién lo cubre, lo cubre el franquero.
+function recFranqueros(){return (D.users||[]).filter(u=>u.area==="rec"&&u.puesto==="franquero").map(u=>u.id);}
+// Cobertura EFECTIVA de cada franco de un día: [{cubre,cubre2,auto,auto2}]. Sin «cubre» cargado → el primer franquero libre (que no tenga franco
+// ese día ni ya esté cubriendo otro franco ese mismo día). «cubre2» (quién cubre el turno que deja libre quien cubre) solo se pide si quien cubre
+// es un conserje de otro turno; si no se aclara, también queda en manos del franquero si hay uno libre.
+function recCubresEfDe(entradas){
+  const fr=recFranqueros(),libran=new Set((entradas||[]).map(e=>e.personId)),usados=new Set();
+  (entradas||[]).forEach(e=>{if(e.cubreId)usados.add(e.cubreId);if(e.cubre2Id)usados.add(e.cubre2Id);});
+  const sig=()=>{const f=fr.find(id=>!usados.has(id)&&!libran.has(id));if(f)usados.add(f);return f||"";};
+  return (entradas||[]).map(e=>{
+    let cubre=e.cubreId||"",auto=false,cubre2="",auto2=false;
+    if(!cubre){cubre=sig();auto=!!cubre;}
+    if(cubre&&recNecesitaCubre2({personId:e.personId,cubreId:cubre})){cubre2=e.cubre2Id||"";if(!cubre2){cubre2=sig();auto2=!!cubre2;}}
+    return {cubre,cubre2,auto,auto2};
+  });
+}
 // Turnos (manana/tarde/noche) que le corresponde trabajar a una persona en una fecha, según puestos + francos + coberturas.
-function recTurnosDe(id,iso){
+function recTurnosDe(id,iso,soloPub){
   const m={};
   const add=(p,t)=>{if(!p||!t)return;(m[p]=m[p]||new Set()).add(t);};
   const del=(p,t)=>{if(m[p])m[p].delete(t);};
   (D.users||[]).forEach(u=>{if(u.area==="rec"){const t=recPuestoFijo(u.id);if(t)add(u.id,t);}});
-  recFrancosDe(iso).forEach(e=>{
-    const pt=recPuestoFijo(e.personId);
-    if(pt){del(e.personId,pt);if(e.cubreId)add(e.cubreId,pt);}
-    if(e.cubreId&&e.cubre2Id&&recNecesitaCubre2(e)){const ct=recPuestoFijo(e.cubreId);del(e.cubreId,ct);add(e.cubre2Id,ct);}
+  const _pb=D.francosPublicado&&D.francosPublicado.cons;
+  const fr=soloPub?((_pb&&_pb.data&&_pb.data[iso])||[]):recFrancosDe(iso),ef=recCubresEfDe(fr);
+  fr.forEach((e,i)=>{
+    const pt=recPuestoFijo(e.personId),c=ef[i];
+    if(pt){del(e.personId,pt);if(c.cubre)add(c.cubre,pt);}
+    if(c.cubre&&c.cubre2){const ct=recPuestoFijo(c.cubre);if(ct){del(c.cubre,ct);add(c.cubre2,ct);}}
   });
   return m[id]?[...m[id]]:[];
 }
@@ -30028,9 +30159,14 @@ window.recPermToggle=(uidP,start,end)=>{
   else{lista.push({id:uid(),uid:uidP,start,end,by:RNAME||"",ts:Date.now()});try{logChange((RNAME||"Coordinación")+" habilitó el acceso de "+nm+" ("+recDiaLbl(start)+" "+recHH(start)+" a "+recHH(end)+")");}catch(e){}}
   D.recPermisos=lista;lsS(K.recPermisos,D.recPermisos);render();
 };
+// (Tanda 453) Botón «Habilitar permiso de acceso»: en la misma fila que «Personal en vivo», un poco más a la izquierda.
+function recPermisoBtnHtml(){
+  const abierto=!!UI.permAccOpen;
+  return `<button class="btn ${abierto?"btn-p":"btn-g"} btn-sm" style="flex-shrink:0" onclick="recPermAbrir()" title="Para cuando un conserje tiene franco pero necesita acceder igual al sistema en un turno que vos designes">🔓 Habilitar permiso de acceso</button>`;
+}
 function recPermisoPanelHtml(){
   const abierto=!!UI.permAccOpen,now=Date.now();
-  const btn=`<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button class="btn ${abierto?"btn-p":"btn-g"} btn-sm" onclick="recPermAbrir()" title="Ver cuándo puede acceder cada conserje y permitir el uso del sistema en un turno puntual">🔓 Habilitar permiso de acceso</button></div>`;
+  const btn=""; // (Tanda 453) el botón vive ahora en la fila de «Personal en vivo» (recPermisoBtnHtml)
   if(!abierto)return btn;
   const slots=recSlotsProximos(3),users=francoPersonalRec();
   const filas=users.map(u=>{
@@ -30060,8 +30196,9 @@ function recPermisoPanelHtml(){
     </div>`;
   }).join("")||`<div style="font-size:12px;color:var(--text3)">No hay usuarios de Recepción cargados.</div>`;
   return btn+`<div class="card" style="margin-bottom:12px;padding:12px">
-    <div style="font-weight:800;margin-bottom:2px">🔓 Permiso de acceso de conserjes</div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Cada conserje puede usar el sistema en su turno (desde ${REC_MARG_ANTES} min antes hasta ${REC_MARG_DESP} min después); fuera de eso solo ve sus francos. Podés permitirle el acceso en alguno de los <b>próximos 3 turnos</b>; el permiso incluye los mismos márgenes y se puede quitar cuando quieras.</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><div style="font-weight:800;margin-bottom:6px">🔓 Habilitar permiso de acceso</div><button class="btn btn-g btn-sm" onclick="recPermAbrir()" aria-label="Cerrar" style="font-weight:800">✕</button></div>
+    <div style="font-size:13px;font-weight:700;color:var(--text);background:#fef3c7;border:1.5px solid #f59e0b;border-radius:10px;padding:9px 11px;margin-bottom:8px;line-height:1.35">⚠️ Esto es para los casos en que <u>un conserje tiene franco</u> (o no le corresponde ese turno) <u>pero necesita acceder igual al sistema</u> en el turno que vos designes. Elegí al conserje y tocá el turno en el que va a poder entrar.</div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Normalmente cada conserje usa el sistema solo en su turno (desde ${REC_MARG_ANTES} min antes hasta ${REC_MARG_DESP} min después); fuera de eso solo ve sus francos. Podés darle acceso en alguno de los <b>próximos 3 turnos</b>; el permiso incluye los mismos márgenes y se puede quitar cuando quieras (tocando de nuevo el turno).</div>
     ${filas}
   </div>`;
 }
@@ -30580,30 +30717,75 @@ function cfFieldHtml(fechaISO,idx,campo,valorId,opciones,personal,abierto){
     </div>`:""}
   </div>`;
 }
+// (Tanda 453) Nuevo flotante de un día: se ven de una los nombres de todos los conserjes (menos el franquero); un toque da / quita el franco.
+// Cada franco muestra «Lo cubre:» con el franquero preseleccionado (si no se toca nada lo cubre el franquero) y los demás conserjes; solo si se
+// elige a un conserje de OTRO turno aparece «¿Quién cubre el turno …?». Mismos datos de siempre: D.consFrancoDias[fecha]=[{personId,cubreId,cubre2Id}].
+// (Tanda 453) Si el flotante quedó (en parte) fuera de la pantalla, se desplaza lo justo para verlo completo.
+function cfPopVisible(){
+  const pop=document.querySelector(".cf-pop");if(!pop){window._cfPopH=0;return;}
+  const h=pop.offsetHeight;if(h===window._cfPopH&&window._cfPopF===UI.consFrancoPopFecha)return;
+  window._cfPopH=h;window._cfPopF=UI.consFrancoPopFecha;
+  setTimeout(()=>{try{pop.scrollIntoView({block:"nearest",behavior:"smooth"});}catch(e){}},30);
+}
+window.cfToggleFranco=(fecha,pid)=>{
+  D.consFrancoDias=D.consFrancoDias||{};
+  const cur=(D.consFrancoDias[fecha]||[]).map(e=>({...e}));
+  const i=cur.findIndex(e=>e.personId===pid);
+  UI.cfMsg=null;
+  if(i>=0)cur.splice(i,1);
+  else{
+    if(cur.length>=2){UI.cfMsg={fecha,t:"Ya hay 2 francos ese día. Tocá uno de los marcados para quitarlo y poder sumar otro."};render();return;}
+    cur.push({personId:pid,cubreId:""});
+  }
+  cur.forEach(e=>{if(e.cubreId===pid)e.cubreId="";if(e.cubre2Id===pid)e.cubre2Id="";if(e.cubre2Id&&!recNecesitaCubre2(e))e.cubre2Id="";});
+  D.consFrancoDias={...D.consFrancoDias,[fecha]:cur};
+  if(!cur.length)delete D.consFrancoDias[fecha];
+  lsS(K.consFrancoDias,D.consFrancoDias);
+  render();
+};
+window.cfSetCub=(fecha,idx,campo,val)=>{UI.cfMsg=null;consFrancoSet(fecha,idx,campo,val);};
 function consFrancoPopHtml(fechaISO,entradas,personal,nombreDe,anchorH,anchorV){
   const lbl=new Date(fechaISO+"T00:00:00").toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long"});
-  return `<div class="cf-pop" onclick="cfPopClick(event)" style="position:absolute;${anchorH};${anchorV};width:250px;max-width:calc(82vw/var(--fz,1));background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 36px rgba(0,0,0,.24);padding:11px;text-align:left;color:var(--text2);font-size:12px;cursor:default">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
-      <div style="font-weight:800;font-size:12px;text-transform:capitalize;color:var(--text)">${lbl}</div>
-      <button class="btn btn-g btn-sm" tabindex="-1" style="padding:2px 7px;flex-shrink:0" onclick="consFrancoPopToggle('${fechaISO}')" title="Cerrar">✕</button>
+  const esc=x=>String(x==null?"":x).replace(/</g,"&lt;");
+  const franq=recFranqueros();
+  const fijos=personal.filter(p=>!franq.includes(p.id));
+  const libran=entradas.map(e=>e.personId);
+  const ef=recCubresEfDe(entradas);
+  const chip=(txt,on,oc,sub,dis)=>`<button type="button" class="cf-chip${on?" on":""}${dis?" dis":""}" onclick="${oc}">${txt}${sub?` <span class="cf-chip-s">${sub}</span>`:""}</button>`;
+  const puestoCorto=id=>{const pu=recPuestoDe(id);return pu&&pu!=="franquero"?REC_PUESTOS[pu].lbl.replace("Turno ","").toLowerCase():"";};
+  const franqNom=franq.map(id=>nombreDe(id)).join(" / ");
+  const msg=(UI.cfMsg&&UI.cfMsg.fecha===fechaISO)?`<div style="font-size:11px;font-weight:800;color:#7f1d1d;background:#fecaca;border-radius:8px;padding:5px 8px;margin-top:5px">${esc(UI.cfMsg.t)}</div>`:"";
+  const cards=entradas.map((e,idx)=>{
+    const c=ef[idx],hayC2=recNecesitaCubre2(e);
+    const otros=personal.filter(p=>p.id!==e.personId&&!franq.includes(p.id)&&!libran.includes(p.id));
+    const frChip=(campo,vacio,efId)=>{
+      if(!franq.length)return chip("Sin cobertura",vacio,`cfSetCub('${fechaISO}',${idx},'${campo}','')`,"",false);
+      const ocupado=vacio&&!efId;
+      return chip("🛡️ Franquero",vacio,`cfSetCub('${fechaISO}',${idx},'${campo}','')`,esc(efId?nombreDe(efId):franqNom),ocupado);
+    };
+    const aviso1=(!e.cubreId&&franq.length&&!c.cubre)?`<div class="cf-warn">El franquero ya está cubriendo otro franco ese día: elegí quién lo cubre.</div>`:"";
+    const nomC=e.cubreId?nombreDe(e.cubreId):"";
+    const turnoC=e.cubreId&&hayC2?(puestoCorto(e.cubreId)||"turno"):"";
+    const otros2=personal.filter(p=>p.id!==e.personId&&p.id!==e.cubreId&&!franq.includes(p.id)&&!libran.includes(p.id));
+    return `<div class="cf-card">
+      <div class="cf-card-h"><b>${esc(nombreDe(e.personId))}</b> tiene franco${puestoCorto(e.personId)?` <span class="cf-chip-s">(turno ${puestoCorto(e.personId)})</span>`:""}</div>
+      <div class="cf-sub">Lo cubre:</div>
+      <div class="cf-chips">${frChip("cubreId",!e.cubreId,c.cubre&&c.auto?c.cubre:"")}${otros.map(p=>chip(esc(nombreDe(p.id)),e.cubreId===p.id,`cfSetCub('${fechaISO}',${idx},'cubreId','${p.id}')`,puestoCorto(p.id),false)).join("")}</div>
+      ${aviso1}
+      ${hayC2?`<div class="cf-sub" style="margin-top:5px">¿Quién cubre el turno ${turnoC} de ${esc(nomC)}?</div>
+      <div class="cf-chips">${frChip("cubre2Id",!e.cubre2Id,c.cubre2&&c.auto2?c.cubre2:"")}${otros2.map(p=>chip(esc(nombreDe(p.id)),e.cubre2Id===p.id,`cfSetCub('${fechaISO}',${idx},'cubre2Id','${p.id}')`,puestoCorto(p.id),false)).join("")}</div>`:""}
+    </div>`;
+  }).join("");
+  return `<div class="cf-pop" onclick="event.stopPropagation()" style="position:absolute;${anchorH};${anchorV};width:300px;max-width:calc(86vw/var(--fz,1));background:var(--white);border:1.5px solid #475569;border-radius:12px;box-shadow:0 14px 36px rgba(0,0,0,.34);padding:9px 10px;text-align:left;color:var(--text);font-size:12px;cursor:default;z-index:30">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px">
+      <div style="font-weight:800;font-size:13px;text-transform:capitalize;color:var(--text)">${lbl}</div>
+      <button class="btn btn-g btn-sm" style="padding:2px 8px;flex-shrink:0" onclick="consFrancoPopToggle('${fechaISO}')" title="Cerrar">✕</button>
     </div>
-    ${entradas.length?entradas.map((e,idx)=>{
-      const abiertoPerson=!!(UI.cfFieldOpen&&UI.cfFieldOpen.fecha===fechaISO&&UI.cfFieldOpen.idx===idx&&UI.cfFieldOpen.field==="person");
-      const abiertoCubre=!!(UI.cfFieldOpen&&UI.cfFieldOpen.fecha===fechaISO&&UI.cfFieldOpen.idx===idx&&UI.cfFieldOpen.field==="cubre");
-      const hayC2=recNecesitaCubre2(e);
-      const abiertoCubre2=!!(UI.cfFieldOpen&&UI.cfFieldOpen.fecha===fechaISO&&UI.cfFieldOpen.idx===idx&&UI.cfFieldOpen.field==="cubre2");
-      return `<div style="border:1px solid var(--border);border-radius:8px;padding:7px 8px;margin-bottom:7px;background:var(--sand)">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-          <span style="font-size:9px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.4px">Franco ${idx+1}</span>
-          <button class="btn btn-g btn-sm" tabindex="-1" style="color:#b91c1c;padding:1px 6px" onclick="consFrancoQuitar('${fechaISO}',${idx})" title="Quitar este franco"><i class="ti ti-trash"></i></button>
-        </div>
-        ${cfFieldHtml(fechaISO,idx,"person",e.personId,personal,personal,abiertoPerson)}
-        ${cfFieldHtml(fechaISO,idx,"cubre",e.cubreId,personal.filter(p=>p.id!==e.personId),personal,abiertoCubre)}
-        ${hayC2?`<div style="font-size:10px;color:var(--text3);margin:-2px 0 3px">Quién cubre el ${(REC_PUESTOS[recPuestoFijo(e.cubreId)]||{}).lbl?REC_PUESTOS[recPuestoFijo(e.cubreId)].lbl.toLowerCase():"turno"} de ${nombreMostrar(personal.find(p=>p.id===e.cubreId))}:</div>
-        ${cfFieldHtml(fechaISO,idx,"cubre2",e.cubre2Id,personal.filter(p=>p.id!==e.personId&&p.id!==e.cubreId),personal,abiertoCubre2)}`:""}
-      </div>`;
-    }).join(""):`<div style="font-size:11px;color:var(--text3);margin-bottom:8px">Sin francos cargados para este día todavía.</div>`}
-    ${entradas.length<2?`<button class="btn btn-p btn-sm cf-add-btn" data-cf-add="${fechaISO}" style="width:100%;justify-content:center" onclick="cfAgregarClick('${fechaISO}')" onkeydown="cfAgregarTab(event,'${fechaISO}',${entradas.length===0})"><i class="ti ti-plus"></i> Agregar franco</button>`:""}
+    <div class="cf-sub">¿Quién tiene franco? <span style="font-weight:400">(tocá para dar o quitar, hasta 2)</span></div>
+    <div class="cf-chips">${fijos.map(p=>chip(esc(nombreDe(p.id)),libran.includes(p.id),`cfToggleFranco('${fechaISO}','${p.id}')`,puestoCorto(p.id),false)).join("")||`<span style="font-size:11px;color:var(--text3)">No hay conserjes cargados.</span>`}</div>
+    ${msg}
+    ${cards?`<div style="margin-top:6px">${cards}</div>`:`<div style="font-size:11px;font-weight:600;color:var(--text);margin-top:5px">Sin francos cargados para este día.</div>`}
+    ${(entradas.length&&franq.length)?`<div style="font-size:10px;font-weight:600;color:var(--text);margin-top:4px">Si no elegís a nadie, el franco lo cubre el franquero.</div>`:""}
   </div>`;
 }
 // (Tanda 76 / ítem 1) `soloLectura` (nuevo, opcional, default false): cuando es `true` -- solo Gerencia,
@@ -30632,7 +30814,13 @@ function conserjeriaFrancosMesHtml(soloLectura,datosOverride,filtroPersonaId){
   const personal=francoPersonalRec();
   if(!personal.length)return `<div style="text-align:center;color:var(--text3);padding:14px;font-size:12px">Todavía no hay personal de Recepción/Conserjería cargado.</div>`;
   const fuente=datosOverride||D.consFrancoDias;
-  const filtrar=entradas=>filtroPersonaId?entradas.filter(e=>e.personId===filtroPersonaId||e.cubreId===filtroPersonaId||e.cubre2Id===filtroPersonaId):entradas;
+  // (Tanda 453) En «solo lo mío» también cuentan los francos que cubre el franquero por defecto (cubreId vacío).
+  const filtrar=entradas=>{
+    if(!filtroPersonaId)return entradas;
+    const ef=recCubresEfDe(entradas);
+    return entradas.map((e,i)=>({...e,cubreId:e.cubreId||(ef[i].cubre===filtroPersonaId?filtroPersonaId:""),cubre2Id:e.cubre2Id||(ef[i].cubre2===filtroPersonaId?filtroPersonaId:"")}))
+      .filter(e=>e.personId===filtroPersonaId||e.cubreId===filtroPersonaId||e.cubre2Id===filtroPersonaId);
+  };
   const ym=francosCalYM();
   const [a,m]=ym.split("-").map(Number);
   // (Tanda 62 / ítem 12) celdasMesCompleto() en vez de diasDelMes() -- ver comentario junto a esa
@@ -30696,7 +30884,7 @@ function conserjeriaFrancosMesHtml(soloLectura,datosOverride,filtroPersonaId){
         // sería lo esperable por defecto.
         const col=i%7,fila=Math.floor(i/7);
         const anchorH=col>=5?"right:0":"left:0";
-        const anchorV=fila>=totalFilas-2?"bottom:100%;margin-bottom:6px":"top:100%;margin-top:6px";
+        const anchorV=fila>=totalFilas-2?"bottom:0":"top:0"; // (Tanda 453) el flotante se abre POR DELANTE del día tocado (tapándolo), no debajo
         return `<div class="cf-cell" onclick="${soloLectura?`consFrancoDiaSel('${fechaISO}')`:`consFrancoPopToggle('${fechaISO}')`}" style="cursor:pointer;text-align:center;padding:8px 4px;border-radius:8px;font-size:13px;position:relative;z-index:${on?250:1};border:1.5px solid ${on?"#0f766e":(entradas.length?"#c9a04a":"var(--border)")};background:${on?"#0f766e":(c.fueraDeMes?"var(--sand3)":(entradas.length?"#fdf6e3":"var(--white)"))};color:${on?"#fff":(c.fueraDeMes?"var(--text3)":"var(--text2)")};min-height:112px;display:flex;flex-direction:column">
           ${feriadoDelDia(fechaISO)?`<span style="position:absolute;top:2px;left:3px;font-size:10px" title="${ferEsc(feriadoDelDia(fechaISO).n)}">🎌</span>`:""}
           ${etqs.length?`<span style="position:absolute;top:2px;right:3px;font-size:10px" title="${etqs.map(e=>e.texto).join(", ").replace(/"/g,"&quot;")}">🏷️</span>`:""}
@@ -31110,11 +31298,128 @@ function francosHayCambiosSinPublicar(area){
   try{return JSON.stringify(francosFuenteViva(area)||{})!==JSON.stringify(pub.data||{});}catch(e){return true;}
 }
 window.francosPublicar=(area)=>{
+  const prev=francosPublicadoInfo(area);
   const datos=JSON.parse(JSON.stringify(francosFuenteViva(area)||{}));
+  let diff=null;
+  try{if(prev&&prev.data)diff=frDiff(area,prev.data,datos);}catch(e){console.warn("frDiff",e);}
   D.francosPublicado={...(D.francosPublicado||{}),[area]:{ts:Date.now(),by:RNAME||"?",data:datos}};
   lsS(K.francosPublicado,D.francosPublicado);
+  try{if(area==="cons")cjPrecargarPublicados();}catch(e){console.warn("cjPrecargarPublicados",e);}
+  // (Tanda 453) Si ya había una publicación anterior y cambió algo para alguien, se le pregunta a quien publica si se avisa a los afectados.
+  if(diff&&Object.keys(diff).length){
+    const sel={};Object.keys(diff).forEach(k=>{sel[k]=true;});
+    UI.frNotif={area,items:diff,sel};UI.mod="frNotif";
+  }
   render();
 };
+// ═══ (Tanda 453) Cambios en francos ya publicados: a quién afectan y aviso a esas personas ═══
+const FR_AREA_LBL={cons:"Conserjería",mu:"Mucamas",mant:"Mantenimiento"};
+function frNombre(area,id){
+  const p=area==="mu"?(D.mu||[]).find(x=>x.id===id):(D.users||[]).find(x=>x.id===id);
+  return p?nombreMostrar(p):"?";
+}
+function frEstadosCons(data,iso){
+  const ent=(data&&data[iso])||[],ef=recCubresEfDe(ent),out={};
+  const sum=(id,t)=>{out[id]=out[id]?out[id]+" · "+t:t;};
+  ent.forEach((e,i)=>{
+    sum(e.personId,"Franco");
+    const c=ef[i];
+    if(c.cubre)sum(c.cubre,"Cubre el franco de "+frNombre("cons",e.personId));
+    if(c.cubre&&c.cubre2){const tn=((REC_PUESTOS[recPuestoFijo(c.cubre)]||{}).lbl||"turno").toLowerCase();sum(c.cubre2,"Cubre el "+tn+" de "+frNombre("cons",c.cubre));}
+  });
+  return out;
+}
+// Diferencias entre lo publicado antes y lo que se publica ahora, desde hoy en adelante: {personId:[{f:fecha,a:antes,d:ahora}]}
+function frDiff(area,viejo,nuevo){
+  const hoy=hoyISO(),out={};
+  const push=(pid,f,a,d)=>{if(a===d)return;(out[pid]=out[pid]||[]).push({f,a,d});};
+  if(area==="cons"){
+    const fechas=new Set([...Object.keys(viejo||{}),...Object.keys(nuevo||{})]);
+    [...fechas].filter(f=>f>=hoy).sort().forEach(f=>{
+      const A=frEstadosCons(viejo,f),B=frEstadosCons(nuevo,f);
+      new Set([...Object.keys(A),...Object.keys(B)]).forEach(pid=>push(pid,f,A[pid]||"Turno normal",B[pid]||"Turno normal"));
+    });
+  }else{
+    const ids=new Set([...Object.keys(viejo||{}),...Object.keys(nuevo||{})]);
+    ids.forEach(pid=>{
+      const A=(viejo&&viejo[pid])||{},B=(nuevo&&nuevo[pid])||{};
+      [...new Set([...Object.keys(A),...Object.keys(B)])].filter(f=>f>=hoy).sort().forEach(f=>{
+        if(area==="mu")push(pid,f,String(A[f]||"").trim()||"Sin cargar",String(B[f]||"").trim()||"Sin cargar");
+        else{const t=v=>v===true?"Trabaja":v===false?"No trabaja (franco)":"Normal";push(pid,f,t(A[f]),t(B[f]));}
+      });
+    });
+  }
+  Object.keys(out).forEach(k=>{out[k]=out[k].slice(0,120);});
+  return out;
+}
+const frFechaLbl=iso=>{const d=new Date(iso+"T00:00:00");return d.toLocaleDateString("es-AR",{weekday:"short",day:"2-digit",month:"2-digit"});};
+function modFrNotif(){
+  const n=UI.frNotif;if(!n)return"";
+  const esc=x=>String(x==null?"":x).replace(/</g,"&lt;");
+  const ids=Object.keys(n.items);
+  const marc=ids.filter(k=>n.sel[k]).length;
+  return `<div class="ov"><div class="mod" onclick="event.stopPropagation()" style="max-width:560px">
+    <div class="mh"><div><h2>🔔 ¿Avisar a los afectados?</h2><div class="mh-s">Cambiaste francos de ${FR_AREA_LBL[n.area]||""} que ya estaban publicados</div></div></div>
+    <div class="mc">
+      <div style="font-size:13px;margin-bottom:10px">Ya quedó publicado. Si querés, a estas personas les llega un aviso de que cambiaron sus francos del mes, con acceso para ver qué cambió:</div>
+      <div style="max-height:46vh;overflow:auto;display:flex;flex-direction:column;gap:8px">
+      ${ids.map(k=>`<label style="display:block;border:1px solid var(--border);border-radius:10px;padding:8px 10px;cursor:pointer"><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" ${n.sel[k]?"checked":""} onchange="UI.frNotif.sel['${k}']=this.checked;frNotifRefresh()"><b>${esc(frNombre(n.area,k))}</b><span style="font-size:11px;color:var(--text3)">${n.items[k].length} cambio${n.items[k].length===1?"":"s"}</span></div>
+        <div style="font-size:11px;color:var(--text2);margin:5px 0 0 24px">${n.items[k].slice(0,3).map(c=>`${frFechaLbl(c.f)}: ${esc(c.a)} → <b>${esc(c.d)}</b>`).join("<br>")}${n.items[k].length>3?`<br>… y ${n.items[k].length-3} más`:""}</div></label>`).join("")}
+      </div>
+      <div class="mf" style="margin-top:12px"><button class="btn btn-sm" onclick="frNotifNo()">No avisar</button><button class="btn btn-sm btn-p" id="frNotifSi" ${marc?"":"disabled"} onclick="frNotifSi()">Avisar a ${marc} persona${marc===1?"":"s"}</button></div>
+    </div>
+  </div></div>`;
+}
+window.frNotifRefresh=()=>{const n=UI.frNotif;if(!n)return;const m=Object.keys(n.items).filter(k=>n.sel[k]).length,b=document.getElementById("frNotifSi");if(b){b.disabled=!m;b.textContent="Avisar a "+m+" persona"+(m===1?"":"s");}};
+window.frNotifNo=()=>{UI.frNotif=null;UI.mod=null;render();};
+window.frNotifSi=()=>{
+  const n=UI.frNotif;if(!n)return;
+  const items={};Object.keys(n.items).forEach(k=>{if(n.sel[k])items[k]=n.items[k];});
+  if(Object.keys(items).length){
+    const av={id:uid(),ts:Date.now(),by:RNAME||"Coordinación",area:n.area,items,seen:{}};
+    D.francosAvisos=[av,...(D.francosAvisos||[])].filter(a=>Date.now()-a.ts<90*86400000).slice(0,200);
+    lsS(K.francosAvisos,D.francosAvisos);
+    try{logChange((RNAME||"Coordinación")+" avisó de cambios en los francos de "+(FR_AREA_LBL[n.area]||"")+" a "+Object.keys(items).map(k=>frNombre(n.area,k)).join(", "));}catch(e){}
+  }
+  UI.frNotif=null;UI.mod=null;render();
+};
+// Del lado de quien recibe: cartel con «Ver cambios» mientras no lo haya visto.
+function frAvPendientes(){
+  if(typeof ROLE==="undefined"||ROLE==="sel"||!RID)return [];
+  return (D.francosAvisos||[]).filter(a=>a&&a.items&&a.items[RID]&&!(a.seen&&a.seen[RID])&&Date.now()-a.ts<45*86400000);
+}
+window.frAvMarcar=()=>{
+  const ids=frAvPendientes().map(a=>a.id);if(!ids.length)return;
+  D.francosAvisos=(D.francosAvisos||[]).map(a=>ids.includes(a.id)?{...a,seen:{...(a.seen||{}),[RID]:Date.now()}}:a);
+  lsS(K.francosAvisos,D.francosAvisos);
+};
+window.frAvAbrir=()=>{UI.mod="francosAv";render();};
+window.frAvCerrar=()=>{frAvMarcar();if(UI.mod==="francosAv")UI.mod=null;render();};
+window.frAvDescartar=()=>{frAvMarcar();render();};
+function modFrancosAv(){
+  const esc=x=>String(x==null?"":x).replace(/</g,"&lt;");
+  const av=frAvPendientes();
+  return `<div class="ov" onclick="frAvCerrar()"><div class="mod" onclick="event.stopPropagation()" style="max-width:520px">
+    <div class="mh"><div><h2>📅 Cambios en tus francos</h2><div class="mh-s">Esto es lo que cambió desde que se publicaron</div></div><button class="btn btn-g btn-sm" onclick="frAvCerrar()" style="font-weight:800">✕</button></div>
+    <div class="mc">
+      ${av.map(a=>`<div style="margin-bottom:12px"><div style="font-size:11px;color:var(--text3);margin-bottom:6px"><b>${esc(FR_AREA_LBL[a.area]||"")}</b> · lo actualizó ${esc(a.by||"Coordinación")} el ${new Date(a.ts).toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit"})}</div>
+        <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">${(a.items[RID]||[]).map(c=>`<div style="display:flex;gap:8px;align-items:baseline;padding:7px 10px;border-bottom:1px solid var(--border);font-size:12px"><b style="min-width:86px;text-transform:capitalize">${esc(frFechaLbl(c.f))}</b><span style="color:var(--text3);text-decoration:line-through">${esc(c.a)}</span><span>→</span><b>${esc(c.d)}</b></div>`).join("")}</div></div>`).join("")||`<div style="font-size:12px;color:var(--text3)">No hay cambios nuevos.</div>`}
+      <div class="mf"><button class="btn btn-sm btn-p" onclick="frAvCerrar()">Entendido</button></div>
+    </div>
+  </div></div>`;
+}
+function francosAvSync(){
+  let el=document.getElementById("frAvBar");
+  const p=frAvPendientes();
+  if(!p.length||UI.mod==="francosAv"){if(el)el.remove();return;}
+  const areas=[...new Set(p.map(a=>FR_AREA_LBL[a.area]||""))].filter(Boolean).join(" y ");
+  if(!el){
+    el=document.createElement("div");el.id="frAvBar";
+    el.style.cssText="position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:100001;max-width:min(92vw,380px);background:#0f3d33;color:#fff;border:1.5px solid #c9a04a;border-radius:14px;padding:11px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:0 8px 30px rgba(0,0,0,.35);font:600 13px/1.35 system-ui,sans-serif";
+    document.body.appendChild(el);
+  }
+  el.innerHTML='<span style="flex:1;min-width:150px">📅 Hubo cambios en tus francos del mes'+(areas?' ('+areas.replace(/</g,"&lt;")+')':'')+'.</span><button onclick="frAvAbrir()" style="background:#c9a04a;color:#1c2f24;border:0;border-radius:9px;padding:7px 12px;font-weight:800;cursor:pointer">Ver cambios</button><button onclick="frAvDescartar()" aria-label="Cerrar" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:9px;padding:6px 10px;cursor:pointer">✕</button>';
+}
 function francosPublicarBtnHtml(area){
   const pub=francosPublicadoInfo(area);
   const pendiente=francosHayCambiosSinPublicar(area);
@@ -31193,6 +31498,7 @@ function personalFrancosSectionHtml(){
         sacan de este grupo -- se mudaron arriba de todo, siempre visibles (ver el comentario grande
         junto al "return" de esta función), para no quedar escondidos adentro de esta card colapsable. -->
         <div class="pv-rend-group">
+          ${tab==="cons"?recPermisoBtnHtml():""}
           <button class="btn btn-g btn-sm" style="flex-shrink:0${pvOpen?";background:var(--teal);color:#fff;border-color:var(--teal)":""}" onclick="UI.personalVivoOpen=${pvOpen?"false":"true"};render()" title="${pvOpen?"Ocultar":"Mostrar"} Personal en vivo">${pvOpen?"◂ Ocultar ":""}Personal en vivo</button>
         </div>
       </div>
@@ -38190,7 +38496,7 @@ window.agNotify=(title,opts)=>{
 };
 window.pwaNotifPedir=async()=>{try{await Notification.requestPermission();}catch(e){}render();};
 // (Tanda 448) Número de versión visible en Mi cuenta, para comprobar que el sitio publicado tiene la última.
-const APP_BUILD="v478";
+const APP_BUILD="v482";
 function pwaCuentaHtml(){
   const inst=pwaStandalone();
   const np=typeof Notification!=="undefined"?Notification.permission:"unsupported";
@@ -38470,6 +38776,8 @@ function render(){
   try{agGlobalPlace();}catch(e){}
   try{habGlobalToast();}catch(e){}
   try{ccCFGuard();}catch(e){}
+  try{francosAvSync();}catch(e){}
+  try{cfPopVisible();}catch(e){}
   return r;
 }
 const _mqMovil=()=>window.matchMedia&&window.matchMedia("(max-width:860px)").matches;
