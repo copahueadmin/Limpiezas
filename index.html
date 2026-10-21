@@ -3363,7 +3363,7 @@ body.ac-big .rec .ppdd-panel{left:0!important;right:auto!important;max-width:min
 <style id="bootCss">
 #boot-splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;background:radial-gradient(circle at 28% 18%,rgba(241,231,210,.92),rgba(241,231,210,0) 55%),linear-gradient(150deg,#efe6d2 0%,#e8d9b9 34%,#dcbf84 62%,#caa54f 84%,#b88f38 100%);opacity:1;transition:opacity .55s ease,visibility .55s}
 #boot-splash.bs-dark{background:radial-gradient(circle at 28% 18%,rgba(201,160,74,.16),rgba(201,160,74,0) 55%),linear-gradient(150deg,#14110c 0%,#1a150d 34%,#241c10 62%,#2f2412 84%,#3a2c14 100%)}
-#boot-splash .bs-l-oscuro{display:none}#boot-splash.bs-dark .bs-l-oscuro{display:block}#boot-splash.bs-dark .bs-l-claro{display:none}
+#boot-splash img.bs-logo.bs-l-oscuro{display:none!important}#boot-splash.bs-dark img.bs-logo.bs-l-oscuro{display:block!important}#boot-splash.bs-dark img.bs-logo.bs-l-claro{display:none!important}
 #boot-splash.bs-out{opacity:0;visibility:hidden;pointer-events:none}
 #boot-splash .bs-logo{width:230px;max-width:62vw;height:auto;display:block;filter:drop-shadow(0 3px 12px rgba(120,90,20,.22));animation:bsIn .9s ease-out both,bsPulse 2.6s ease-in-out .9s infinite}
 #boot-splash .bs-bar{width:150px;height:3px;border-radius:3px;background:rgba(80,60,20,.18);overflow:hidden}
@@ -7187,14 +7187,37 @@ try{
 // Devuelve una Promise que nunca "explota" el flujo que la llama: ante cualquier error (función no
 // desplegada, dominio sin verificar, sin conexión, etc.) resuelve en falso.
 function sendEmailWithPdf({to,subject,text,html,pdfBase64,pdfFilename}){
+  window._mailErr=null;
   return fetch("/.netlify/functions/send-email",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({to,subject,text,html,pdfBase64,pdfFilename}),
-  }).then(r=>{
-    if(!r.ok){console.warn("No se pudo enviar el mail -- respuesta de la función:",r.status);return false;}
+  }).then(async r=>{
+    if(r.ok&&/text\/html/i.test(r.headers.get("content-type")||"")){window._mailErr={status:404,det:{raw:"html"}};console.warn("La dirección de la función devolvió una página, no la función (¿no está publicada?)");return false;}
+    if(!r.ok){
+      let det=null;try{const t=await r.text();try{det=JSON.parse(t);}catch(_){det={raw:t.slice(0,200)};}}catch(_){}
+      window._mailErr={status:r.status,det};
+      console.warn("No se pudo enviar el mail -- respuesta de la función:",r.status,det);return false;
+    }
     return true;
-  }).catch(err=>{console.warn("No se pudo enviar el mail (¿el sitio está desplegado en Netlify con la función y RESEND_API_KEY configuradas?):",err);return false;});
+  }).catch(err=>{window._mailErr={status:0,det:{raw:String(err)}};console.warn("No se pudo enviar el mail (sin respuesta de la función):",err);return false;});
+}
+// (Tanda 446) Texto claro de por qué falló el último envío, según lo que respondió la función de Netlify / Resend.
+function mailErrMsg(){
+  const e=window._mailErr;const base="No se pudo enviar el mail";
+  if(!e)return base+".";
+  const d=e.det||{};const rd=d.detail||{};
+  const rmsg=String(rd.message||rd.error||d.error||d.raw||"").slice(0,160);
+  let c;
+  if(e.status===0)c="no hubo respuesta de la función de envío (¿sin internet, o la app está abierta fuera del sitio publicado en Netlify?)";
+  else if(e.status===404||(e.status===200&&/<html/i.test(rmsg)))c="la función «send-email» no existe en el sitio de Netlify (falta la carpeta netlify/functions en el repositorio de GitHub, o Netlify no la desplegó)";
+  else if(e.status===405)c="la dirección de envío respondió «método no permitido» (revisar que sea la función send-email del sitio)";
+  else if(e.status===500&&/RESEND_API_KEY/.test(rmsg))c="Netlify no ve la variable RESEND_API_KEY (el nombre tiene que ser exactamente ese, con alcance «Functions», y hace falta un nuevo deploy después de guardarla)";
+  else if(e.status===401||e.status===403)c="Resend rechazó la clave o el remitente ("+rmsg+"): clave inválida, o el dominio hotelcopahue.com no está verificado en Resend";
+  else if(e.status===422)c="Resend rechazó el envío ("+rmsg+"): suele ser dominio sin verificar o una dirección mal escrita";
+  else if(e.status===413||e.status===502||e.status===504)c="el PDF es demasiado pesado para la función de Netlify o tardó demasiado (código "+e.status+")";
+  else c="código "+e.status+(rmsg?" — "+rmsg:"");
+  return base+": "+c+".";
 }
 const CLOUD_KEYS=[...Object.values(K).filter(k=>k!==K.ver),"ch_rdx","ch_speedguide"];
 const _pendingLocal={};
@@ -9916,7 +9939,7 @@ window.enviarAvisoCocherasPrueba=()=>{
   const {base64,filename}=buildCocheraAvisoPDF(D.coch||[]);
   sendEmailWithPdf({to:"giuliano.zolvini@hotelcopahue.com, administracion@hotelcopahue.com",subject:`(PRUEBA) ${asunto}`,text:`*** Este es un envío de PRUEBA, disparado manualmente por un administrador. ***\n\n${mensaje}`,pdfBase64:base64,pdfFilename:filename}).then(ok=>{
     if(ok)alert("Aviso de PRUEBA enviado por mail a giuliano.zolvini@hotelcopahue.com y administracion@hotelcopahue.com, con el PDF adjunto.");
-    else alert("No se pudo enviar el mail de prueba (¿el sitio está desplegado en Netlify con Resend configurado?).");
+    else alert(mailErrMsg().replace("enviar el mail","enviar el mail de prueba"));
   });
 };
 window.cochToastAction=(id,action)=>{
@@ -10043,7 +10066,7 @@ window.enviarBlancosAhora=()=>{
     D.blancosReportSent={date:dateKey};
     lsS(K.blancosReportSent,D.blancosReportSent);
     if(ok)alert("Informe de blancos enviado por mail a administracion@hotelcopahue.com y giuliano.zolvini@hotelcopahue.com, con el PDF adjunto.");
-    else alert("No se pudo enviar el mail (¿el sitio está desplegado en Netlify con Resend configurado?). Igualmente quedó marcado como enviado hoy para no duplicar el envío automático de las 6:59hs.");
+    else alert(mailErrMsg()+" Igualmente quedó marcado como enviado hoy para no duplicar el envío automático de las 6:59hs.");
     render();
   });
 };
@@ -17285,7 +17308,7 @@ window.blRepPreview=(fecha)=>{
     send:()=>{
       const to=blRepDest();
       if(!to){return Promise.resolve({ok:false,msg:"Cargá al menos un email de destino antes de enviar."});}
-      return sendEmailWithPdf({to,subject:"Blancos entregados — "+fecha,text:"Detalle de blancos entregados por el lavadero el "+fecha+":\n\n"+resumen,pdfBase64:base64,pdfFilename:filename}).then(ok=>({ok,msg:ok?"Enviado correctamente a "+to:"No se pudo enviar el mail (¿el sitio está desplegado en Netlify con Resend configurado?)."}));
+      return sendEmailWithPdf({to,subject:"Blancos entregados — "+fecha,text:"Detalle de blancos entregados por el lavadero el "+fecha+":\n\n"+resumen,pdfBase64:base64,pdfFilename:filename}).then(ok=>({ok,msg:ok?"Enviado correctamente a "+to:mailErrMsg()}));
     }});
 };
 // Vista previa genérica de un PDF (se dibuja encima de cualquier modal abierto). opts: {title,b64,filename,send?,sendLabel?,destField?}
@@ -24127,6 +24150,8 @@ const FAC_CAMPOS=[
 // (Tanda 436) Bloques ("aglomeraciones") del informe. Cada uno puede sumar ítems propios (D.facItems[g]=[{id,l}]),
 // cuyo importe se guarda en el mes como rec["x_<g>_<id>"] (con la etiqueta en rec.xl para que el mes conserve el nombre si el ítem se quita después).
 const FAC_COL={datos:"59,130,246",aloj:"16,150,120",coch:"217,119,6",event:"139,92,246",comis:"219,39,119"};
+// (Tanda 446) Paleta sobria, en tonos de la marca (verde bosque, dorado, marrón, arena), solo para el PDF que se descarga / se envía por mail.
+const FAC_COL_PDF={datos:"92,102,110",aloj:"52,92,72",coch:"176,138,62",event:"112,78,58",comis:"122,116,80"};
 const FAC_GRUPOS=[
   {g:"aloj",t:"Ingresos por Alojamiento",tot:"Total Alojamiento Neto",tk:"alojTotal"},
   {g:"coch",t:"Ingresos por Cocheras",tot:"Total Cocheras Neto",tk:"cocherasTotal"},
@@ -24372,7 +24397,7 @@ function buildFacturacionPDF(ym){
   const [yy,mm]=ym.split("-");
   const mesLbl=new Date(Number(yy),Number(mm)-1,1).toLocaleDateString("es-AR",{month:"long",year:"numeric"});
   const W=595,H=842,M=40,CW=W-2*M;
-  const rgb=k=>FAC_COL[k].split(",").map(Number);
+  const rgb=k=>FAC_COL_PDF[k].split(",").map(Number);
   const mix=(c,t)=>c.map(v=>Math.round(v*t+255*(1-t)));
   let y=44;
   const nuevaPag=(h)=>{if(y+h>H-46){doc.addPage();y=44;}};
@@ -24396,7 +24421,7 @@ function buildFacturacionPDF(ym){
     const col=rgb(g),n=filas.length,rows=Math.ceil(n/2);
     const h=30+rows*38+6;
     nuevaPag(h);
-    const f=mix(col,.13),bd=mix(col,.6);
+    const f=mix(col,.09),bd=mix(col,.45);
     doc.setFillColor(f[0],f[1],f[2]);doc.setDrawColor(bd[0],bd[1],bd[2]);doc.setLineWidth(1);
     doc.roundedRect(M,y,CW,h,8,8,"FD");
     doc.setFillColor(col[0],col[1],col[2]);
@@ -24501,7 +24526,7 @@ window.facRepSendEmail=(ym)=>{
   UI.facRepErr="";
   facRepEnviarImpl(ym,to,false).then(ok=>{
     UI.facRepSentOk=ok?ym:null;
-    if(!ok)UI.facRepErr="No se pudo enviar el mail (¿el sitio está desplegado en Netlify con la función y RESEND_API_KEY configuradas?).";
+    if(!ok)UI.facRepErr=mailErrMsg();
     render();
     setTimeout(()=>{if(UI.facRepSentOk===ym){UI.facRepSentOk=null;render();}},4000);
   });
@@ -24515,7 +24540,7 @@ window.facInfEnviar=()=>{
   UI.facInfBusy=true;UI.facInfMsg=null;UI.facInfTo=to;render();
   facRepEnviarImpl(ym,to,true).then(ok=>{
     UI.facInfBusy=false;
-    UI.facInfMsg=ok?{t:"ok",m:"✓ Enviado a "+to+". Quedó guardado para sugerirlo la próxima vez."}:{t:"err",m:"No se pudo enviar el mail (¿el sitio está desplegado en Netlify con la función y RESEND_API_KEY configuradas?)."};
+    UI.facInfMsg=ok?{t:"ok",m:"✓ Enviado a "+to+". Quedó guardado para sugerirlo la próxima vez."}:{t:"err",m:mailErrMsg()};
     render();
   }).catch(()=>{UI.facInfBusy=false;UI.facInfMsg={t:"err",m:"No se pudo enviar el mail."};render();});
 };
@@ -25254,7 +25279,7 @@ window.cjMailSend=()=>{
   const html='<div style="font-family:Arial,sans-serif;font-size:14px;color:#222"><p>Hola,</p><p>Se adjunta el informe de entrega de efectivo correspondiente a <b>'+mes+'</b>.</p><p style="color:#777;font-size:12px">'+CJ_NOTA_MAIL+'</p><p style="color:#777;font-size:12px">Hotel Copahue — enviado desde el sistema.</p></div>';
   sendEmailWithPdf({to:to.join(","),subject:"Informe de entrega de efectivo — "+mes,text:"Se adjunta el informe de entrega de efectivo de "+mes+".\n\n"+CJ_NOTA_MAIL,html,pdfBase64:pdf.base64,pdfFilename:pdf.filename}).then(ok=>{
     if(!UI.cjMail||UI.cjMail.id!==m.id){return;}
-    if(!ok){m.busy=false;m.err="No se pudo enviar el mail (¿el sitio está desplegado en Netlify con la función y RESEND_API_KEY configuradas?).";cjMailPatch();return;}
+    if(!ok){m.busy=false;m.err=mailErrMsg();cjMailPatch();return;}
     cjMesUpd(s.ym,mm=>{mm.inf=(mm.inf||[]).map(x=>x.id===s.id?{...x,mails:[...(x.mails||[]),{ts:Date.now(),to:to.join(", "),by:RNAME||""}]}:x);});
     UI.cjMail=null;closeMod();
     const hs=document.getElementById("cjHist");if(hs)hs.innerHTML=cjHistHtml();
@@ -32869,7 +32894,7 @@ window.enviarInforme=()=>{
       logChange(`Informe diario enviado por mail (${ti.label})`);
     }
     if(ok)alert("Informe enviado por mail a jose.bazzani@hotelcopahue.com y giuliano.zolvini@hotelcopahue.com, con el PDF adjunto.");
-    else alert("No se pudo enviar el mail (¿el sitio está desplegado en Netlify con Resend configurado?). El informe quedó igual marcado como enviado para poder cerrar sesión -- avisá al administrador para completar la configuración.");
+    else alert(mailErrMsg()+" El informe quedó igual marcado como enviado para poder cerrar sesión -- avisá al administrador para completar la configuración.");
     render();
   });
 };
@@ -32883,7 +32908,7 @@ window.enviarInformePrueba=()=>{
   const {base64,filename}=buildInformePDF();
   sendEmailWithPdf({to:"jose.bazzani@hotelcopahue.com, giuliano.zolvini@hotelcopahue.com",subject:`(PRUEBA) ${asunto}`,text:`*** Este es un envío de PRUEBA, disparado manualmente por un administrador. ***\n\n${mensaje}`,pdfBase64:base64,pdfFilename:filename}).then(ok=>{
     if(ok)alert("Informe de PRUEBA enviado por mail a jose.bazzani@hotelcopahue.com y giuliano.zolvini@hotelcopahue.com, con el PDF adjunto.");
-    else alert("No se pudo enviar el mail de prueba (¿el sitio está desplegado en Netlify con Resend configurado?).");
+    else alert(mailErrMsg().replace("enviar el mail","enviar el mail de prueba"));
   });
 };
 
@@ -38090,6 +38115,34 @@ window.pwaInstall=async()=>{if(!_pwaPrompt)return;try{_pwaPrompt.prompt();await 
 if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol)&&window.top===window){
   window.addEventListener("load",()=>{navigator.serviceWorker.register("/sw.js").then(r=>{_swReg=r;}).catch(()=>{});});
 }
+// (Tanda 446) Aviso de «hay una versión nueva» para quien tiene la app abierta con una versión anterior.
+// Cada tanto se pide solo el encabezado (HEAD, sin descargar la página) de la dirección principal y se compara su ETag/Last-Modified
+// con el que tenía al abrir; si cambió, aparece un cartel abajo con «Actualizar ahora». No recarga solo para no cortar lo que la persona está haciendo.
+(function(){
+  if(!/^https?:$/.test(location.protocol)||window.top!==window)return;
+  let base=null,shown=false,snoozeUntil=0,last=0;
+  const sig=r=>r.headers.get("etag")||r.headers.get("last-modified")||"";
+  async function head(){try{const r=await fetch("/",{method:"HEAD",cache:"no-store"});return r.ok?sig(r):"";}catch(_){return"";}}
+  function banner(){
+    if(shown||document.getElementById("appUpdBar"))return;shown=true;
+    const d=document.createElement("div");d.id="appUpdBar";
+    d.style.cssText="position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:100000;max-width:min(92vw,520px);background:#1c2f24;color:#fff;border:1.5px solid #c9a04a;border-radius:14px;padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;box-shadow:0 8px 30px rgba(0,0,0,.35);font:600 13.5px/1.35 system-ui,sans-serif";
+    d.innerHTML='<span style="flex:1;min-width:180px">🔄 Hay una versión nueva del sistema disponible.</span><button id="appUpdGo" style="background:#c9a04a;color:#1c2f24;border:0;border-radius:9px;padding:8px 14px;font-weight:800;cursor:pointer">Actualizar ahora</button><button id="appUpdLater" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:9px;padding:8px 12px;cursor:pointer">Después</button>';
+    document.body.appendChild(d);
+    document.getElementById("appUpdGo").onclick=()=>{try{navigator.serviceWorker&&navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{});}catch(_){}location.reload();};
+    document.getElementById("appUpdLater").onclick=()=>{d.remove();shown=false;snoozeUntil=Date.now()+30*60*1000;};
+  }
+  async function check(){
+    if(Date.now()<snoozeUntil||document.hidden||Date.now()-last<45000)return;last=Date.now();
+    const s2=await head();if(!s2)return;
+    if(base===null){base=s2;return;}
+    if(s2!==base)banner();
+  }
+  window.addEventListener("load",()=>{setTimeout(check,4000);});
+  setInterval(check,10*60*1000);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)check();});
+  window._appUpdCheck=()=>{last=0;snoozeUntil=0;return check();};
+})();
 // Avisos del sistema operativo: en Android el constructor "new Notification" no funciona, hay que pasar por el service worker.
 window.agNotify=(title,opts)=>{
   try{
