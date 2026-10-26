@@ -44406,17 +44406,15 @@ function plSvg(fid,o){
   if(o.roomEdit){ // (Tanda 492/505) modo «Medidas de ambientes»: cada TRAMO exterior de pared se arrastra por separado (se puede partir una pared con «✂ Cortar pared»)
     const segs=plRmSegs(items),T=8,cutM=!!UI.plRmCut;
     segs.sort((p,q)=>(q.b-q.a)-(p.b-p.a)); // los tramos cortos quedan arriba de los largos (el más específico gana)
-    const tk={};
     segs.forEach(s=>{const hz=s.k==="t"||s.k==="b",A=`data-fl="${fid}" data-sid="${s.id}" data-h="${s.k}" data-c="${s.c}" data-a="${s.a}" data-b="${s.b}"`,len=s.b-s.a;
       const x0=hz?s.a:s.c,y0=hz?s.c:s.a;
       bh+=`<rect class="pl-rh${cutM?" pl-rc":""}" ${A} x="${(hz?x0:x0-T/2).toFixed(1)}" y="${(hz?y0-T/2:y0).toFixed(1)}" width="${(hz?len:T).toFixed(1)}" height="${(hz?T:len).toFixed(1)}" fill="transparent"/>`
         +`<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${(hz?x0+len:x0).toFixed(1)}" y2="${(hz?y0:y0+len).toFixed(1)}" stroke="${cutM?"#c2410c":"#1d7a6b"}" stroke-width="1.5" stroke-dasharray="4 2" style="pointer-events:none"/>`;
       const kl=Math.min(12,len*.6),kc=(s.a+s.b)/2;
       bh+=hz?`<rect x="${(kc-kl/2).toFixed(1)}" y="${(s.c-2.5).toFixed(1)}" width="${kl.toFixed(1)}" height="5" rx="2" fill="#fff" stroke="#1d7a6b" stroke-width="1.2" style="pointer-events:none"/>`:`<rect x="${(s.c-2.5).toFixed(1)}" y="${(kc-kl/2).toFixed(1)}" width="5" height="${kl.toFixed(1)}" rx="2" fill="#fff" stroke="#1d7a6b" stroke-width="1.2" style="pointer-events:none"/>`;
-      [s.a,s.b].forEach(p=>{const key=s.id+"|"+s.k+"|"+s.c+"|"+p;(tk[key]=tk[key]||[]).push(s);});
     });
-    Object.keys(tk).forEach(key=>{const L=tk[key];if(L.length<2)return;const s=L[0],hz=s.k==="t"||s.k==="b",p=+key.split("|")[3]; // corte: dos tramos del mismo ambiente se tocan
-      bh+=hz?`<line x1="${p}" y1="${s.c-5}" x2="${p}" y2="${s.c+5}" stroke="#c2410c" stroke-width="2" style="pointer-events:none"/>`:`<line x1="${s.c-5}" y1="${p}" x2="${s.c+5}" y2="${p}" stroke="#c2410c" stroke-width="2" style="pointer-events:none"/>`;});
+    items.forEach(it=>{plRmRuns(it).cuts.forEach(c=>{const hz=c.k==="t"||c.k==="b"; // corte: dos tramos del mismo ambiente se tocan donde no había límite de fábrica
+      bh+=hz?`<line x1="${c.p}" y1="${c.c-5}" x2="${c.p}" y2="${c.c+5}" stroke="#c2410c" stroke-width="2" style="pointer-events:none"/>`:`<line x1="${c.c-5}" y1="${c.p}" x2="${c.c+5}" y2="${c.p}" stroke="#c2410c" stroke-width="2" style="pointer-events:none"/>`;});});
   }
   // puntos técnicos
   let pts="";
@@ -44765,9 +44763,31 @@ window.plCornerToggle=(sid,x,y,rd,cx,ev)=>{
 // ═══ (Tanda 482) Arrastrar el texto de cada ambiente: ov[id].tp=[dx,dy] (unidades del plano, respecto del centro automático) ═══
 window.plTxMoveToggle=()=>{UI.plTxMove=!UI.plTxMove;render();};
 // ═══ (Tanda 492) Medidas de ambientes: ov[id].rr = rectángulos reemplazados (agrandar/achicar desde cualquier lado exterior; opcionalmente mueve la pared del vecino) ═══
-window.plRmToggle=()=>{if(!plManager())return;UI.plRmMode=!UI.plRmMode;if(!UI.plRmMode)UI.plRmCut=false;render();};
-window.plRmCutToggle=()=>{if(!plManager())return;UI.plRmCut=!UI.plRmCut;render();};
+window.plRmToggle=()=>{if(!plManager())return;UI.plRmMode=!UI.plRmMode;if(!UI.plRmMode){UI.plRmCut=false;UI.plRmMeas=false;}render();};
+window.plRmMeasToggle=()=>{if(!plManager())return;UI.plRmMeas=!UI.plRmMeas;if(UI.plRmMeas)UI.plRmCut=false;render();};
+window.plRmCutToggle=()=>{if(!plManager())return;UI.plRmCut=!UI.plRmCut;if(UI.plRmCut)UI.plRmMeas=false;render();};
 function plRmMembers(fid){return PLANO_BASE.filter(b=>b.f===fid).map(b=>({id:b.id,own:plOwnerId(b.id),R:plRectsOf(b).map(q=>q.slice())}));}
+// (Tanda 507) límites de fábrica de un ambiente (esquinas/uniones de sus rectángulos originales): no cuentan como cortes
+function plRmNat(item){
+  const set=new Set(),f=v=>Math.round(v*10)/10;
+  item.miembros.forEach(id=>{const b=_plIdx[id];if(!b)return;b.r.forEach(q=>{
+    [["l",q[0],q[1]],["l",q[0],q[3]],["r",q[2],q[1]],["r",q[2],q[3]],["t",q[1],q[0]],["t",q[1],q[2]],["b",q[3],q[0]],["b",q[3],q[2]]].forEach(a=>set.add(a[0]+"|"+f(a[1])+"|"+f(a[2])));});});
+  return set;
+}
+// tramos de pared de un ambiente como los ve el usuario: de esquina a corte, de corte a corte o de corte a esquina. cuts = [{k,c,p}]
+function plRmRuns(item){
+  const segs=plRmSegs([item]),nat=plRmNat(item),f=v=>Math.round(v*10)/10,g={},runs=[],cuts=[];
+  segs.forEach(s=>{(g[s.k+"|"+s.c]=g[s.k+"|"+s.c]||[]).push(s);});
+  Object.keys(g).forEach(key=>{const L=g[key].sort((x,y)=>x.a-y.a);let cur=null;
+    L.forEach(s=>{
+      if(cur&&Math.abs(s.a-cur.b)<.5){
+        if(nat.has(s.k+"|"+s.c+"|"+f(cur.b))){cur.b=s.b;return;}
+        cuts.push({k:s.k,c:s.c,p:cur.b});runs.push(cur);cur=Object.assign({},s);
+      }else{if(cur)runs.push(cur);cur=Object.assign({},s);}
+    });
+    if(cur)runs.push(cur);});
+  return {runs,cuts};
+}
 // (Tanda 505) Tramos exteriores de pared de cada ambiente: [{id,k:"l|r|t|b",c,a,b}] (c = coordenada de la pared, a..b = tramo). Cada rectángulo aporta el pedazo de lado que no toca otro rectángulo del mismo ambiente.
 function plRmSegs(items){
   const EPS=.8,out=[];
@@ -44884,7 +44904,7 @@ window.plRmReset=()=>{
   const css=document.createElement("style");css.textContent=".pl-rh{touch-action:none}.pl-rh[data-h=l],.pl-rh[data-h=r]{cursor:ew-resize}.pl-rh[data-h=t],.pl-rh[data-h=b]{cursor:ns-resize}.pl-rh.pl-rc{cursor:crosshair!important}";document.head.appendChild(css);
   const fmt=v=>(Math.round(v/21.41*100)/100).toFixed(2).replace(".",",");
   document.addEventListener("pointerdown",ev=>{
-    if(!UI.plRmMode||!plManager())return;
+    if(!UI.plRmMode||!plManager()||UI.plRmMeas||(ev.pointerType==="mouse"&&ev.button!==0))return;
     const h=ev.target&&ev.target.closest?ev.target.closest(".pl-rh"):null;if(!h)return;
     const svg=h.closest("svg.pl-svg"),m=svg&&svg.getScreenCTM();if(!m)return;
     const hh=h.dataset.h,c0=+h.dataset.c,sa=+h.dataset.a,sb=+h.dataset.b;
@@ -44928,6 +44948,104 @@ window.plRmReset=()=>{
     plSave();render();
   };
   document.addEventListener("pointerup",end,true);document.addEventListener("pointercancel",end,true);
+})();
+(function(){
+  if(window.__plRmMeas)return;window.__plRmMeas=1;
+  const NS="http://www.w3.org/2000/svg",fmt=v=>(Math.round(v/21.41*100)/100).toFixed(2).replace(".",",")+" m";
+  const mk=(n,a)=>{const e=document.createElementNS(NS,n);Object.keys(a||{}).forEach(k=>e.setAttribute(k,a[k]));return e;};
+  const pt=(svg,ev)=>{const q=svg.createSVGPoint();q.x=ev.clientX;q.y=ev.clientY;const r=q.matrixTransform(svg.getScreenCTM().inverse());return [r.x,r.y];};
+  const css=document.createElement("style");css.textContent=".pl-rm-meas .pl-rh{cursor:crosshair!important}";document.head.appendChild(css);
+  const txt=(g,x,y,s,o)=>{o=o||{};const t=mk("text",{x:x,y:y,"text-anchor":"middle","font-size":o.fs||6.6,"font-weight":"700",fill:o.c||"#0d4d42",stroke:"#fff","stroke-width":"2.4","paint-order":"stroke","stroke-linejoin":"round"});
+    if(o.rot)t.setAttribute("transform","rotate(-90 "+x+" "+y+")");t.style.pointerEvents="none";t.textContent=s;g.appendChild(t);return t;};
+  // ── 1) al pasar el cursor sobre un ambiente: medida de cada tramo de pared (esquina–corte, corte–corte, corte–esquina) ──
+  let hov=null,hovId=null;
+  function hovClear(){if(hov&&hov.parentNode)hov.parentNode.removeChild(hov);hov=null;hovId=null;}
+  function hovAt(svg,p){
+    const fid=svg.getAttribute("data-fl"),items=plFloor(fid);
+    const it=items.find(i=>i.rects.some(q=>p[0]>=q[0]&&p[0]<=q[2]&&p[1]>=q[1]&&p[1]<=q[3]));
+    if(!it){hovClear();return;}
+    const key=fid+"|"+it.e.id+"|"+JSON.stringify(it.rects);if(hov&&hov.isConnected&&hovId===key)return;
+    hovClear();hovId=key;
+    const g=mk("g",{class:"pl-rmhov"});g.style.pointerEvents="none";
+    const R=plRmRuns(it);
+    // contorno del ambiente resaltado
+    try{g.appendChild(mk("path",{d:plShape(it.rects,.9,7,it.e.cv,it.e.cr).d,fill:"rgba(124,58,237,.07)",stroke:"#7c3aed","stroke-width":"1.2"}));}catch(e){}
+    R.runs.forEach(s=>{const len=s.b-s.a;if(len<2)return;const hz=s.k==="t"||s.k==="b",ins=s.k==="t"||s.k==="l"?1:-1,off=4*ins,fs=len<14?4.6:6.6;
+      const c2=s.c+off;
+      if(hz){g.appendChild(mk("line",{x1:s.a,y1:c2,x2:s.b,y2:c2,stroke:"#7c3aed","stroke-width":".8"}));[s.a,s.b].forEach(x=>g.appendChild(mk("line",{x1:x,y1:c2-2.2,x2:x,y2:c2+2.2,stroke:"#7c3aed","stroke-width":".8"})));
+        txt(g,(s.a+s.b)/2,c2+fs*.34,fmt(len),{fs,c:"#4c1d95"});}
+      else{g.appendChild(mk("line",{x1:c2,y1:s.a,x2:c2,y2:s.b,stroke:"#7c3aed","stroke-width":".8"}));[s.a,s.b].forEach(y=>g.appendChild(mk("line",{x1:c2-2.2,y1:y,x2:c2+2.2,y2:y,stroke:"#7c3aed","stroke-width":".8"})));
+        txt(g,c2+fs*.34,(s.a+s.b)/2,fmt(len),{fs,c:"#4c1d95",rot:1});}
+    });
+    svg.appendChild(g);hov=g;
+  }
+  // ── 2) regla: clic derecho (o botón «📏 Medir» con el mouse/dedo): arrastrar de un punto a otro; un clic derecho sin mover mide el ambiente de lado a lado ──
+  let ms=null,mg=null;
+  function mClear(){if(mg&&mg.parentNode)mg.parentNode.removeChild(mg);mg=null;}
+  function snap(svg,p){
+    const fid=svg.getAttribute("data-fl"),xs=[],ys=[];
+    plFloor(fid).forEach(it=>it.rects.forEach(q=>{xs.push(q[0],q[2]);ys.push(q[1],q[3]);}));
+    let x=p[0],y=p[1],bx=3,by=3;
+    xs.forEach(v=>{const d=Math.abs(v-p[0]);if(d<bx){bx=d;x=v;}});ys.forEach(v=>{const d=Math.abs(v-p[1]);if(d<by){by=d;y=v;}});
+    return [Math.round(x*10)/10,Math.round(y*10)/10];
+  }
+  function drawLine(svg,a,b){
+    mClear();const g=mk("g",{class:"pl-rmeas"});g.style.pointerEvents="none";
+    const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy);
+    g.appendChild(mk("line",{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:"#7c3aed","stroke-width":"1.4","stroke-dasharray":"4 2"}));
+    [a,b].forEach(q=>g.appendChild(mk("circle",{cx:q[0],cy:q[1],r:2.2,fill:"#fff",stroke:"#7c3aed","stroke-width":"1.4"})));
+    if(L>1){txt(g,(a[0]+b[0])/2,(a[1]+b[1])/2-4,fmt(L),{fs:8,c:"#4c1d95"});
+      if(Math.abs(dx)>.5&&Math.abs(dy)>.5)txt(g,(a[0]+b[0])/2,(a[1]+b[1])/2+5,"↔ "+fmt(Math.abs(dx))+" · ↕ "+fmt(Math.abs(dy)),{fs:6,c:"#6d28d9"});}
+    svg.appendChild(g);mg=g;
+  }
+  // tramo continuo del ambiente que contiene a v sobre un eje (ax=0 → horizontal en la altura w; ax=1 → vertical en la posición w)
+  function span(it,ax,w,v){
+    const iv=[];it.rects.forEach(q=>{if(q[1-ax]<=w+.01&&q[3-ax]>=w-.01)iv.push([q[ax],q[ax+2]]);});
+    iv.sort((x,y)=>x[0]-y[0]);let cur=null;const out=[];
+    iv.forEach(s=>{if(cur&&s[0]<=cur[1]+.6)cur[1]=Math.max(cur[1],s[1]);else{if(cur)out.push(cur);cur=s.slice();}});if(cur)out.push(cur);
+    return out.find(s=>v>=s[0]-.01&&v<=s[1]+.01)||null;
+  }
+  function drawSpans(svg,p){
+    mClear();const fid=svg.getAttribute("data-fl"),it=plFloor(fid).find(i=>i.rects.some(q=>p[0]>=q[0]&&p[0]<=q[2]&&p[1]>=q[1]&&p[1]<=q[3]));
+    const g=mk("g",{class:"pl-rmeas"});g.style.pointerEvents="none";
+    if(it){
+      const sh=span(it,0,p[1],p[0]),sv=span(it,1,p[0],p[1]);
+      if(sh){g.appendChild(mk("line",{x1:sh[0],y1:p[1],x2:sh[1],y2:p[1],stroke:"#7c3aed","stroke-width":"1.4","stroke-dasharray":"4 2"}));[sh[0],sh[1]].forEach(x=>g.appendChild(mk("line",{x1:x,y1:p[1]-3,x2:x,y2:p[1]+3,stroke:"#7c3aed","stroke-width":"1.4"})));txt(g,(sh[0]+sh[1])/2,p[1]-3,fmt(sh[1]-sh[0]),{fs:8,c:"#4c1d95"});}
+      if(sv){g.appendChild(mk("line",{x1:p[0],y1:sv[0],x2:p[0],y2:sv[1],stroke:"#7c3aed","stroke-width":"1.4","stroke-dasharray":"4 2"}));[sv[0],sv[1]].forEach(y=>g.appendChild(mk("line",{x1:p[0]-3,y1:y,x2:p[0]+3,y2:y,stroke:"#7c3aed","stroke-width":"1.4"})));txt(g,p[0]-3,(sv[0]+sv[1])/2,fmt(sv[1]-sv[0]),{fs:8,c:"#4c1d95",rot:1});}
+      g.appendChild(mk("circle",{cx:p[0],cy:p[1],r:2,fill:"#7c3aed"}));
+    }
+    svg.appendChild(g);mg=g;
+  }
+  document.addEventListener("contextmenu",ev=>{if(UI.plRmMode&&plManager()&&ev.target&&ev.target.closest&&ev.target.closest("svg.pl-svg"))ev.preventDefault();},true);
+  document.addEventListener("pointerdown",ev=>{
+    if(!UI.plRmMode||!plManager())return;
+    const svg=ev.target&&ev.target.closest?ev.target.closest("svg.pl-svg"):null;
+    const right=ev.pointerType==="mouse"&&ev.button===2,tool=!!UI.plRmMeas&&(ev.button===0||ev.pointerType!=="mouse");
+    if(!svg||!svg.getScreenCTM()){return;}
+    if(!right&&!tool){if(mg)mClear();return;}
+    ev.preventDefault();ev.stopPropagation();hovClear();
+    const p=pt(svg,ev);ms={svg,p0:snap(svg,p),raw:p,x:ev.clientX,y:ev.clientY,moved:false};mClear();
+    try{svg.setPointerCapture&&svg.setPointerCapture(ev.pointerId);}catch(e){}
+  },true);
+  document.addEventListener("pointermove",ev=>{
+    if(ms){
+      if(!ms.moved&&Math.hypot(ev.clientX-ms.x,ev.clientY-ms.y)<5)return;
+      ms.moved=true;ev.preventDefault();drawLine(ms.svg,ms.p0,snap(ms.svg,pt(ms.svg,ev)));return;
+    }
+    if(!UI.plRmMode||!plManager()){hovClear();return;}
+    const svg=ev.target&&ev.target.closest?ev.target.closest("svg.pl-svg"):null;
+    if(!svg||ev.buttons){hovClear();return;}
+    if(mg&&mg.parentNode===svg&&ev.buttons)return;
+    hovAt(svg,pt(svg,ev));
+  },true);
+  const up=ev=>{
+    if(!ms)return;const k=ms;ms=null;window.__plMeasSup=Date.now()+350;
+    if(!k.moved){drawSpans(k.svg,k.raw);}
+  };
+  document.addEventListener("pointerup",up,true);document.addEventListener("pointercancel",up,true);
+  document.addEventListener("click",ev=>{if(window.__plMeasSup&&Date.now()<window.__plMeasSup){ev.stopPropagation();ev.preventDefault();}},true);
+  document.addEventListener("keydown",ev=>{if(ev.key==="Escape"){mClear();hovClear();}});
+  document.addEventListener("pointerleave",hovClear,true);
 })();
 (function(){
   if(window.__plTxDrag)return;window.__plTxDrag=1;
@@ -45489,12 +45607,12 @@ window.plMarkType=(id)=>{UI.plMark=UI.plMark===id?null:id;render();};
 window.plTogglePts=()=>{UI.plPts=!UI.plPts;if(!UI.plPts)UI.plMark=null;render();};
 window.plSetCols=(n)=>{UI.plCols=n;try{localStorage.setItem("plCols",String(n));}catch(e){}render();};
 window.plGoFloor=(f)=>{const el=document.getElementById("plfl-"+f);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});};
-window.plSpecToggle=()=>{if(!plManager())return;UI.plSpec=!UI.plSpec;if(!UI.plSpec){UI.plDwMode=false;UI.plTxMove=false;UI.plPts=false;UI.plRmMode=false;UI.plRmCut=false;UI.plMark=null;}render();};
+window.plSpecToggle=()=>{if(!plManager())return;UI.plSpec=!UI.plSpec;if(!UI.plSpec){UI.plDwMode=false;UI.plTxMove=false;UI.plPts=false;UI.plRmMode=false;UI.plRmCut=false;UI.plRmMeas=false;UI.plMark=null;}render();};
 function plSpecPanel(dwEdit,pts){
   if(!plManager())return "";
   const btn=`<span class="pl-chip ${UI.plSpec?"on":""}" onclick="plSpecToggle()">⚙ Especificaciones técnicas</span>`+plHBtns();
   if(!UI.plSpec)return `<div style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">${btn}</div>`;
-  return `<div style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">${btn}<span style="width:1.5px;height:22px;background:var(--border);margin:0 4px"></span><span class="pl-chip ${dwEdit?"on":""}" onclick="plDwToggle()">✎ Editar puertas y ventanas</span><span class="pl-chip ${pts?"on":""}" onclick="plTogglePts()">📍 Puntos técnicos</span><span class="pl-chip" onclick="plColOpen()">🎨 Colores y letra</span><span class="pl-chip ${UI.plTxMove?"on":""}" onclick="plTxMoveToggle()">✥ Mover textos, baños y esquinas</span><span class="pl-chip ${UI.plRmMode?"on":""}" onclick="plRmToggle()">📐 Medidas de ambientes</span><span class="pl-chip" onclick="plBuildOpen()">🏗️ Pisos y ambientes</span><span class="pl-chip ${UI.plGhost?"on":""}" onclick="plGhostToggle()" title="Muestra, en naranja punteado, las paredes del piso de arriba sobre cada plano">👁 Calco del piso de arriba</span></div>${UI.plRmMode?`<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:-4px 0 10px"><span style="font-size:11.5px;color:var(--text3)">${UI.plRmCut?"✂ Tocá un punto de una pared (línea punteada) para PARTIRLA en dos tramos; tocá una marca naranja de corte para volver a unirlos.":"Arrastrá cualquier tramo de pared (línea punteada) para agrandar o achicar el ambiente. Nunca se superpone: los vecinos se achican solos."}</span><span class="pl-chip ${UI.plRmCut?"on":""}" onclick="plRmCutToggle()" title="Parte una pared en dos tramos para mover cada uno por separado">✂ Cortar pared</span><span class="pl-chip ${UI.plRmShared===false?"":"on"}" onclick="UI.plRmShared=UI.plRmShared===false;render()">🔗 Si achico, los vecinos ocupan el espacio libre</span><span class="pl-chip" onclick="plRmReset()">↺ Restablecer medidas originales</span></div>`:""}`;
+  return `<div style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">${btn}<span style="width:1.5px;height:22px;background:var(--border);margin:0 4px"></span><span class="pl-chip ${dwEdit?"on":""}" onclick="plDwToggle()">✎ Editar puertas y ventanas</span><span class="pl-chip ${pts?"on":""}" onclick="plTogglePts()">📍 Puntos técnicos</span><span class="pl-chip" onclick="plColOpen()">🎨 Colores y letra</span><span class="pl-chip ${UI.plTxMove?"on":""}" onclick="plTxMoveToggle()">✥ Mover textos, baños y esquinas</span><span class="pl-chip ${UI.plRmMode?"on":""}" onclick="plRmToggle()">📐 Medidas de ambientes</span><span class="pl-chip" onclick="plBuildOpen()">🏗️ Pisos y ambientes</span><span class="pl-chip ${UI.plGhost?"on":""}" onclick="plGhostToggle()" title="Muestra, en naranja punteado, las paredes del piso de arriba sobre cada plano">👁 Calco del piso de arriba</span></div>${UI.plRmMode?`<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:-4px 0 10px"><span style="font-size:11.5px;color:var(--text3)">${UI.plRmCut?"✂ Tocá un punto de una pared (línea punteada) para PARTIRLA en dos tramos; tocá una marca naranja de corte para volver a unirlos.":"Arrastrá cualquier tramo de pared (línea punteada) para agrandar o achicar el ambiente. Nunca se superpone: los vecinos se achican solos."} 📏 Pasá el cursor sobre un ambiente para ver el largo de cada pared. Clic derecho y arrastrar = regla; clic derecho solo = mide el ambiente de lado a lado.</span><span class="pl-chip ${UI.plRmCut?"on":""}" onclick="plRmCutToggle()" title="Parte una pared en dos tramos para mover cada uno por separado">✂ Cortar pared</span><span class="pl-chip ${UI.plRmMeas?"on":""}" onclick="plRmMeasToggle()" title="Regla: arrastrá de un punto a otro para medir (también con clic derecho)">📏 Medir</span><span class="pl-chip ${UI.plRmShared===false?"":"on"}" onclick="UI.plRmShared=UI.plRmShared===false;render()">🔗 Si achico, los vecinos ocupan el espacio libre</span><span class="pl-chip" onclick="plRmReset()">↺ Restablecer medidas originales</span></div>`:""}`;
 }
 // ═══ (Tanda 490) Vista 3D del plano: selector «Plano 2D · Vista 3D» (por defecto 2D). La biblioteca 3D (three.js, embebida) arma el modelo a partir de las mismas formas/colores/textos del plano 2D. ═══
 function pl3dToggle(){return `<div class="pl-sw" title="Ver el plano en 2D o en 3D"><span class="${UI.pl3d?"":"on"}" onclick="plSet3d(false)">2D</span><span class="${UI.pl3d?"on":""}" onclick="plSet3d(true)">3D</span></div>`;}
@@ -46610,7 +46728,7 @@ window.agNotify=(title,opts)=>{
 };
 window.pwaNotifPedir=async()=>{try{await Notification.requestPermission();}catch(e){}render();};
 // (Tanda 448) Número de versión visible en Mi cuenta, para comprobar que el sitio publicado tiene la última.
-const APP_BUILD="v511";
+const APP_BUILD="v512";
 function pwaCuentaHtml(){
   const inst=pwaStandalone();
   const np=typeof Notification!=="undefined"?Notification.permission:"unsupported";
