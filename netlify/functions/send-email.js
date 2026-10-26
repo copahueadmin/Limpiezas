@@ -8,6 +8,7 @@
 //   - to: string con uno o varios destinatarios separados por coma (ej: "a@x.com, b@x.com")
 //   - subject: asunto del mail
 //   - text: cuerpo del mail en texto plano (resumen corto -- el detalle va en el PDF)
+//   - attachments: (opcional, Tanda 500) lista de adjuntos extra [{ filename, content }] con content en base64
 //   - pdfBase64: contenido del PDF ya codificado en base64 (sin el prefijo "data:...;base64,")
 //   - pdfFilename: nombre de archivo del adjunto (ej: "informe-2026-09-11.pdf")
 //
@@ -56,7 +57,7 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: "Body inválido (JSON esperado)." }) };
   }
 
-  const { to, subject, text, pdfBase64, pdfFilename } = payload;
+  const { to, subject, text, html, pdfBase64, pdfFilename, attachments } = payload;
   if (!to || !subject) {
     return { statusCode: 400, body: JSON.stringify({ error: "Faltan campos requeridos (to, subject)." }) };
   }
@@ -74,9 +75,18 @@ exports.handler = async (event) => {
     subject,
     text: text || "",
   };
+  if (html) body.html = String(html);
 
   if (pdfBase64 && pdfFilename) {
     body.attachments = [{ filename: pdfFilename, content: pdfBase64 }];
+  }
+  // (Tanda 500) adjuntos extra: [{ filename, content (base64) }] -- p. ej. el Excel de la copia de seguridad de un rooming
+  if (Array.isArray(attachments)) {
+    attachments.forEach((a) => {
+      if (a && a.filename && a.content) {
+        body.attachments = (body.attachments || []).concat([{ filename: String(a.filename), content: String(a.content) }]);
+      }
+    });
   }
 
   try {
