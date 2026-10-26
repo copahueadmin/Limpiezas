@@ -43922,12 +43922,16 @@ function plRestNom(){return plD().rest||"Don Benito";}
 function plEff(b){
   const o=plD().ov[b.id]||{};
   const e=Object.assign({},b,o);
+  if(o.into&&o.im==="s"&&o.into!==b.id&&_plIdx[o.into]&&!(plEff._dp>3)){ // hereda las características del espacio «madre»
+    plEff._dp=(plEff._dp||0)+1;let P=null;try{P=plEff(_plIdx[o.into]);}finally{plEff._dp--;}
+    if(P){if(o.k===undefined)e.k=P.k;if(o.fc===undefined&&P.fc)e.fc=P.fc;e.__pd=P.d||"";}
+  }
   if(!PL_KINDS[e.k])e.k="otro"; // tipo eliminado → «Otro»
   e.bq=o.bq!==undefined?!!o.bq:!!b.bq;
   e.res=o.res!==undefined?!!o.res:!!PL_RES_DEF[e.k];
   e.priv=o.priv!==undefined?!!o.priv:!!b.priv;
   e.nom=String(e.n||"").replace(/\{REST\}/g,plRestNom());
-  e.d=o.d||"";
+  e.d=o.d||e.__pd||"";
   e.r=plRectsOf(b);
   return e;
 }
@@ -43937,7 +43941,8 @@ const PL_BALC=new Set();PLANO_BASE.forEach(b=>{if(b.k==="balcon"){const m=String
 function plHasBalcon(num){return !!((RD[num]&&RD[num].balcon)||PL_BALC.has(String(num)));}
 const PLANO_M2DEF={};PLANO_BASE.forEach(b=>{if(b.room&&b.m2&&b.k==="hab")PLANO_M2DEF[b.room]=b.m2;});
 function plGet(id){const b=_plIdx[id];return b?plEff(b):null;}
-function plOwnerId(id){let g=0;while(g++<6){const o=plD().ov[id];if(o&&o.into&&_plIdx[o.into]&&o.into!==id)id=o.into;else break;}return id;}
+// (Tanda 504) o.im==="s": «sigue como ambiente separado» -- no se unifica con su dueño en el plano (se dibuja, nombra y bloquea por separado), pero hereda sus características (tipo, color, descripción)
+function plOwnerId(id){let g=0;while(g++<6){const o=plD().ov[id];if(o&&o.into&&o.im!=="s"&&_plIdx[o.into]&&o.into!==id)id=o.into;else break;}return id;}
 // espacios de una planta, ya con los «incorporados» sumados a su dueño: [{e, rects, miembros:[ids]}]
 function plFloor(fid){
   const map={},order=[];
@@ -44193,7 +44198,7 @@ function plJoins(items){
   const un=(a,b)=>{if(a===undefined||b===undefined)return;par[f(a)]=f(b);};
   PL_JOIN_DEF.forEach(p=>un(idxOf[p[0]],idxOf[p[1]]));
   items.forEach((it,i)=>{const e=it.e;if(e.k==="balcon"){const m=String(e.nom||"").match(/Hab\.?\s*(\d+)/);if(m){const j=items.findIndex(x=>x.e.room===m[1]&&x.e.k==="hab");if(j>=0)un(i,j);}}});
-  let pv=-1;items.forEach((it,i)=>{if(it.e.k==="pasillo"){if(pv>=0)un(i,pv);else pv=i;}}); // los pasillos de un piso son un solo espacio
+  let pv=-1;items.forEach((it,i)=>{if(it.e.k==="pasillo"&&it.e.im!=="s"){if(pv>=0)un(i,pv);else pv=i;}}); // los pasillos de un piso son un solo espacio
   const gr={};items.forEach((_,i)=>{const r=f(i);(gr[r]=gr[r]||[]).push(i);});
   const hasCv=g=>g.some(i=>items[i].e.cv&&items[i].e.cv.length)?1:0;
   return Object.keys(gr).map(k=>gr[k]).sort((a,b)=>hasCv(a)-hasCv(b)); // los de esquina curva se dibujan encima (el relleno vecino asoma por detrás de la curva)
@@ -44519,7 +44524,7 @@ function plDwGeom(d){
     if(h)dir=d.s==="l"?[-1,0]:[1,0];else dir=d.s==="d"?[0,1]:[0,-1];
     const T=[hinge[0]+dir[0]*L,hinge[1]+dir[1]*L];
     const u=dir,v=[(other[0]-hinge[0])/L,(other[1]-hinge[1])/L],K=.5523;
-    g.hinge=hinge;g.T=T;g.E=other;
+    g.hinge=hinge;g.T=T;g.E=other;g.u=u;g.v=v;
     g.c1=[hinge[0]+L*(u[0]+K*v[0]),hinge[1]+L*(u[1]+K*v[1])];
     g.c2=[hinge[0]+L*(v[0]+K*u[0]),hinge[1]+L*(v[1]+K*u[1])];
   }
@@ -44542,24 +44547,56 @@ function plDwArcSvg(d,S,edit){
   const f=q=>q[0].toFixed(1)+" "+q[1].toFixed(1);
   const A=plDwArcPt(d,Ro,p0),B=plDwArcPt(d,Ro,p1),C=plDwArcPt(d,Ri,p1),D=plDwArcPt(d,Ri,p0),M0=plDwArcPt(d,d.r,p0),M1=plDwArcPt(d,d.r,p1);
   const s=`<path d="M${f(A)}A${Ro.toFixed(1)} ${Ro.toFixed(1)} 0 0 ${sw} ${f(B)}L${f(C)}A${Ri.toFixed(1)} ${Ri.toFixed(1)} 0 0 ${1-sw} ${f(D)}Z" fill="${S.win}" stroke="${S.wl}" stroke-width="${S.lw}" stroke-linejoin="round"/><path d="M${f(M0)}A${d.r.toFixed(1)} ${d.r.toFixed(1)} 0 0 ${sw} ${f(M1)}" fill="none" stroke="${S.wl}" stroke-width=".7"/>`;
-  if(!edit)return `<g class="pl-dw" style="pointer-events:none">${s}</g>`;
+  if(!edit)return `<g class="pl-dw" data-id="${d.id}" style="pointer-events:none">${s}</g>`;
   const pts=[A,B,C,D,plDwArcPt(d,d.r,d.a)],xs=pts.map(q=>q[0]),ys=pts.map(q=>q[1]);
-  return `<g class="pl-dw" style="cursor:pointer" onclick="plDwClick('${d.id}',event)">${s}<rect x="${(Math.min(...xs)-6).toFixed(1)}" y="${(Math.min(...ys)-6).toFixed(1)}" width="${(Math.max(...xs)-Math.min(...xs)+12).toFixed(1)}" height="${(Math.max(...ys)-Math.min(...ys)+12).toFixed(1)}" fill="transparent"/></g>`;
+  return `<g class="pl-dw" data-id="${d.id}">${s}<rect class="pl-dwm" data-id="${d.id}" x="${(Math.min(...xs)-6).toFixed(1)}" y="${(Math.min(...ys)-6).toFixed(1)}" width="${(Math.max(...xs)-Math.min(...xs)+12).toFixed(1)}" height="${(Math.max(...ys)-Math.min(...ys)+12).toFixed(1)}" fill="transparent"/></g>`;
+}
+// (Tanda 504) Tipos de puerta: d.k = "b" batiente (predeterminada, 1 hoja) · "f3" plegable de 3 hojas · "c2" corrediza de 2 hojas · "c1" corrediza de 1 hoja (se esconde dentro de la pared)
+const PL_DW_KINDS={b:"Batiente (1 hoja)",f3:"Plegable de 3 hojas",c2:"Corrediza de 2 hojas",c1:"Corrediza de 1 hoja (se esconde en la pared)"};
+function plDwDefL(k){return Math.round(({b:.9,f3:1.2,c2:1.6,c1:.9}[k]||.9)*PL_UPM);}
+// Primitivas (polilíneas) de las puertas que no son batientes, compartidas por la pantalla y el PDF. Origen = extremo de la bisagra; v = a lo largo de la abertura; u = hacia el lado de la hoja.
+function plDwOp(d){return d.op!==undefined&&d.op!==null&&isFinite(+d.op)?Math.max(0,Math.min(1,+d.op)):(d.k==="f3"?.4:0);} // (Tanda 504) apertura 0 = cerrada · 1 = toda abierta
+function plDwPrims(d,g){
+  const k=d.k,L=g.L,H=g.hinge,v=g.v,u=g.u,op=plDwOp(d),P=(al,pe)=>[H[0]+v[0]*al+u[0]*pe,H[1]+v[1]*al+u[1]*pe];
+  const rect=(a0,a1,pe,tk)=>[P(a0,pe-tk/2),P(a1,pe-tk/2),P(a1,pe+tk/2),P(a0,pe+tk/2)];
+  if(k==="f3"){const sg=L/3,ph=op*Math.PI*.39,st=sg*Math.cos(ph),a=sg*Math.sin(ph),pts=[P(0,0),P(st,a),P(2*st,0),P(3*st,a)];return {prims:[{pts,close:false,stroke:"leaf",w:1.2}],box:pts};}
+  if(k==="c2"){const ov=L*.07,sh=op*(L/2-ov),r1=rect(0,L/2+ov,.9,1.2),r2=rect(L/2-ov-sh,L-sh,-.9,1.2);return {prims:[{pts:r1,close:true,fill:"leaf",stroke:"leaf",w:.5},{pts:r2,close:true,fill:"leaf",stroke:"leaf",w:.5}],box:r1.concat(r2)};}
+  const lf=rect(-op*L,L-op*L,.9,1.2),pk=rect(-L,0,.9,1.2); // c1: la hoja se mete en la pared hacia el lado de la bisagra
+  return {prims:[{pts:pk,close:true,stroke:"arc",dash:1,w:.7},{pts:lf,close:true,fill:"leaf",stroke:"leaf",w:.5}],box:lf.concat(pk)};
+}
+const plBox=(pts,pad)=>{const xs=pts.map(q=>q[0]),ys=pts.map(q=>q[1]);return {x:Math.min(...xs)-pad,y:Math.min(...ys)-pad,w:Math.max(...xs)-Math.min(...xs)+2*pad,h:Math.max(...ys)-Math.min(...ys)+2*pad};};
+function plDwOne(d,S,edit){
+  if(d.o==="c"&&d.u&&d.v)return plDwArcSvg(d,S,edit);
+  const g=plDwGeom(d),vt=g.vert,th=3.6;
+  const rx=vt?g.a[0]-th/2:g.a[0],ry=vt?g.a[1]:g.a[1]-th/2,rw=vt?th:g.L,rh=vt?g.L:th;
+  let s=`<rect x="${rx.toFixed(1)}" y="${ry.toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" rx="1" fill="${d.t==="w"?S.win:S.gap}" stroke="${d.t==="w"?S.wl:S.gl}" stroke-width="${S.lw}"/>`;
+  let sbox=null;
+  if(d.t==="w")s+=vt?`<line x1="${d.x}" y1="${g.a[1]+1}" x2="${d.x}" y2="${g.b[1]-1}" stroke="${S.wl}" stroke-width=".7"/>`:`<line x1="${g.a[0]+1}" y1="${d.y}" x2="${g.b[0]-1}" y2="${d.y}" stroke="${S.wl}" stroke-width=".7"/>`;
+  else if(d.k==="f3"||d.k==="c2"||d.k==="c1"){
+    const pr=plDwPrims(d,g);sbox=pr.box;
+    s+=pr.prims.map(q=>`<path d="M${q.pts.map(z=>z[0].toFixed(1)+" "+z[1].toFixed(1)).join("L")}${q.close?"Z":""}" fill="${q.fill?S[q.fill]:"none"}" stroke="${S[q.stroke]}" stroke-width="${q.w||S.lw}"${q.dash?' stroke-dasharray="2 1.6"':""} stroke-linejoin="round" stroke-linecap="round"/>`).join("");
+  }else{
+    s+=`<line x1="${g.hinge[0].toFixed(1)}" y1="${g.hinge[1].toFixed(1)}" x2="${g.T[0].toFixed(1)}" y2="${g.T[1].toFixed(1)}" stroke="${S.leaf}" stroke-width="${S.lw+.3}" stroke-linecap="round"/><path d="M${g.T[0].toFixed(1)} ${g.T[1].toFixed(1)}C${g.c1[0].toFixed(1)} ${g.c1[1].toFixed(1)} ${g.c2[0].toFixed(1)} ${g.c2[1].toFixed(1)} ${g.E[0].toFixed(1)} ${g.E[1].toFixed(1)}" fill="none" stroke="${S.arc}" stroke-width=".7" stroke-dasharray="2 1.6"/>`;
+    sbox=[g.hinge,g.T,g.E,[g.T[0]+g.E[0]-g.hinge[0],g.T[1]+g.E[1]-g.hinge[1]]];
+  }
+  if(!edit)return `<g class="pl-dw" data-id="${d.id}" style="pointer-events:none">${s}</g>`;
+  let mb=plBox([g.a,g.b],th/2+3);
+  const slide=d.t==="d"&&(d.k==="f3"||d.k==="c2"||d.k==="c1");
+  if(slide){ // puertas corredizas / plegables: el CENTRO mueve la puerta de lugar; los costados (y la hoja) ajustan su apertura
+    const bl=Math.max(4,g.L*.2),pd=th/2+3;
+    mb=vt?{x:d.x-pd,y:d.y-bl,w:2*pd,h:2*bl}:{x:d.x-bl,y:d.y-pd,w:2*bl,h:2*pd};
+    sbox=sbox.concat([g.a,g.b]);
+  }
+  let hit="";
+  if(sbox){const q=plBox(sbox,3);hit+=`<rect class="pl-dws" data-id="${d.id}" x="${q.x.toFixed(1)}" y="${q.y.toFixed(1)}" width="${q.w.toFixed(1)}" height="${q.h.toFixed(1)}" fill="transparent"><title>${slide?"Arrastrá de un lado a otro para ajustar la apertura":"Arrastrá para cambiar hacia dónde abre"}</title></rect>`;}
+  hit+=`<rect class="pl-dwm" data-id="${d.id}" x="${mb.x.toFixed(1)}" y="${mb.y.toFixed(1)}" width="${mb.w.toFixed(1)}" height="${mb.h.toFixed(1)}" fill="transparent"><title>${slide?"Arrastrá desde el centro para mover la puerta · tocá para editar":"Arrastrá para mover · tocá para editar"}</title></rect>`;
+  return `<g class="pl-dw" data-id="${d.id}">${s}${hit}</g>`;
 }
 function plDwSvg(fid,o,pal){
   if(o&&o.dw===false)return "";
   const L=plDws(fid);if(!L.length)return "";
   const S=plDwStyle(pal),edit=!!(o&&o.dwEdit);
-  return `<g class="pl-dws">`+L.map(d=>{
-    if(d.o==="c"&&d.u&&d.v)return plDwArcSvg(d,S,edit);
-    const g=plDwGeom(d),vt=g.vert,th=3.6;
-    const rx=vt?g.a[0]-th/2:g.a[0],ry=vt?g.a[1]:g.a[1]-th/2,rw=vt?th:g.L,rh=vt?g.L:th;
-    let s=`<rect x="${rx.toFixed(1)}" y="${ry.toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" rx="1" fill="${d.t==="w"?S.win:S.gap}" stroke="${d.t==="w"?S.wl:S.gl}" stroke-width="${S.lw}"/>`;
-    if(d.t==="w")s+=vt?`<line x1="${d.x}" y1="${g.a[1]+1}" x2="${d.x}" y2="${g.b[1]-1}" stroke="${S.wl}" stroke-width=".7"/>`:`<line x1="${g.a[0]+1}" y1="${d.y}" x2="${g.b[0]-1}" y2="${d.y}" stroke="${S.wl}" stroke-width=".7"/>`;
-    else s+=`<line x1="${g.hinge[0].toFixed(1)}" y1="${g.hinge[1].toFixed(1)}" x2="${g.T[0].toFixed(1)}" y2="${g.T[1].toFixed(1)}" stroke="${S.leaf}" stroke-width="${S.lw+.3}" stroke-linecap="round"/><path d="M${g.T[0].toFixed(1)} ${g.T[1].toFixed(1)}C${g.c1[0].toFixed(1)} ${g.c1[1].toFixed(1)} ${g.c2[0].toFixed(1)} ${g.c2[1].toFixed(1)} ${g.E[0].toFixed(1)} ${g.E[1].toFixed(1)}" fill="none" stroke="${S.arc}" stroke-width=".7" stroke-dasharray="2 1.6"/>`;
-    if(edit)return `<g class="pl-dw" style="cursor:pointer" onclick="plDwClick('${d.id}',event)">${s}<rect x="${(Math.min(g.a[0],g.b[0])-6).toFixed(1)}" y="${(Math.min(g.a[1],g.b[1])-6).toFixed(1)}" width="${(Math.abs(g.b[0]-g.a[0])+12).toFixed(1)}" height="${(Math.abs(g.b[1]-g.a[1])+12).toFixed(1)}" fill="transparent"/></g>`;
-    return `<g class="pl-dw" style="pointer-events:none">${s}</g>`;
-  }).join("")+`</g>`;
+  return `<g class="pl-dws">`+L.map(d=>plDwOne(d,S,edit)).join("")+`</g>`;
 }
 function plDwPdf(doc,fid,X,Y,sc,o,pal){
   if(o&&o.dw===false)return;
@@ -44579,6 +44616,15 @@ function plDwPdf(doc,fid,X,Y,sc,o,pal){
     doc.setFillColor(...plHex(d.t==="w"?S.win:S.gap));doc.setDrawColor(...plHex(d.t==="w"?S.wl:S.gl));doc.setLineWidth(S.lw*sc);
     doc.roundedRect(X(rx),Y(ry),rw*sc,rh*sc,1*sc,1*sc,"FD");
     if(d.t==="w"){doc.setLineWidth(.7*sc);doc.line(X(vt?d.x:g.a[0]+1),Y(vt?g.a[1]+1:d.y),X(vt?d.x:g.b[0]-1),Y(vt?g.b[1]-1:d.y));}
+    else if(d.k==="f3"||d.k==="c2"||d.k==="c1"){
+      plDwPrims(d,g).prims.forEach(q=>{
+        if(q.fill)doc.setFillColor(...plHex(S[q.fill]));doc.setDrawColor(...plHex(S[q.stroke]));doc.setLineWidth((q.w||S.lw)*sc);
+        try{doc.setLineDashPattern(q.dash?[2*sc,1.6*sc]:[],0);}catch(e){}
+        doc.moveTo(X(q.pts[0][0]),Y(q.pts[0][1]));for(let i=1;i<q.pts.length;i++)doc.lineTo(X(q.pts[i][0]),Y(q.pts[i][1]));
+        if(q.close){doc.close();doc.fillStroke?(q.fill?doc.fillStroke():doc.stroke()):doc.stroke();}else doc.stroke();
+        try{doc.setLineDashPattern([],0);}catch(e){}
+      });
+    }
     else{
       doc.setDrawColor(...plHex(S.leaf));doc.setLineWidth((S.lw+.3)*sc);doc.line(X(g.hinge[0]),Y(g.hinge[1]),X(g.T[0]),Y(g.T[1]));
       doc.setDrawColor(...plHex(S.arc));doc.setLineWidth(.7*sc);try{doc.setLineDashPattern([2*sc,1.6*sc],0);}catch(e){}
@@ -44597,7 +44643,7 @@ function plArcsOf(fid){ // (Tanda 483) tramos curvos grandes (radio ≥ 15) de l
 }
 function plSnapWall(fid,x,y,arc,tol){
   const TOL=tol||12;let best=null;
-  plFloor(fid).forEach(it=>it.rects.forEach(r=>{
+  plFloor(fid).forEach(it=>it.rects.concat((it.e.ba||[]).map(q=>q.slice(0,4))).forEach(r=>{ // (Tanda 504) también las paredes de los baños
     [["h",r[1],r[0],r[2]],["h",r[3],r[0],r[2]],["v",r[0],r[1],r[3]],["v",r[2],r[1],r[3]]].forEach(w=>{
       const o=w[0],c=w[1],a=w[2],b=w[3],along=o==="h"?x:y,perp=o==="h"?y:x;
       const da=along<a?a-along:(along>b?along-b:0),d=Math.hypot(Math.abs(perp-c),da);
@@ -44798,15 +44844,79 @@ window.plRmReset=()=>{
   };
   document.addEventListener("pointerup",end,true);document.addEventListener("pointercancel",end,true);
 })();
+(function(){
+  if(window.__plDwDrag)return;window.__plDwDrag=1;
+  let dr=null;
+  const css=document.createElement("style");css.textContent=".pl-dwm,.pl-dws{touch-action:none}.pl-dwm{cursor:move}.pl-dwm:hover{fill:rgba(37,99,235,.2)}.pl-dws{cursor:alias}.pl-dws:hover{fill:rgba(245,158,11,.18)}";document.head.appendChild(css);
+  const pt=(svg,ev)=>{const q=svg.createSVGPoint();q.x=ev.clientX;q.y=ev.clientY;const r=q.matrixTransform(svg.getScreenCTM().inverse());return [r.x,r.y];};
+  function redraw(d,svg){
+    try{const S=plDwStyle(PL_PAL[plScreenTheme()]||PL_PAL.soft);
+      const tmp=new DOMParser().parseFromString('<svg xmlns="http://www.w3.org/2000/svg">'+plDwOne(d,S,true)+'</svg>',"image/svg+xml");
+      const nn=document.importNode(tmp.documentElement.firstChild,true);
+      const old=svg.querySelector('.pl-dw[data-id="'+d.id+'"]');if(old)old.replaceWith(nn);}catch(e){console.warn(e);}
+  }
+  document.addEventListener("pointerdown",ev=>{
+    if(!UI.plDwMode||!plManager()||UI.mod)return;
+    const h=ev.target&&ev.target.closest?ev.target.closest(".pl-dwm,.pl-dws"):null;if(!h)return;
+    const svg=h.closest("svg.pl-svg");if(!svg||!svg.getScreenCTM())return;
+    const d=plDws().find(q=>q.id===h.dataset.id);if(!d)return;
+    ev.preventDefault();ev.stopPropagation();
+    const p=pt(svg,ev),orig=JSON.parse(JSON.stringify(d));
+    orig.wasIn=d.t==="d"&&d.s===plDwInDir(d);
+    dr={mode:h.classList.contains("pl-dws")?"s":"m",id:d.id,svg,x:ev.clientX,y:ev.clientY,off:[d.x-p[0],d.y-p[1]],orig,moved:false,f:d.f,p0:p,op0:plDwOp(d)};
+    window.__plDwMoved=false;
+    try{h.setPointerCapture&&h.setPointerCapture(ev.pointerId);}catch(_){}
+  },true);
+  document.addEventListener("pointermove",ev=>{
+    if(!dr)return;
+    if(!dr.moved&&Math.hypot(ev.clientX-dr.x,ev.clientY-dr.y)<4)return;
+    ev.preventDefault();dr.moved=true;window.__plDwMoved=true;
+    const d=plDws().find(q=>q.id===dr.id);if(!d)return;
+    const p=pt(dr.svg,ev),o=dr.orig;
+    if(dr.mode==="s"&&d.t==="d"&&d.o!=="c"&&d.k&&d.k!=="b"){
+      const g=plDwGeom(d),L=g.L,dz=Math.max(3,L*.3);
+      const along=-((p[0]-dr.p0[0])*g.v[0]+(p[1]-dr.p0[1])*g.v[1])/L; // hacia el lado de la bisagra = más abierta
+      d.op=Math.round(Math.max(0,Math.min(1,dr.op0+along))*100)/100;
+      const pe=(p[0]-d.x)*(d.o==="h"?0:1)+(p[1]-d.y)*(d.o==="h"?1:0);
+      if(Math.abs(pe)>dz)d.s=d.o==="h"?(pe<0?"u":"d"):(pe<0?"l":"r");
+    }else if(dr.mode==="s"&&d.t==="d"&&d.o!=="c"){
+      const dx=p[0]-d.x,dy=p[1]-d.y,dz=Math.max(2,(d.l||19)*.12);
+      if(d.o==="h"){if(Math.abs(dy)>dz)d.s=dy<0?"u":"d";if(Math.abs(dx)>dz)d.hg=dx<0?"a":"b";}
+      else{if(Math.abs(dx)>dz)d.s=dx<0?"l":"r";if(Math.abs(dy)>dz)d.hg=dy<0?"a":"b";}
+    }else if(dr.mode==="m"){
+      const sn=plSnapWall(dr.f,p[0]+dr.off[0],p[1]+dr.off[1],d.t==="w");if(!sn)return;
+      const same=o.o===sn.o&&sn.o!=="c"&&(sn.o==="h"?Math.abs(sn.y-o.y)<.5:Math.abs(sn.x-o.x)<.5);
+      d.x=sn.x;d.y=sn.y;d.o=sn.o;
+      if(sn.o==="c")Object.assign(d,{cx:sn.cx,cy:sn.cy,r:sn.r,u:sn.u,v:sn.v,a:sn.a});else{delete d.cx;delete d.cy;delete d.r;delete d.u;delete d.v;delete d.a;}
+      if(d.t==="d"){if(same){d.s=o.s;}else{const i2=plDwInDir(d);d.s=o.wasIn?i2:plDwOpp(i2);}d.hg=o.hg;}
+      plDwCurveFix(d);
+    }
+    redraw(d,dr.svg);
+  },true);
+  const end=ev=>{
+    if(!dr)return;const k=dr;dr=null;
+    window.__plDwSup=Date.now()+400;
+    if(k.moved){plSave();setTimeout(()=>{try{render();}catch(e){}},60);}
+  };
+  document.addEventListener("pointerup",end,true);document.addEventListener("pointercancel",end,true);
+  document.addEventListener("click",ev=>{
+    if(!UI.plDwMode||!plManager())return;
+    const h=ev.target&&ev.target.closest?ev.target.closest(".pl-dwm,.pl-dws"):null;
+    if(h){ev.stopPropagation();ev.preventDefault();if(window.__plDwMoved){window.__plDwMoved=false;return;}if(!UI.mod)plDwClick(h.dataset.id,null);return;}
+    if(window.__plDwSup&&Date.now()<window.__plDwSup&&ev.target.closest&&ev.target.closest("svg.pl-svg")){ev.stopPropagation();ev.preventDefault();}
+  },true);
+})();
 window.plDwArm=(t)=>{UI.plMark=(UI.plMark==="dw:"+t)?null:"dw:"+t;render();};
 function plDwBar(){
   const m=UI.plMark,tp=(typeof m==="string"&&m.indexOf("dw:")===0)?m.slice(3):null,mv=(m&&typeof m==="object"&&m.dw)?m:null;
   let msg="";
+  const ayuda=`Arrastrá una puerta o ventana para moverla · arrastrá la hoja (el arco) de una puerta hacia arriba/abajo o izquierda/derecha para cambiar hacia dónde abre · en las corredizas y plegables, arrastrá de un lado a otro para ajustar la apertura y desde el centro para moverlas · tocala sin arrastrar para editarla o borrarla.`;
   if(tp==="b")msg=`Tocá el espacio al que querés agregarle un baño (si ya tiene, se abre para editarlo). <button class="btn btn-sm" style="margin-left:8px" onclick="UI.plMark=null;render()">Listo</button>`;
-  else if(tp)msg=`Tocá el plano sobre la pared donde va ${tp==="d"?"la puerta":"la ventana"} (se ajusta sola a la pared más cercana). <button class="btn btn-sm" style="margin-left:8px" onclick="UI.plMark=null;render()">Listo</button>`;
+  else if(tp)msg=`Tocá el plano sobre la pared donde va ${tp==="w"?"la ventana":"la puerta"} (se ajusta sola a la pared más cercana). <b>La herramienta sigue activa</b> para que sigas sumando. ${ayuda} <button class="btn btn-sm" style="margin-left:8px" onclick="UI.plMark=null;render()">Listo</button>`;
   else if(mv)msg=`Tocá la nueva ubicación sobre la pared. <button class="btn btn-sm" style="margin-left:8px" onclick="UI.plMark=null;render()">Cancelar</button>`;
-  else msg="Tocá una puerta, ventana o baño ya cargado para editarlo (las puertas también se giran, cambian hacia dónde abren o se borran).";
-  return `<div style="margin-bottom:10px;padding:10px 12px;border:1.5px solid var(--border);border-radius:12px"><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><span style="font-size:12px;font-weight:700;margin-right:4px">Agregar en el plano:</span><span class="pl-chip ${tp==="d"?"on":""}" onclick="plDwArm('d')">🚪 Puerta</span><span class="pl-chip ${tp==="w"?"on":""}" onclick="plDwArm('w')">🪟 Ventana</span><span class="pl-chip ${tp==="b"?"on":""}" onclick="plDwArm('b')">🛁 Baño</span><span class="pl-chip" onclick="plDwToggle()">Cerrar</span></div><div style="margin-top:8px;font-size:12px;color:var(--text2)">${msg}</div></div>`;
+  else msg="Elegí qué agregar. "+ayuda;
+  const chip=(k,ic,l)=>`<span class="pl-chip ${tp===k?"on":""}" onclick="plDwArm('${k}')">${ic} ${l}</span>`;
+  return `<div style="margin-bottom:10px;padding:10px 12px;border:1.5px solid var(--border);border-radius:12px"><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><span style="font-size:12px;font-weight:700;margin-right:4px">Agregar en el plano:</span>${chip("d","🚪","Puerta")}${chip("f3","🚪","Plegable 3 hojas")}${chip("c2","🚪","Corrediza 2 hojas")}${chip("c1","🚪","Corrediza 1 hoja (en la pared)")}${chip("w","🪟","Ventana")}${chip("b","🛁","Baño")}<span class="pl-chip" onclick="plDwToggle()">Cerrar</span></div><div style="margin-top:8px;font-size:12px;color:var(--text2)">${msg}</div></div>`;
 }
 window.plDwClick=(id,ev)=>{
   if(ev)ev.stopPropagation();
@@ -44815,6 +44925,49 @@ window.plDwClick=(id,ev)=>{
   UI.dwF=Object.assign({},d,{isNew:false});UI.mod="plDw";render();
 };
 const PL_U=21.41;
+// ═══ (Tanda 504) Cada baño lleva automáticamente 1 puerta corrediza de 1 hoja (dw.bk = "espacio#índice del baño"); sigue al baño si se mueve o cambia de tamaño y se puede arrastrar/editar como cualquier puerta ═══
+function plBathSig(q){return q.slice(0,4).map(v=>Math.round(v*10)/10).join(",");}
+function plBathDoorFit(e,q){
+  const it=plFloor(e.f).find(i=>(i.miembros||[]).includes(e.id));
+  const rs=it&&it.rects&&it.rects.length?it.rects:[q.slice(0,4)];
+  const bb=rs.reduce((a,r)=>[Math.min(a[0],r[0]),Math.min(a[1],r[1]),Math.max(a[2],r[2]),Math.max(a[3],r[3])],[1e9,1e9,-1e9,-1e9]);
+  const C=[(bb[0]+bb[2])/2,(bb[1]+bb[3])/2],E=1.8;
+  const sides=[
+    {o:"h",c:q[1],a:q[0],b:q[2],n:[0,-1],ext:Math.abs(q[1]-bb[1])<E},
+    {o:"h",c:q[3],a:q[0],b:q[2],n:[0,1],ext:Math.abs(q[3]-bb[3])<E},
+    {o:"v",c:q[0],a:q[1],b:q[3],n:[-1,0],ext:Math.abs(q[0]-bb[0])<E},
+    {o:"v",c:q[2],a:q[1],b:q[3],n:[1,0],ext:Math.abs(q[2]-bb[2])<E}];
+  let cand=sides.filter(x=>!x.ext&&x.b-x.a>=8);if(!cand.length)cand=sides.filter(x=>x.b-x.a>=8);if(!cand.length)return null;
+  const sc=x=>{const mx=x.o==="h"?(x.a+x.b)/2:x.c,my=x.o==="h"?x.c:(x.a+x.b)/2;return (C[0]-mx)*x.n[0]+(C[1]-my)*x.n[1];};
+  cand.sort((u,v)=>sc(v)-sc(u)||(v.b-v.a)-(u.b-u.a));
+  const w=cand[0],len=w.b-w.a,l=Math.max(8,Math.min(Math.round(.7*PL_UPM),len-4)),mid=(w.a+w.b)/2;
+  const r1=v=>Math.round(v*10)/10;
+  return w.o==="h"?{o:"h",x:r1(mid),y:r1(w.c),l,s:w.n[1]<0?"u":"d",hg:"a"}:{o:"v",x:r1(w.c),y:r1(mid),l,s:w.n[0]<0?"l":"r",hg:"a"};
+}
+function plBathDoorRec(e,q,bk){
+  const fit=plBathDoorFit(e,q);if(!fit)return null;
+  return Object.assign({id:"dw"+Date.now().toString(36)+Math.floor(Math.random()*1e5).toString(36)},fit,{f:e.f,t:"d",k:"c1",bk,bs:plBathSig(q)});
+}
+function plBathDoorsSync(){
+  if(!plManager())return;
+  const pd=plD();let ch=false;pd.dw=Array.isArray(pd.dw)?pd.dw:[];
+  const baths={};plFloorsAll().forEach(e=>{(e.ba||[]).forEach((q,i)=>{baths[e.id+"#"+i]={e,q};});});
+  const keep=[];
+  pd.dw.forEach(d=>{
+    if(!d.bk){keep.push(d);return;}
+    const b=baths[d.bk];if(!b){ch=true;return;}
+    const sg=plBathSig(b.q);
+    if(d.bs!==sg){const fit=plBathDoorFit(b.e,b.q);if(fit)Object.assign(d,fit,{f:b.e.f});d.bs=sg;ch=true;}
+    keep.push(d);
+  });
+  if(keep.length!==pd.dw.length)pd.dw=keep;
+  if(!pd.bdw){ // una sola vez: los baños que ya existían reciben su puerta
+    const have=new Set(pd.dw.filter(d=>d.bk).map(d=>d.bk));
+    Object.keys(baths).forEach(k=>{if(have.has(k))return;const r=plBathDoorRec(baths[k].e,baths[k].q,k);if(r)pd.dw.push(r);});
+    pd.bdw=1;ch=true;
+  }
+  if(ch)plSave();
+}
 function plBathForm(sid,q,bi,isNew){
   const e=plGet(sid),rs=e.r&&plFloor(e.f).find(i=>i.e.id===sid),bb=(rs?rs.rects:e.r).reduce((a,r)=>[Math.min(a[0],r[0]),Math.min(a[1],r[1])],[1e9,1e9]);
   const f2=v=>String(Math.round(v*100)/100).replace(".",","),w=(q[2]-q[0])/PL_U,h=(q[3]-q[1])/PL_U,x=(q[0]-bb[0])/PL_U,y=(q[1]-bb[1])/PL_U,ex=q[5]||{};
@@ -44848,12 +45001,16 @@ window.plBathSave=()=>{
   const arr=[x0,y0,x1,y1,m2];if(Object.keys(ex).length)arr.push(ex);
   const ba=(e.ba||[]).map(q=>q.slice());if(f.isNew)ba.push(arr);else ba[f.bi]=arr;
   const o=plD().ov[f.sid]=plD().ov[f.sid]||{};o.ba=ba;
-  plSave();UI.plMark=null;UI.mod=null;UI.baF=null;render();
+  if(f.isNew){const e2=plGet(f.sid),bi=ba.length-1,pd=plD();pd.dw=Array.isArray(pd.dw)?pd.dw:[];
+    const r=e2&&plBathDoorRec(e2,ba[bi],f.sid+"#"+bi);if(r)pd.dw.push(r);}
+  plSave();UI.mod=null;UI.baF=null;render();
 };
 window.plBathDel=()=>{
   if(!plManager())return;const f=UI.baF;if(!f||f.isNew)return;if(!confirm("¿Eliminar este baño?"))return;
   const e=plGet(f.sid);const ba=(e.ba||[]).map(q=>q.slice());ba.splice(f.bi,1);
   const o=plD().ov[f.sid]=plD().ov[f.sid]||{};o.ba=ba;
+  {const pd=plD();pd.dw=(pd.dw||[]).filter(d=>d.bk!==f.sid+"#"+f.bi).map(d=>{ // la puerta del baño se va con él; las de los baños siguientes se renumeran
+    if(d.bk&&d.bk.indexOf(f.sid+"#")===0){const n=+d.bk.slice((f.sid+"#").length);if(n>f.bi)d.bk=f.sid+"#"+(n-1);}return d;});}
   plSave();UI.mod=null;UI.baF=null;render();
 };
 function modPlBath(){
@@ -44861,7 +45018,7 @@ function modPlBath(){
   const lab=t=>`<span class="fl">${t}</span>`,nm=e?String(e.nom||"").replace(/\|/g," "):"";
   const inp=(k,ph)=>`<input class="fc" type="text" inputmode="decimal" value="${plEsc(f[k])}" oninput="UI.baF.${k}=this.value${k==="m2"?";UI.baF.m2T=true":""}"${ph?` placeholder="${ph}"`:""}>`;
   return `<div class="ov" data-ov="plBath"><div class="mod" onclick="event.stopPropagation()" style="max-width:460px">
-    <div class="mh"><h2>${f.isNew?"Agregar baño":"Editar baño"} · ${plEsc(nm)}</h2><button class="btn btn-g btn-sm" onclick="UI.mod=null;UI.baF=null;UI.plMark=null;render()"><i class="ti ti-x"></i></button></div>
+    <div class="mh"><h2>${f.isNew?"Agregar baño":"Editar baño"} · ${plEsc(nm)}</h2><button class="btn btn-g btn-sm" onclick="UI.mod=null;UI.baF=null;render()"><i class="ti ti-x"></i></button></div>
     <div class="mc">
       <div class="fg2"><div>${lab("Nombre")}<input class="fc" type="text" maxlength="30" value="${plEsc(f.n)}" placeholder="Baño" oninput="UI.baF.n=this.value"></div><div>${lab("Superficie (m²)")}${inp("m2")}</div></div>
       <div style="font-size:10.5px;color:var(--text3);margin:-4px 0 8px">Si cambiás el ancho o el largo y no tocás la superficie, se recalcula sola (ancho × largo).</div>
@@ -44869,14 +45026,26 @@ function modPlBath(){
       <div class="fg2"><div>${lab("Posición: desde el borde izquierdo del espacio (m)")}${inp("x")}</div><div>${lab("Posición: desde el borde de arriba del espacio (m)")}${inp("y")}</div></div>
       <div class="fg">${lab("Datos / notas (opcional)")}<textarea class="fc" rows="2" oninput="UI.baF.d=this.value" placeholder="Ej: baño con ducha y bidet">${plEsc(f.d)}</textarea></div>
       <div style="font-size:11px;color:var(--text3)">También se puede arrastrar y estirar desde «✥ Mover textos, baños y esquinas» (Especificaciones técnicas).</div>
-      <div class="mf">${f.isNew?"":`<button class="btn btn-sm" onclick="plBathDel()">Eliminar baño</button>`}<button class="btn btn-sm" onclick="UI.mod=null;UI.baF=null;UI.plMark=null;render()">Cancelar</button><button class="btn btn-p btn-sm" onclick="plBathSave()">Guardar</button></div>
+      <div class="mf">${f.isNew?"":`<button class="btn btn-sm" onclick="plBathDel()">Eliminar baño</button>`}<button class="btn btn-sm" onclick="UI.mod=null;UI.baF=null;render()">Cancelar</button><button class="btn btn-p btn-sm" onclick="plBathSave()">Guardar</button></div>
     </div></div></div>`;
+}
+// Tipo de herramienta -> {t:"d"|"w", k}
+function plDwTool(tp){return tp==="w"?{t:"w",k:"b"}:{t:"d",k:({d:"b",f3:"f3",c2:"c2",c1:"c1"})[tp]||"b"};}
+// Ventana sobre pared curva: la longitud es de arco y tiene que entrar en el tramo
+function plDwCurveFix(rec){
+  if(rec.o==="c"&&rec.t==="w"&&rec.u&&rec.v){
+    const r=+rec.r,L=Math.min(rec.l,.98*Math.PI/2*r),half=L/(2*r),a=Math.max(half,Math.min(Math.PI/2-half,+rec.a||0));
+    const P=[rec.cx+r*(Math.cos(a)*rec.u[0]+Math.sin(a)*rec.v[0]),rec.cy+r*(Math.cos(a)*rec.u[1]+Math.sin(a)*rec.v[1])];
+    Object.assign(rec,{l:L,a,r,x:Math.round(P[0]*10)/10,y:Math.round(P[1]*10)/10});
+  }
+  return rec;
 }
 function plDwPlace(ev){
   if(typeof UI.plMark==="string"&&UI.plMark==="dw:b"){plBathPlace(ev);return;}
   const m=UI.plMark;const [x,y]=plEvXY(ev);
   let f=UI.plFloor||"p1";try{const sv=ev.target.closest("svg");if(sv&&sv.dataset.fl)f=sv.dataset.fl;}catch(e){}
-  const isWin=(typeof m==="object"&&m.dw)?((plDws().find(q=>q.id===m.dw)||{}).t==="w"):String(m).slice(3)==="w";
+  const tool=(typeof m==="object"&&m.dw)?null:plDwTool(String(m).slice(3));
+  const isWin=tool?tool.t==="w":((plDws().find(q=>q.id===m.dw)||{}).t==="w");
   const sn=plSnapWall(f,x,y,isWin)||{o:"h",x,y};
   if(typeof m==="object"&&m.dw){
     const d=plDws().find(q=>q.id===m.dw);
@@ -44885,25 +45054,27 @@ function plDwPlace(ev){
       if(d.t==="d"){const i2=plDwInDir(d);d.s=wasIn?i2:plDwOpp(i2);}plSave();}
     UI.plMark=null;render();return;
   }
-  const t=m.slice(3);
-  UI.dwF={id:null,isNew:true,t,f,x:sn.x,y:sn.y,o:sn.o,l:t==="w"?Math.round(1.2*PL_UPM):Math.round(.9*PL_UPM),s:"d",hg:"a"};
-  if(sn.o==="c")Object.assign(UI.dwF,{cx:sn.cx,cy:sn.cy,r:sn.r,u:sn.u,v:sn.v,a:sn.a});
-  UI.dwF.s=t==="d"?plDwInDir(UI.dwF):"d";
-  UI.mod="plDw";render();
+  // (Tanda 504) Se agrega directo y la herramienta SIGUE activa para sumar más del mismo estilo (se edita tocando el ítem).
+  const pd=plD();pd.dw=Array.isArray(pd.dw)?pd.dw:[];
+  const rec={id:"dw"+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36),f,t:tool.t,x:sn.x,y:sn.y,o:sn.o,l:tool.t==="w"?Math.round(1.2*PL_UPM):plDwDefL(tool.k),s:"d",hg:"a"};
+  if(tool.t==="d"&&tool.k!=="b")rec.k=tool.k;
+  if(sn.o==="c")Object.assign(rec,{cx:sn.cx,cy:sn.cy,r:sn.r,u:sn.u,v:sn.v,a:sn.a});
+  rec.s=tool.t==="d"?plDwInDir(rec):"d";
+  plDwCurveFix(rec);
+  pd.dw.push(rec);plSave();render();
 }
 window.plDwSave=()=>{
   if(!plManager())return;const f=UI.dwF;if(!f)return;
   const d=plD();d.dw=Array.isArray(d.dw)?d.dw:[];
   if(!(+f.l>=8)){alert("Ingresá una longitud válida (en cm).");return;}
   const rec={id:f.id||("dw"+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36)),f:f.f,t:f.t,x:f.x,y:f.y,o:f.o,l:+f.l,s:f.s,hg:f.hg};
-  if(f.o==="c"&&f.t==="w"&&f.u&&f.v){ // ventana sobre pared curva: la longitud es de arco y tiene que entrar en el tramo
-    const r=+f.r,L=Math.min(rec.l,.98*Math.PI/2*r),half=L/(2*r),a=Math.max(half,Math.min(Math.PI/2-half,+f.a||0));
-    const P=[f.cx+r*(Math.cos(a)*f.u[0]+Math.sin(a)*f.v[0]),f.cy+r*(Math.cos(a)*f.u[1]+Math.sin(a)*f.v[1])];
-    Object.assign(rec,{l:L,a,cx:f.cx,cy:f.cy,r,u:f.u,v:f.v,x:Math.round(P[0]*10)/10,y:Math.round(P[1]*10)/10});
-  }
+  if(f.t==="d"&&f.k&&f.k!=="b"){rec.k=f.k;if(f.op!==undefined&&f.op!==null&&f.op!=="")rec.op=Math.max(0,Math.min(1,+f.op));}
+  if(f.bk){rec.bk=f.bk;rec.bs=f.bs;}
+  if(f.o==="c"&&f.t==="w"&&f.u&&f.v)Object.assign(rec,{cx:f.cx,cy:f.cy,r:+f.r,u:f.u,v:f.v,a:+f.a||0});
+  plDwCurveFix(rec);
   const i=d.dw.findIndex(q=>q.id===rec.id);
   if(i>=0)d.dw[i]=rec;else d.dw.push(rec);
-  plSave();UI.plMark=null;UI.mod=null;UI.dwF=null;render();
+  plSave();if(UI.plMark&&typeof UI.plMark==="object")UI.plMark=null;UI.mod=null;UI.dwF=null;render();
 };
 window.plDwDel=()=>{
   if(!plManager()||!UI.dwF||!UI.dwF.id)return;
@@ -44916,16 +45087,18 @@ function modPlDw(){
   const lab=t=>`<span class="fl">${t}</span>`,v=f.o==="v";
   const cmOpts=(f.t==="w"?[60,80,100,120,150,200,250]:[60,70,80,90,100,120,160,200]);
   const cur=Math.round(f.l/PL_UPM*100/5)*5;if(!cmOpts.includes(cur))cmOpts.push(cur);cmOpts.sort((a,b)=>a-b);
-  const ins=plDwInDir(f),outs=plDwOpp(ins),isIn=f.s===ins;
+  
   return `<div class="ov" data-ov="plDw" onclick="closeMod(event)"><div class="mod" onclick="event.stopPropagation()" style="max-width:440px">
-    <div class="mh"><h2>${f.isNew?"Agregar":"Editar"} ${f.t==="w"?"ventana":"puerta"}</h2><button class="btn btn-g btn-sm" onclick="UI.mod=null;UI.dwF=null;UI.plMark=null;render()"><i class="ti ti-x"></i></button></div>
+    <div class="mh"><h2>${f.isNew?"Agregar":"Editar"} ${f.t==="w"?"ventana":"puerta"}</h2><button class="btn btn-g btn-sm" onclick="UI.mod=null;UI.dwF=null;render()"><i class="ti ti-x"></i></button></div>
     <div class="mc">
       <div class="fg2"><div>${lab("Tipo")}<select class="fc" onchange="UI.dwF.t=this.value;UI.dwF.l=Math.round((this.value==='w'?1.2:.9)*PL_UPM);if(this.value==='d'&&UI.dwF.o==='c'){UI.dwF.o='h';UI.dwF.s=plDwInDir(UI.dwF);}render()"><option value="d" ${f.t==="d"?"selected":""}>Puerta</option><option value="w" ${f.t==="w"?"selected":""}>Ventana</option></select></div>
       <div>${lab("Longitud (cm)")}<input class="fc" type="number" min="10" max="2000" step="1" value="${Math.round(f.l/PL_UPM*100)}" oninput="UI.dwF.l=(+this.value||0)/100*PL_UPM"></div></div>
       <div class="fg">${lab("La pared es")}${f.o==="c"?`<div style="font-size:13px;padding:7px 0">Curva · la ventana sigue la curva de la pared</div>`:`<select class="fc" onchange="UI.dwF.o=this.value;UI.dwF.s=plDwInDir(UI.dwF);render()"><option value="h" ${!v?"selected":""}>Horizontal (—)</option><option value="v" ${v?"selected":""}>Vertical (|)</option></select>`}</div>
-      ${f.t==="d"&&f.o!=="c"?`<div class="fg2"><div>${lab("Abre hacia")}<select class="fc" onchange="UI.dwF.s=this.value==='i'?'${ins}':'${outs}'"><option value="i" ${isIn?"selected":""}>Adentro</option><option value="o" ${!isIn?"selected":""}>Afuera</option></select></div>
-      <div>${lab("Bisagra")}<select class="fc" onchange="UI.dwF.hg=this.value">${(v?[["a","arriba"],["b","abajo"]]:[["a","a la izquierda"],["b","a la derecha"]]).map(a=>`<option value="${a[0]}" ${f.hg===a[0]?"selected":""}>${a[1]}</option>`).join("")}</select></div></div>`:""}
-      <div class="mf">${f.id?`<button class="btn btn-sm" onclick="plDwDel()">Borrar</button><button class="btn btn-sm" onclick="plDwMove()">Mover</button>`:""}<button class="btn btn-sm" onclick="UI.mod=null;UI.dwF=null;UI.plMark=null;render()">Cancelar</button><button class="btn btn-p btn-sm" onclick="plDwSave()">Guardar</button></div>
+      ${f.t==="d"&&f.o!=="c"?`<div class="fg">${lab("Tipo de puerta")}<select class="fc" onchange="UI.dwF.k=this.value;render()">${Object.keys(PL_DW_KINDS).map(k=>`<option value="${k}" ${(f.k||"b")===k?"selected":""}>${PL_DW_KINDS[k]}</option>`).join("")}</select></div>
+      <div class="fg2"><div>${lab(({f3:"Se pliega hacia",c2:"Hoja de adelante hacia",c1:"Hoja hacia"})[f.k||"b"]||"Abre hacia")}<select class="fc" onchange="UI.dwF.s=this.value">${(v?[["l","Izquierda"],["r","Derecha"]]:[["u","Arriba"],["d","Abajo"]]).map(a=>`<option value="${a[0]}" ${f.s===a[0]?"selected":""}>${a[1]}</option>`).join("")}</select></div>
+      <div>${lab(({f3:"Se pliega desde",c2:"Hoja de adelante en",c1:"Se esconde hacia"})[f.k||"b"]||"Bisagra")}<select class="fc" onchange="UI.dwF.hg=this.value">${(v?[["a","arriba"],["b","abajo"]]:[["a","la izquierda"],["b","la derecha"]]).map(a=>`<option value="${a[0]}" ${f.hg===a[0]?"selected":""}>${a[1]}</option>`).join("")}</select></div></div>`:""}
+      ${f.t==="d"&&f.o!=="c"&&f.k&&f.k!=="b"?`<div class="fg">${lab("Apertura: "+Math.round(plDwOp(f)*100)+"% (0 = cerrada · 100 = toda abierta)")}<input type="range" min="0" max="100" step="5" value="${Math.round(plDwOp(f)*100)}" style="width:100%" oninput="UI.dwF.op=this.value/100;this.previousElementSibling.textContent='Apertura: '+this.value+'% (0 = cerrada · 100 = toda abierta)'"></div>`:""}
+      <div class="mf">${f.id?`<button class="btn btn-sm" onclick="plDwDel()">Borrar</button><button class="btn btn-sm" onclick="plDwMove()">Mover</button>`:""}<button class="btn btn-sm" onclick="UI.mod=null;UI.dwF=null;render()">Cancelar</button><button class="btn btn-p btn-sm" onclick="plDwSave()">Guardar</button></div>
     </div></div></div>`;
 }
 function plLegendItems(o){
@@ -45270,6 +45443,7 @@ function vPlano3d(){
 }
 function vPlanoHabs(){
   if(UI.pl3d)return vPlano3d();
+  try{plBathDoorsSync();}catch(e){console.warn("plBathDoorsSync",e);}
   const acc=plPtsAccess(),pts=!!UI.plPts&&acc;
   const hlR=(UI.mod==="plPt"&&UI.ptF&&UI.ptF.rooms&&UI.ptF.rooms.length)?UI.ptF.rooms:null;
   const dwEdit=!!UI.plDwMode&&plManager();
@@ -45730,7 +45904,7 @@ window.plEditOpen=(id)=>{
   if(!plManager()){alert("Solo Gerencia, Administración y Coordinación pueden editar el plano.");return;}
   const e=plGet(id),b=_plIdx[id];if(!e)return;
   const o=plD().ov[id]||{};
-  UI.plF={fc:o.fc||"",fs:o.fs||100,rot:o.rot||"",tp:Array.isArray(o.tp)?o.tp.slice():null,id,n:o.n!==undefined?o.n:b.n,nomShown:e.nom,nTouched:false,k:e.k,m2:o.m2!==undefined?o.m2:(b.m2||""),d:e.d||"",bq:e.bq,res:e.res,priv:!!e.priv,into:o.into||"",rest:plRestNom(),hasRest:/\{REST\}/.test(b.n||"")||b.k==="rest"};
+  UI.plF={fc:o.fc||"",fs:o.fs||100,rot:o.rot||"",tp:Array.isArray(o.tp)?o.tp.slice():null,id,n:o.n!==undefined?o.n:b.n,nomShown:e.nom,nTouched:false,k:e.k,m2:o.m2!==undefined?o.m2:(b.m2||""),d:e.d||"",bq:e.bq,res:e.res,priv:!!e.priv,into:o.into||"",im:o.im==="s"?"s":"u",rest:plRestNom(),hasRest:/\{REST\}/.test(b.n||"")||b.k==="rest"};
   UI.mod="plEdit";render();
 };
 window.plEditSave=()=>{
@@ -45739,10 +45913,11 @@ window.plEditSave=()=>{
   const b=_plIdx[f.id];const ov=plD().ov;
   const o={};
   if(f.nTouched){const t=(f.nomShown||"").trim();o.n=t;} // vacío = espacio sin nombre (se puede bloquear igual)
-  if(f.k!==b.k)o.k=f.k;
+  const sepP=(f.into&&f.into!==f.id&&f.im==="s"&&_plIdx[f.into])?plEff(_plIdx[f.into]):null; // separado: lo que coincide con el espacio madre se hereda (no se copia)
+  if(f.k!==b.k&&!(sepP&&f.k===sepP.k))o.k=f.k;
   const m=String(f.m2||"").replace(",",".").trim();
   if(m!==String(b.m2||""))o.m2=m===""?0:(isNaN(+m)?m:+m);
-  if((f.d||"").trim())o.d=f.d.trim();
+  if((f.d||"").trim()&&!(sepP&&f.d.trim()===String(sepP.d||"").trim()))o.d=f.d.trim();
   if(f.bq!==!!b.bq)o.bq=f.bq;
   if(f.res!==!!PL_RES_DEF[f.k!==undefined?f.k:b.k])o.res=f.res;
   if(f.priv!==!!b.priv)o.priv=f.priv;
@@ -45750,7 +45925,7 @@ window.plEditSave=()=>{
   if(+f.fs&&+f.fs!==100)o.fs=+f.fs;
   if(f.rot==='h'||f.rot==='v')o.rot=f.rot;
   if(Array.isArray(f.tp)&&(f.tp[0]||f.tp[1]))o.tp=f.tp;
-  if(f.into&&f.into!==f.id)o.into=f.into;
+  if(f.into&&f.into!==f.id){o.into=f.into;if(f.im==="s")o.im="s";}
   {const prev=ov[f.id];if(prev&&Array.isArray(prev.ba)&&!f.baReset)o.ba=prev.ba;if(prev&&Array.isArray(prev.cr)&&prev.cr.length&&!f.crReset)o.cr=prev.cr;} // baños movidos a mano (Tanda 483)
   if(Object.keys(o).length)ov[f.id]=o;else delete ov[f.id];
   if(f.hasRest&&(f.rest||"").trim())plD().rest=f.rest.trim();
@@ -45810,6 +45985,38 @@ function plKindMgr(){
   return `<div class="fg" style="border:1.5px solid var(--border);border-radius:12px;padding:10px 12px"><div style="font-weight:700;font-size:12px;margin-bottom:4px">Tipos de espacio</div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">Cambiá el nombre escribiendo sobre él, eliminá los que no uses o sumá uno nuevo (su color se elige en «Colores y letra»). Los espacios de un tipo eliminado pasan a «Otro». Hab., Balcón, Pasillo, Vacío y Otro no se pueden eliminar.</div><div style="max-height:190px;overflow-y:auto">${rows}</div><div style="display:flex;gap:6px;margin-top:6px"><input class="fc" id="plKNew" style="flex:1" maxlength="40" placeholder="Nombre del tipo nuevo" onkeydown="if(event.key==='Enter'){event.preventDefault();plKindAdd()}"><button class="btn btn-sm" onclick="plKindAdd()">+ Agregar tipo</button></div></div>`;
 }
 const plKindBtn=()=>plManager()?`<div style="margin-top:5px"><span class="pl-chip ${UI.plKM?"on":""}" onclick="UI.plKM=!UI.plKM;render()">⚙ Administrar tipos</span></div>`:"";
+// (Tanda 504) Colores ya usados en el plano (todos los pisos), agrupados por tipo de espacio: «Office 1ro», «office 2do»… se juntan en «Office».
+function plNameBase(nom,kindLbl){
+  let t=String(nom||"").replace(/\|/g," ").replace(/"[^"]*"|“[^”]*”/g," ").replace(/[\/()]/g," ");
+  const norm=x=>x.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+  const stop=new Set(["de","del","la","el","los","las","y","e","en","con","al"]);
+  const junk=/^(\d+\S*|primer\S*|segund\S*|tercer\S*|cuart\S*|quint\S*|piso|planta|baja|pb|hab|habitacion|total|m2|nro|no|n|ro|do|er|to)$/;
+  const ws=t.split(/\s+/).filter(Boolean);
+  for(const w of ws){const n=norm(w).replace(/[^a-z0-9]/g,"");if(!n||stop.has(n)||junk.test(n))continue;
+    const key=n.length>3&&n.endsWith("s")?n.slice(0,-1):n;
+    const lab0=w.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g,"");const lab=(lab0.length>3&&/s$/i.test(lab0)&&n.length>3&&n.endsWith("s")?lab0.slice(0,-1):lab0);
+    if(!key)continue;return {key,label:lab.charAt(0).toUpperCase()+lab.slice(1).toLowerCase()};}
+  const kn=norm(kindLbl||"otro");return {key:"k_"+kn,label:kindLbl||"Otro"};
+}
+function plColExisting(){
+  const pal=PL_PAL.soft,hex=c=>/^#[0-9a-f]{6}$/i.test(c||"")?c.toLowerCase():null,G={};
+  ROOM_CATS.forEach(c=>{const col=hex(plCatCol(c.key,pal));if(col){const g=G["cat_"+c.key]={label:"Hab. "+c.label,cols:{},cat:1};g.cols[col]=1;}});
+  plFloorsAll().forEach(e=>{
+    if(e.k==="hab"||e.k==="vacio"||e.bq)return;
+    let col;try{col=hex(plFillOf(e,{mode:"cat"},pal));}catch(x){col=null;}if(!col)return;
+    const nb=plNameBase(e.nom,PL_KINDS[e.k]);const g=G[nb.key]=G[nb.key]||{label:nb.label,cols:{}};
+    if(nb.label.length<g.label.length)g.label=nb.label;
+    g.cols[col]=(g.cols[col]||0)+1;
+  });
+  return Object.values(G).sort((a,b)=>(a.cat?0:1)-(b.cat?0:1)||a.label.localeCompare(b.label,"es",{sensitivity:"base"}));
+}
+function plColExistHtml(f){
+  let gs=[];try{gs=plColExisting();}catch(e){console.warn(e);}
+  if(!gs.length)return "";
+  const cur=(f.fc||"").toLowerCase();
+  const chips=gs.map(g=>Object.entries(g.cols).sort((a,b)=>b[1]-a[1]).map(([c,n])=>`<span class="pl-chip ${cur===c?"on":""}" style="display:inline-flex;align-items:center;gap:6px" onclick="UI.plF.fc='${c}';render()" title="Usar este color (${plEsc(g.label)}${g.cat?"":" · "+n+" espacio"+(n===1?"":"s")})"><span style="width:14px;height:14px;border-radius:4px;background:${c};border:1px solid rgba(0,0,0,.35);flex:none"></span>${plEsc(g.label)}${g.cat?"":` <small style="opacity:.7">×${n}</small>`}</span>`).join("")).join("");
+  return `<div class="fg"><span class="fl">Colores que ya existen en el plano (todos los pisos)</span><div style="display:flex;flex-wrap:wrap;gap:5px;max-height:140px;overflow-y:auto;padding:2px">${chips}</div><div style="font-size:10.5px;color:var(--text3);margin-top:3px">Tocá uno para pintar este espacio del mismo color. Los espacios con nombres parecidos (Office 1ro, Office 2do…) se juntan en un solo tipo.</div></div>`;
+}
 function modPlEdit(){
   const f=UI.plF;if(!f)return "";
   const b=_plIdx[f.id];
@@ -45823,10 +46030,14 @@ function modPlEdit(){
       ${plKindMgr()}
       ${f.hasRest?`<div class="fg">${lab("Nombre del restaurante (queda fijo en todo el sistema hasta que se vuelva a cambiar)")}<input class="fc" type="text" value="${plEsc(f.rest)}" oninput="UI.plF.rest=this.value"></div>`:""}
       <div class="fg2"><div>${lab("Metros cuadrados")}<input class="fc" type="text" value="${plEsc(f.m2||"")}" oninput="UI.plF.m2=this.value" placeholder="Ej: 22,1"></div>
-      <div>${lab("Es parte de otro espacio")}<select class="fc" onchange="UI.plF.into=this.value"><option value="">— no, es independiente —</option>${mismos}</select></div></div>
+      <div>${lab("Es parte de otro espacio")}<select class="fc" onchange="UI.plF.into=this.value;render()"><option value="">— no, es independiente —</option>${mismos}</select></div></div>
+      ${f.into?`<div class="fg" style="border:1.5px solid var(--border);border-radius:12px;padding:8px 12px"><span class="fl">En el plano, este espacio…</span>
+        <label style="display:flex;align-items:flex-start;gap:7px;font-size:13px;cursor:pointer;margin-bottom:4px"><input type="radio" name="plIm" ${f.im!=="s"?"checked":""} onchange="UI.plF.im='u'"> <span><b>Se unifica</b> con ese espacio: pasa a ser un solo ambiente (mismo nombre, color y bloqueo).</span></label>
+        <label style="display:flex;align-items:flex-start;gap:7px;font-size:13px;cursor:pointer"><input type="radio" name="plIm" ${f.im==="s"?"checked":""} onchange="UI.plF.im='s'"> <span><b>Sigue separado</b>, con las mismas características que ese espacio (tipo, color, descripción). Se dibuja aparte y se puede bloquear o renombrar sin afectar al principal.</span></label></div>`:""}
       <div class="fg">${lab("Descripción / información")}<textarea class="fc" rows="3" oninput="UI.plF.d=this.value">${plEsc(f.d)}</textarea></div>
       <div class="fg2"><div>${lab("Color de relleno")}<div style="display:flex;align-items:center;gap:8px"><input type="color" value="${f.fc||plFillOf(plGet(f.id),{mode:"cat",noCustom:1},PL_PAL.soft)||"#cccccc"}" onchange="UI.plF.fc=this.value;this.nextElementSibling.textContent='personalizado'" style="width:44px;height:32px;border:none;background:none;padding:0;cursor:pointer"><span style="font-size:11px;color:var(--text3)">${f.fc?"personalizado":"el de su categoría"}</span>${f.fc?`<button class="btn btn-sm" type="button" onclick="UI.plF.fc='';render()">Restablecer</button>`:""}</div></div>
       <div>${lab("Tamaño de la letra")}<select class="fc" onchange="UI.plF.fs=+this.value">${[60,70,80,90,100,115,130,150,175,200].map(v=>`<option value="${v}" ${+f.fs===v?"selected":""}>${v}%${v===100?" (normal)":""}</option>`).join("")}</select></div></div>
+      ${plColExistHtml(f)}
       <div class="fg">${lab("Texto")}<select class="fc" onchange="UI.plF.rot=this.value"><option value="" ${!f.rot?"selected":""}>Horizontal (se gira solo si no entra)</option><option value="h" ${f.rot==="h"?"selected":""}>Siempre horizontal</option><option value="v" ${f.rot==="v"?"selected":""}>Vertical</option></select></div>
       <div class="fg">${lab("Posición del texto")}<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3)">${f.tp&&(f.tp[0]||f.tp[1])?"Movido a mano":"Centrado automático"}<button class="btn btn-sm" ${f.tp&&(f.tp[0]||f.tp[1])?"":"disabled"} onclick="UI.plF.tp=null;render()">Volver al centro</button><span>(para moverlo: «✥ Mover textos, baños y esquinas» en Especificaciones técnicas, y arrastrá)</span></div></div>
       ${(()=>{const hb=Array.isArray((plD().ov[f.id]||{}).ba)&&!f.baReset;return (hb||f.baReset)?`<div class="fg">${lab("Baños")}<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3)">${hb?"Movidos / cambiados de tamaño a mano":"Se restablecen al guardar"}<button class="btn btn-sm" ${hb?"":"disabled"} onclick="UI.plF.baReset=true;render()">Volver a los del plano</button></div></div>`:"";})()}
@@ -46284,7 +46495,7 @@ window.agNotify=(title,opts)=>{
 };
 window.pwaNotifPedir=async()=>{try{await Notification.requestPermission();}catch(e){}render();};
 // (Tanda 448) Número de versión visible en Mi cuenta, para comprobar que el sitio publicado tiene la última.
-const APP_BUILD="v508";
+const APP_BUILD="v509";
 function pwaCuentaHtml(){
   const inst=pwaStandalone();
   const np=typeof Notification!=="undefined"?Notification.permission:"unsupported";
