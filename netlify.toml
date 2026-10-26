@@ -44,3 +44,11 @@
 # (Tanda 112 / ítem 1) Esa ruta "/copahueadmin" ya no existe -- el acceso oculto pasa a ser un gesto
 # secreto dentro de la propia página (7 clicks rápidos sobre el logo de la pantalla de bienvenida, ver
 # logoSecretClick() en el HTML), así que no hace falta ninguna regla de redirects para esto.
+
+# (Tanda 510) backup-roomings.js: COPIA DE SEGURIDAD NOCTURNA de todos los roomings (zip con un PDF por rooming + los datos para
+# restaurar, por mail a copahuerecepcion@gmail.com) y ARCHIVO A LOS 6 MESES (a cada rooming que cumple 6 meses le manda primero su PDF
+# por mail y recién después lo borra de la base). Netlify programa en UTC y Argentina es UTC-3 todo el año (sin horario de verano):
+# 23:59 hs de Argentina = 02:59 UTC. Como el scheduler de Netlify puede correr con unos minutos de atraso, el mail puede llegar
+# apenas pasada la medianoche. Si algún día se quiere que NO borre nada (solo respaldar): variable de entorno ROOMINGS_NO_DELETE = 1.
+[functions."backup-roomings"]
+  schedule = "59 2 * * *"
