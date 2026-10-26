@@ -15195,7 +15195,7 @@ function _renderOverlays(){
   // (Tanda 473) Edición de un espacio del plano / de una habitación desde cualquier área (Gerencia, Administración, Coordinación, Recepción)
   if(UI.mod==="plEdit"){const _appEl=document.getElementById("app");if(_appEl&&!_appEl.querySelector('[data-ov="plEdit"]'))_appEl.insertAdjacentHTML("beforeend",modPlEdit());}
   if(UI.mod==="editRD"){const _appEl=document.getElementById("app");if(_appEl&&!_appEl.querySelector('[data-ov="editRD"]'))_appEl.insertAdjacentHTML("beforeend",modEditRD());}
-  [["espEdit",()=>modEspEdit()],["plInfo",()=>modPlInfo()],["plPt",()=>modPlPt()],["plTypes",()=>modPlTypes()],["plPdfOpt",()=>modPlPdfOpt()],["plCol",()=>modPlCol()],["plDw",()=>modPlDw()],["plBath",()=>modPlBath()],["plBuild",()=>modPlBuild()],["plAmb",()=>modPlAmb()]].forEach(([k,fn])=>{if(UI.mod===k){const _appEl=document.getElementById("app");if(_appEl&&!_appEl.querySelector('[data-ov="'+k+'"]'))_appEl.insertAdjacentHTML("beforeend",fn());}});
+  [["espEdit",()=>modEspEdit()],["plInfo",()=>modPlInfo()],["plPt",()=>modPlPt()],["plTypes",()=>modPlTypes()],["plPdfOpt",()=>modPlPdfOpt()],["plCol",()=>modPlCol()],["plDw",()=>modPlDw()],["plBath",()=>modPlBath()],["plCorner",()=>modPlCorner()],["plBuild",()=>modPlBuild()],["plAmb",()=>modPlAmb()]].forEach(([k,fn])=>{if(UI.mod===k){const _appEl=document.getElementById("app");if(_appEl&&!_appEl.querySelector('[data-ov="'+k+'"]'))_appEl.insertAdjacentHTML("beforeend",fn());}});
   // (Tanda 52) Cambiar clave de acceso del super-administrador -- botón "🔑 Cambiar clave" del hub de
   // Admin, ver adminChangePassAbrir(). Mismo patrón de capa global que vacaciones/notas/fotos arriba.
   if(UI.admChangePass){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",adminChangePassModal());}
@@ -44297,19 +44297,29 @@ function plShape(rects,inset,rad,cv,crs){
       const ov=crs.find(q=>Math.abs(q[0]-P[a][0])<1.6&&Math.abs(q[1]-P[a][1])<1.6);
       if(ov&&+ov[2]===0)return 0;
       if(Math.abs(cr)<1e-9)return 0;
+      if(ov&&typeof ov[2]==="string")return 1; // (Tanda 508) esquina con forma: curva «c» o diagonal «d» con largos a (horizontal) y b (vertical)
       if(cr<=0){if(!(ov&&+ov[2]===1))return 0;return Math.max(0,Math.min(rad,Ln[(a+n-1)%n]/2,Ln[a]/2));} // esquina cóncava: solo se redondea si se pidió
       const c=cv.find(q=>Math.abs(q[0]-P[a][0])<1.6&&Math.abs(q[1]-P[a][1])<1.6);if(c)return Math.max(0,Math.min(c[2],Ln[(a+n-1)%n]*.98,Ln[a]*.98));return Math.max(0,Math.min(rad,Ln[(a+n-1)%n]/2,Ln[a]/2));});
-    P.forEach((p,a)=>{const d1=D[(a+n-1)%n],d2=D[a];vs.push({x:p[0],y:p[1],cx:(d1[0]*d2[1]-d1[1]*d2[0])>0?1:0,r:rr[a]>0?1:0});});
-    const Pin=Q.map((q,a)=>{const d1=D[(a+n-1)%n];return [q[0]-d1[0]*rr[a],q[1]-d1[1]*rr[a]];});
-    const Pout=Q.map((q,a)=>{const d2=D[a];return [q[0]+d2[0]*rr[a],q[1]+d2[1]*rr[a]];});
+    const near=(p,q)=>Math.abs(q[0]-p[0])<1.6&&Math.abs(q[1]-p[1])<1.6;
+    const SPc=P.map(p=>crs.find(q=>typeof q[2]==="string"&&near(p,q))||null),CVr=P.map(p=>{const c=cv.find(q=>near(p,q));return c?c[2]:0;});
+    const L1=rr.slice(),L2=rr.slice();
+    P.forEach((p,a)=>{const s=SPc[a];if(!s||!(rr[a]>0))return;const d1=D[(a+n-1)%n],d2=D[a],pp=P[(a+n-1)%n],pn=P[(a+1)%n];
+      const A=Math.max(1,+s[3]||1),B=Math.max(1,+s[4]||1),li=Math.hypot(p[0]-pp[0],p[1]-pp[1]),lo=Math.hypot(pn[0]-p[0],pn[1]-p[1]);
+      L1[a]=Math.min(Math.abs(d1[0])>.5?A:B,li*.98);L2[a]=Math.min(Math.abs(d2[0])>.5?A:B,lo*.98);});
+    P.forEach((p,a)=>{const d1=D[(a+n-1)%n],d2=D[a];vs.push({x:p[0],y:p[1],cx:(d1[0]*d2[1]-d1[1]*d2[0])>0?1:0,r:rr[a]>0?1:0,sp:SPc[a]?SPc[a][2]:"",cvr:CVr[a]||0,l1:L1[a],l2:L2[a],d1:d1,d2:d2,
+      ha:Math.abs(d1[0])>.5?"a":"b",hb:Math.abs(d2[0])>.5?"a":"b",li:Math.hypot(p[0]-P[(a+n-1)%n][0],p[1]-P[(a+n-1)%n][1]),lo:Math.hypot(P[(a+1)%n][0]-p[0],P[(a+1)%n][1]-p[1])});});
+    const Pin=Q.map((q,a)=>{const d1=D[(a+n-1)%n];return [q[0]-d1[0]*L1[a],q[1]-d1[1]*L1[a]];});
+    const Pout=Q.map((q,a)=>{const d2=D[a];return [q[0]+d2[0]*L2[a],q[1]+d2[1]*L2[a]];});
     const K=.5523;
     emit("M",{x:Pout[0][0],y:Pout[0][1]});d+="M"+f2(Pout[0][0])+" "+f2(Pout[0][1]);
     for(let a=1;a<=n;a++){
       const i=a%n,d1=D[(i+n-1)%n],d2=D[i];
       emit("L",{x:Pin[i][0],y:Pin[i][1]});d+="L"+f2(Pin[i][0])+" "+f2(Pin[i][1]);
       if(rr[i]>0){
-        if((d1[0]*d2[1]-d1[1]*d2[0])>0)arcs.push({c:[Pin[i][0]-d1[1]*rr[i],Pin[i][1]+d1[0]*rr[i]],r:rr[i],u:[d1[1],-d1[0]],v:[d1[0],d1[1]]}); // centro = Pin + normal interior·r
-        const c1=[Pin[i][0]+d1[0]*rr[i]*K,Pin[i][1]+d1[1]*rr[i]*K],c2=[Pout[i][0]-d2[0]*rr[i]*K,Pout[i][1]-d2[1]*rr[i]*K];
+        if(SPc[i]&&SPc[i][2]==="d"){ // diagonal: recta de un punto al otro
+          emit("L",{x:Pout[i][0],y:Pout[i][1]});d+="L"+f2(Pout[i][0])+" "+f2(Pout[i][1]);continue;}
+        if((d1[0]*d2[1]-d1[1]*d2[0])>0&&(!SPc[i]||Math.abs(L1[i]-L2[i])<.6))arcs.push({c:[Pin[i][0]-d1[1]*L1[i],Pin[i][1]+d1[0]*L1[i]],r:L1[i],u:[d1[1],-d1[0]],v:[d1[0],d1[1]]}); // centro = Pin + normal interior·r (solo curvas circulares)
+        const c1=[Pin[i][0]+d1[0]*L1[i]*K,Pin[i][1]+d1[1]*L1[i]*K],c2=[Pout[i][0]-d2[0]*L2[i]*K,Pout[i][1]-d2[1]*L2[i]*K];
         emit("C",{x1:c1[0],y1:c1[1],x2:c2[0],y2:c2[1],x:Pout[i][0],y:Pout[i][1]});
         d+="C"+f2(c1[0])+" "+f2(c1[1])+" "+f2(c2[0])+" "+f2(c2[1])+" "+f2(Pout[i][0])+" "+f2(Pout[i][1]);
       }
@@ -44348,7 +44358,10 @@ function plSvg(fid,o){
     const sh=plShape(allR,.9,7,gr.reduce((a,ii)=>a.concat(items[ii].e.cv||[]),[]),gr.reduce((a,ii)=>a.concat(items[ii].e.cr||[]),[])),cid=gid+"c"+gi;
     if(o.cornerEdit&&sh.v)sh.v.forEach(v=>{ // asa de cada esquina del contorno: tocar para alternar recta / redondeada
       let own=gr.find(ii=>items[ii].rects.some(r=>[[r[0],r[1]],[r[2],r[1]],[r[0],r[3]],[r[2],r[3]]].some(c=>Math.abs(c[0]-v.x)<1.6&&Math.abs(c[1]-v.y)<1.6)));if(own===undefined)own=gr[0];
-      cornerH+=`<g class="pl-cn" style="cursor:pointer" onclick="plCornerToggle('${items[own].e.id}',${v.x},${v.y},${v.r},${v.cx},event)"><title>${v.r?"Esquina redondeada — tocá para dejarla recta":"Esquina recta — tocá para redondearla"}</title><circle cx="${v.x}" cy="${v.y}" r="7" fill="transparent"/><circle cx="${v.x}" cy="${v.y}" r="3.6" fill="${v.r?"#1d7a6b":"#ffffff"}" stroke="#1d7a6b" stroke-width="1.4"/></g>`;});
+      const kd=v.sp||(v.cvr?"c":(v.r?"r":"n")),sa=v.sp?(v.ha==="a"?v.l1:v.l2):(v.cvr||0),sb=v.sp?(v.ha==="b"?v.l1:v.l2):(v.cvr||0),oid=items[own].e.id;
+      cornerH+=`<g class="pl-cn" style="cursor:pointer" onclick="plCornerOpen('${oid}',${v.x},${v.y},'${kd}',${(+sa||0).toFixed(1)},${(+sb||0).toFixed(1)},${v.cx},${v.cvr?1:0},event)"><title>${kd==="c"?"Esquina curva":kd==="d"?"Esquina diagonal":v.r?"Esquina redondeada":"Esquina recta"} — tocá para cambiar la forma</title><circle cx="${v.x}" cy="${v.y}" r="7" fill="transparent"/><circle cx="${v.x}" cy="${v.y}" r="3.6" fill="${kd==="n"?"#ffffff":kd==="r"?"#1d7a6b":"#7c3aed"}" stroke="${kd==="c"||kd==="d"?"#7c3aed":"#1d7a6b"}" stroke-width="1.4"/></g>`;
+      if(v.sp||v.cvr){const hx=(w)=>w===1?[v.x-v.d1[0]*v.l1,v.y-v.d1[1]*v.l1]:[v.x+v.d2[0]*v.l2,v.y+v.d2[1]*v.l2];
+        [1,2].forEach(w=>{const q=hx(w);cornerH+=`<rect class="pl-csh" data-sid="${oid}" data-x="${v.x}" data-y="${v.y}" data-w="${w}" data-which="${w===1?v.ha:v.hb}" data-dx="${(w===1?v.d1[0]:v.d2[0]).toFixed(4)}" data-dy="${(w===1?v.d1[1]:v.d2[1]).toFixed(4)}" data-len="${(w===1?v.li:v.lo).toFixed(1)}" data-kd="${kd}" data-oa="${(+sa||0).toFixed(1)}" data-ob="${(+sb||0).toFixed(1)}" x="${(q[0]-3.2).toFixed(1)}" y="${(q[1]-3.2).toFixed(1)}" width="6.4" height="6.4" rx="1" fill="#7c3aed" stroke="#fff" stroke-width="1" transform="rotate(45 ${q[0].toFixed(1)} ${q[1].toFixed(1)})" style="cursor:grab"><title>Arrastrá para ajustar el ángulo / tamaño</title></rect>`;});}});
     defs+=`<clipPath id="${cid}"><path d="${sh.d}"/></clipPath>`;
     let anyOl=false;
     gr.forEach(ii=>{
@@ -44724,6 +44737,95 @@ window.plCornerToggle=(sid,x,y,rd,cx,ev)=>{
   if(!Object.keys(o).length)delete ov[sid];
   plSave();render();
 };
+// ═══ (Tanda 508) Esquinas con forma: ov[id].cr admite [x,y,"c"|"d",a,b] — «c» curva (cuarto de elipse), «d» diagonal; a = largo horizontal, b = largo vertical (unidades del plano; /21,41 = metros). El ángulo de la diagonal sale de a y b. ═══
+window.plCornerOpen=(sid,x,y,kd,a,b,cx,cvr,ev)=>{
+  if(ev)ev.stopPropagation();if(!plManager())return;
+  const u=21.41,def=kd==="n"||kd==="r"?1.5:Math.max(.5,(+a||0)/u);
+  UI.csF={sid,x,y,kd,cx:+cx?1:0,cvr:+cvr?1:0,a:((+a>0?+a:1.5*u)/u).toFixed(2).replace(".",","),b:((+b>0?+b:1.5*u)/u).toFixed(2).replace(".",","),same:Math.abs((+a||0)-(+b||0))<.6};
+  UI.mod="plCorner";render();
+};
+function plCsNum(s){const v=parseFloat(String(s||"").replace(",","."));return isFinite(v)&&v>0?v:0;}
+window.plCsSave=()=>{
+  const f=UI.csF;if(!f||!plManager())return;
+  const u=21.41,e=plGet(f.sid);if(!e)return;
+  const same=q=>Math.abs(q[0]-f.x)<1.6&&Math.abs(q[1]-f.y)<1.6;
+  const lst=(e.cr||[]).filter(q=>!same(q)).map(q=>q.slice());
+  if(f.kd==="c"||f.kd==="d"){
+    let A=plCsNum(f.a)*u,B=f.same?A:plCsNum(f.b)*u;if(!(A>0))A=1.5*u;if(!(B>0))B=A;
+    lst.push([f.x,f.y,f.kd,Math.round(A*10)/10,Math.round(B*10)/10]);
+  }else if(f.kd==="r"){
+    if(f.cvr)lst.push([f.x,f.y,"c",7,7]);else if(!f.cx||true){const def=f.cx?1:0;if(1!==def)lst.push([f.x,f.y,1]);}
+  }else{ // recta
+    const def=f.cx?1:0;if(0!==def||f.cvr)lst.push([f.x,f.y,0]);
+  }
+  const ov=plD().ov;const o=ov[f.sid]=ov[f.sid]||{};
+  if(lst.length)o.cr=lst;else delete o.cr;
+  if(!Object.keys(o).length)delete ov[f.sid];
+  plSave();UI.mod=null;UI.csF=null;render();
+};
+window.plCsCopy=()=>{const f=UI.csF;if(!f)return;UI.csClip={kd:f.kd,a:f.a,b:f.b,same:f.same};render();};
+window.plCsPaste=()=>{const f=UI.csF,c=UI.csClip;if(!f||!c)return;f.kd=c.kd;f.a=c.a;f.b=c.b;f.same=c.same;render();};
+function modPlCorner(){
+  const f=UI.csF;if(!f)return "";const e=plGet(f.sid),nm=e?String(e.nom||"").replace(/\|/g," "):"";
+  const lab=t=>`<span class="fl">${t}</span>`,u=21.41,c=UI.csClip;
+  const rad=(k,t,d)=>`<label style="display:flex;align-items:flex-start;gap:7px;font-size:13px;cursor:pointer;margin-bottom:5px"><input type="radio" name="csk" ${f.kd===k?"checked":""} onchange="UI.csF.kd='${k}';render()"> <span><b>${t}</b>${d?` <span style="color:var(--text3);font-size:11.5px">${d}</span>`:""}</span></label>`;
+  const A=plCsNum(f.a),B=f.same?A:plCsNum(f.b),ang=A>0&&B>0?Math.round(Math.atan2(B,A)*1800/Math.PI)/10:0;
+  const sh=f.kd==="c"||f.kd==="d";
+  return `<div class="ov" data-ov="plCorner"><div class="mod" onclick="event.stopPropagation()" style="max-width:440px">
+    <div class="mh"><h2>Esquina · ${plEsc(nm)}</h2><button class="btn btn-g btn-sm" onclick="UI.mod=null;UI.csF=null;render()"><i class="ti ti-x"></i></button></div>
+    <div class="mc">
+      <div class="fg">${lab("Forma de la esquina")}
+        ${rad("n","Recta","")}${rad("r","Redondeada","(radio chico)")}${rad("c","Curva","(cuarto de círculo / elipse)")}${rad("d","Diagonal","(esquina cortada en ángulo)")}</div>
+      ${sh?`<div class="fg2"><div>${lab("Largo horizontal (m)")}<input class="fc" type="text" inputmode="decimal" value="${plEsc(f.a)}" oninput="UI.csF.a=this.value;if(UI.csF.same)UI.csF.b=this.value" onchange="render()"></div>
+        <div>${lab("Largo vertical (m)")}<input class="fc" type="text" inputmode="decimal" value="${plEsc(f.same?f.a:f.b)}" ${f.same?"disabled":""} oninput="UI.csF.b=this.value" onchange="render()"></div></div>
+        <label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;margin:2px 0 8px"><input type="checkbox" ${f.same?"checked":""} onchange="UI.csF.same=this.checked;if(this.checked)UI.csF.b=UI.csF.a;render()"> Igual en los dos sentidos ${f.kd==="c"?"(curva circular)":"(diagonal a 45°)"}</label>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:8px">${f.kd==="d"?`Ángulo de la diagonal: <b>${String(ang).replace(".",",")}°</b> respecto de la horizontal. `:""}Después de guardar, podés ajustarlo arrastrando los dos rombos violetas de la esquina en el plano.</div>`:""}
+      <div class="fg"><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><button class="btn btn-sm" onclick="plCsCopy()">📋 Copiar esta forma</button><button class="btn btn-sm" ${c?"":"disabled"} onclick="plCsPaste()">📌 Pegar la forma copiada</button>${c?`<span style="font-size:11.5px;color:var(--text3)">Copiada: ${c.kd==="c"?"curva":c.kd==="d"?"diagonal":c.kd==="r"?"redondeada":"recta"}${c.kd==="c"||c.kd==="d"?" "+String(c.a)+" × "+String(c.same?c.a:c.b)+" m":""}</span>`:`<span style="font-size:11.5px;color:var(--text3)">Copiá una forma y abrí otra esquina para pegarla (la orientación se adapta sola).</span>`}</div></div>
+      <div class="mf"><button class="btn btn-sm" onclick="UI.mod=null;UI.csF=null;render()">Cancelar</button><button class="btn btn-p btn-sm" onclick="plCsSave()">Guardar</button></div>
+    </div></div></div>`;
+}
+(function(){
+  if(window.__plCsDrag)return;window.__plCsDrag=1;
+  let d=null;const NS="http://www.w3.org/2000/svg";
+  const css=document.createElement("style");css.textContent=".pl-csh{touch-action:none}";document.head.appendChild(css);
+  const pt=(svg,ev)=>{const q=svg.createSVGPoint();q.x=ev.clientX;q.y=ev.clientY;const r=q.matrixTransform(svg.getScreenCTM().inverse());return [r.x,r.y];};
+  document.addEventListener("pointerdown",ev=>{
+    if(!UI.plTxMove||!plManager()||(ev.pointerType==="mouse"&&ev.button!==0))return;
+    const h=ev.target&&ev.target.closest?ev.target.closest(".pl-csh"):null;if(!h)return;
+    const svg=h.closest("svg.pl-svg");if(!svg||!svg.getScreenCTM())return;
+    ev.preventDefault();ev.stopPropagation();
+    const D=h.dataset;d={svg,h,sid:D.sid,x:+D.x,y:+D.y,w:+D.w,which:D.which,dx:+D.dx,dy:+D.dy,len:+D.len,kd:D.kd,A:+D.oa,B:+D.ob,gh:null,moved:false,ex:ev.clientX,ey:ev.clientY};
+    try{h.setPointerCapture&&h.setPointerCapture(ev.pointerId);}catch(e){}
+  },true);
+  const spec=(shift)=>{
+    let A=d.A,B=d.B;const l=d.L;if(d.which==="a")A=l;else B=l;
+    if(shift){if(d.which==="a")B=l;else A=l;}
+    return [Math.round(A*10)/10,Math.round(B*10)/10];
+  };
+  document.addEventListener("pointermove",ev=>{
+    if(!d)return;if(!d.moved&&Math.hypot(ev.clientX-d.ex,ev.clientY-d.ey)<3)return;
+    ev.preventDefault();d.moved=true;
+    const p=pt(d.svg,ev);
+    let l=d.w===1?((d.x-p[0])*d.dx+(d.y-p[1])*d.dy):((p[0]-d.x)*d.dx+(p[1]-d.y)*d.dy);
+    l=Math.max(2,Math.min(d.len*.98,l));d.L=Math.round(l*10)/10;d.sh=!!ev.shiftKey;
+    const e=plGet(d.sid);if(!e)return;
+    const fid=e.f,it=plFloor(fid).find(i=>i.e.id===d.sid);if(!it)return;
+    const sp=spec(d.sh),kd=d.kd==="d"?"d":"c";
+    const cr=(e.cr||[]).filter(q=>!(Math.abs(q[0]-d.x)<1.6&&Math.abs(q[1]-d.y)<1.6)).concat([[d.x,d.y,kd,sp[0],sp[1]]]);
+    if(!d.gh){d.gh=document.createElementNS(NS,"path");d.gh.setAttribute("fill","rgba(124,58,237,.14)");d.gh.setAttribute("stroke","#7c3aed");d.gh.setAttribute("stroke-width","1.5");d.gh.setAttribute("stroke-dasharray","4 2");d.gh.style.pointerEvents="none";d.svg.appendChild(d.gh);}
+    try{d.gh.setAttribute("d",plShape(it.rects,.9,7,e.cv,cr).d);}catch(er){}
+    d.cr=cr;d.sp=sp;
+  },true);
+  const end=ev=>{
+    if(!d)return;const k=d;d=null;
+    if(k.gh&&k.gh.parentNode)k.gh.parentNode.removeChild(k.gh);
+    window.__plCsSup=Date.now()+350;
+    if(!k.moved||!k.cr)return;
+    const ov=plD().ov;const o=ov[k.sid]=ov[k.sid]||{};o.cr=k.cr.map(q=>q.slice());plSave();setTimeout(()=>{try{render();}catch(e){}},0);
+  };
+  document.addEventListener("pointerup",end,true);document.addEventListener("pointercancel",end,true);
+  document.addEventListener("click",ev=>{if(window.__plCsSup&&Date.now()<window.__plCsSup){ev.stopPropagation();ev.preventDefault();}},true);
+})();
 // ═══ (Tanda 483) Mover / agrandar / achicar baños: ov[id].ba = [[x0,y0,x1,y1,m²],…] (reemplaza los del plano) ═══
 (function(){
   if(window.__plBhDrag)return;window.__plBhDrag=1;
@@ -44767,6 +44869,17 @@ window.plRmToggle=()=>{if(!plManager())return;UI.plRmMode=!UI.plRmMode;if(!UI.pl
 window.plRmMeasToggle=()=>{if(!plManager())return;UI.plRmMeas=!UI.plRmMeas;if(UI.plRmMeas)UI.plRmCut=false;render();};
 window.plRmCutToggle=()=>{if(!plManager())return;UI.plRmCut=!UI.plRmCut;if(UI.plRmCut)UI.plRmMeas=false;render();};
 function plRmMembers(fid){return PLANO_BASE.filter(b=>b.f===fid).map(b=>({id:b.id,own:plOwnerId(b.id),R:plRectsOf(b).map(q=>q.slice())}));}
+// (Tanda 508) baños de un ambiente (rectángulos [x0,y0,x1,y1]): las medidas de la habitación se toman desde el límite del baño en adelante, sin incluirlo
+function plItemBaths(it){const o=[];(it.miembros||[it.e.id]).forEach(id=>{const e=plGet(id);(e&&e.ba||[]).forEach(q=>{if(q&&q.length>=4)o.push([q[0],q[1],q[2],q[3]]);});});return o;}
+// resta de un tramo de pared [a,b] (sobre la pared c, lado k) los baños que apoyan en esa pared. Devuelve {keep:[[a,b]...], cut:[[a,b]...]}
+function plRunMinusBaths(s,baths){
+  const hz=s.k==="t"||s.k==="b",EPS=1.6;let keep=[[s.a,s.b]];const cut=[];
+  baths.forEach(q=>{
+    const edge=hz?(s.k==="t"?q[1]:q[3]):(s.k==="l"?q[0]:q[2]);if(Math.abs(edge-s.c)>EPS)return;
+    const a=hz?q[0]:q[1],b=hz?q[2]:q[3],nx=[];
+    keep.forEach(v=>{if(b<=v[0]+.01||a>=v[1]-.01){nx.push(v);return;}cut.push([Math.max(a,v[0]),Math.min(b,v[1])]);if(a>v[0])nx.push([v[0],a]);if(b<v[1])nx.push([b,v[1]]);});keep=nx;});
+  return {keep:keep.filter(v=>v[1]-v[0]>1),cut};
+}
 // (Tanda 507) límites de fábrica de un ambiente (esquinas/uniones de sus rectángulos originales): no cuentan como cortes
 function plRmNat(item){
   const set=new Set(),f=v=>Math.round(v*10)/10;
@@ -44970,12 +45083,17 @@ window.plRmReset=()=>{
     const R=plRmRuns(it);
     // contorno del ambiente resaltado
     try{g.appendChild(mk("path",{d:plShape(it.rects,.9,7,it.e.cv,it.e.cr).d,fill:"rgba(124,58,237,.07)",stroke:"#7c3aed","stroke-width":"1.2"}));}catch(e){}
-    R.runs.forEach(s=>{const len=s.b-s.a;if(len<2)return;const hz=s.k==="t"||s.k==="b",ins=s.k==="t"||s.k==="l"?1:-1,off=4*ins,fs=len<14?4.6:6.6;
-      const c2=s.c+off;
-      if(hz){g.appendChild(mk("line",{x1:s.a,y1:c2,x2:s.b,y2:c2,stroke:"#7c3aed","stroke-width":".8"}));[s.a,s.b].forEach(x=>g.appendChild(mk("line",{x1:x,y1:c2-2.2,x2:x,y2:c2+2.2,stroke:"#7c3aed","stroke-width":".8"})));
-        txt(g,(s.a+s.b)/2,c2+fs*.34,fmt(len),{fs,c:"#4c1d95"});}
-      else{g.appendChild(mk("line",{x1:c2,y1:s.a,x2:c2,y2:s.b,stroke:"#7c3aed","stroke-width":".8"}));[s.a,s.b].forEach(y=>g.appendChild(mk("line",{x1:c2-2.2,y1:y,x2:c2+2.2,y2:y,stroke:"#7c3aed","stroke-width":".8"})));
-        txt(g,c2+fs*.34,(s.a+s.b)/2,fmt(len),{fs,c:"#4c1d95",rot:1});}
+    const baths=plItemBaths(it);
+    R.runs.forEach(s=>{
+      const sp=plRunMinusBaths(s,baths),hz=s.k==="t"||s.k==="b",ins=s.k==="t"||s.k==="l"?1:-1,off=4*ins,c2=s.c+off;
+      sp.cut.forEach(v=>{ // tramo del baño: no se mide (se marca punteado)
+        g.appendChild(mk("line",hz?{x1:v[0],y1:c2,x2:v[1],y2:c2,stroke:"#94a3b8","stroke-width":".8","stroke-dasharray":"2 2"}:{x1:c2,y1:v[0],x2:c2,y2:v[1],stroke:"#94a3b8","stroke-width":".8","stroke-dasharray":"2 2"}));});
+      sp.keep.forEach(v=>{const len=v[1]-v[0];if(len<2)return;const fs=len<14?4.6:6.6;
+        if(hz){g.appendChild(mk("line",{x1:v[0],y1:c2,x2:v[1],y2:c2,stroke:"#7c3aed","stroke-width":".8"}));[v[0],v[1]].forEach(x=>g.appendChild(mk("line",{x1:x,y1:c2-2.2,x2:x,y2:c2+2.2,stroke:"#7c3aed","stroke-width":".8"})));
+          txt(g,(v[0]+v[1])/2,c2+fs*.34,fmt(len),{fs,c:"#4c1d95"});}
+        else{g.appendChild(mk("line",{x1:c2,y1:v[0],x2:c2,y2:v[1],stroke:"#7c3aed","stroke-width":".8"}));[v[0],v[1]].forEach(y=>g.appendChild(mk("line",{x1:c2-2.2,y1:y,x2:c2+2.2,y2:y,stroke:"#7c3aed","stroke-width":".8"})));
+          txt(g,c2+fs*.34,(v[0]+v[1])/2,fmt(len),{fs,c:"#4c1d95",rot:1});}
+      });
     });
     svg.appendChild(g);hov=g;
   }
@@ -45003,7 +45121,12 @@ window.plRmReset=()=>{
     const iv=[];it.rects.forEach(q=>{if(q[1-ax]<=w+.01&&q[3-ax]>=w-.01)iv.push([q[ax],q[ax+2]]);});
     iv.sort((x,y)=>x[0]-y[0]);let cur=null;const out=[];
     iv.forEach(s=>{if(cur&&s[0]<=cur[1]+.6)cur[1]=Math.max(cur[1],s[1]);else{if(cur)out.push(cur);cur=s.slice();}});if(cur)out.push(cur);
-    return out.find(s=>v>=s[0]-.01&&v<=s[1]+.01)||null;
+    let sp=out.find(s=>v>=s[0]-.01&&v<=s[1]+.01)||null;if(!sp)return null;
+    // (Tanda 508) sin los baños: se mide desde el límite del baño en adelante; si el punto cae dentro de un baño, se mide el baño
+    const bs=plItemBaths(it).filter(q=>q[1-ax]<w-.01&&q[3-ax]>w+.01).map(q=>[q[ax],q[ax+2]]).sort((x,y)=>x[0]-y[0]);
+    const inB=bs.find(q=>v>q[0]&&v<q[1]);if(inB)return inB.slice();
+    let lo=sp[0],hi=sp[1];bs.forEach(q=>{if(q[1]<=v)lo=Math.max(lo,q[1]);else if(q[0]>=v)hi=Math.min(hi,q[0]);});
+    return [lo,hi];
   }
   function drawSpans(svg,p){
     mClear();const fid=svg.getAttribute("data-fl"),it=plFloor(fid).find(i=>i.rects.some(q=>p[0]>=q[0]&&p[0]<=q[2]&&p[1]>=q[1]&&p[1]<=q[3]));
@@ -45612,7 +45735,7 @@ function plSpecPanel(dwEdit,pts){
   if(!plManager())return "";
   const btn=`<span class="pl-chip ${UI.plSpec?"on":""}" onclick="plSpecToggle()">⚙ Especificaciones técnicas</span>`+plHBtns();
   if(!UI.plSpec)return `<div style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">${btn}</div>`;
-  return `<div style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">${btn}<span style="width:1.5px;height:22px;background:var(--border);margin:0 4px"></span><span class="pl-chip ${dwEdit?"on":""}" onclick="plDwToggle()">✎ Editar puertas y ventanas</span><span class="pl-chip ${pts?"on":""}" onclick="plTogglePts()">📍 Puntos técnicos</span><span class="pl-chip" onclick="plColOpen()">🎨 Colores y letra</span><span class="pl-chip ${UI.plTxMove?"on":""}" onclick="plTxMoveToggle()">✥ Mover textos, baños y esquinas</span><span class="pl-chip ${UI.plRmMode?"on":""}" onclick="plRmToggle()">📐 Medidas de ambientes</span><span class="pl-chip" onclick="plBuildOpen()">🏗️ Pisos y ambientes</span><span class="pl-chip ${UI.plGhost?"on":""}" onclick="plGhostToggle()" title="Muestra, en naranja punteado, las paredes del piso de arriba sobre cada plano">👁 Calco del piso de arriba</span></div>${UI.plRmMode?`<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:-4px 0 10px"><span style="font-size:11.5px;color:var(--text3)">${UI.plRmCut?"✂ Tocá un punto de una pared (línea punteada) para PARTIRLA en dos tramos; tocá una marca naranja de corte para volver a unirlos.":"Arrastrá cualquier tramo de pared (línea punteada) para agrandar o achicar el ambiente. Nunca se superpone: los vecinos se achican solos."} 📏 Pasá el cursor sobre un ambiente para ver el largo de cada pared. Clic derecho y arrastrar = regla; clic derecho solo = mide el ambiente de lado a lado.</span><span class="pl-chip ${UI.plRmCut?"on":""}" onclick="plRmCutToggle()" title="Parte una pared en dos tramos para mover cada uno por separado">✂ Cortar pared</span><span class="pl-chip ${UI.plRmMeas?"on":""}" onclick="plRmMeasToggle()" title="Regla: arrastrá de un punto a otro para medir (también con clic derecho)">📏 Medir</span><span class="pl-chip ${UI.plRmShared===false?"":"on"}" onclick="UI.plRmShared=UI.plRmShared===false;render()">🔗 Si achico, los vecinos ocupan el espacio libre</span><span class="pl-chip" onclick="plRmReset()">↺ Restablecer medidas originales</span></div>`:""}`;
+  return `<div style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">${btn}<span style="width:1.5px;height:22px;background:var(--border);margin:0 4px"></span><span class="pl-chip ${dwEdit?"on":""}" onclick="plDwToggle()">✎ Editar puertas y ventanas</span><span class="pl-chip ${pts?"on":""}" onclick="plTogglePts()">📍 Puntos técnicos</span><span class="pl-chip" onclick="plColOpen()">🎨 Colores y letra</span><span class="pl-chip ${UI.plTxMove?"on":""}" onclick="plTxMoveToggle()">✥ Mover textos, baños y esquinas</span><span class="pl-chip ${UI.plRmMode?"on":""}" onclick="plRmToggle()">📐 Medidas de ambientes</span><span class="pl-chip" onclick="plBuildOpen()">🏗️ Pisos y ambientes</span><span class="pl-chip ${UI.plGhost?"on":""}" onclick="plGhostToggle()" title="Muestra, en naranja punteado, las paredes del piso de arriba sobre cada plano">👁 Calco del piso de arriba</span></div>${UI.plRmMode?`<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:-4px 0 10px"><span style="font-size:11.5px;color:var(--text3)">${UI.plRmCut?"✂ Tocá un punto de una pared (línea punteada) para PARTIRLA en dos tramos; tocá una marca naranja de corte para volver a unirlos.":"Arrastrá cualquier tramo de pared (línea punteada) para agrandar o achicar el ambiente. Nunca se superpone: los vecinos se achican solos."} 📏 Pasá el cursor sobre un ambiente para ver el largo de cada pared (si tiene baño, se mide desde el límite del baño en adelante). Clic derecho y arrastrar = regla; clic derecho solo = mide el ambiente de lado a lado.</span><span class="pl-chip ${UI.plRmCut?"on":""}" onclick="plRmCutToggle()" title="Parte una pared en dos tramos para mover cada uno por separado">✂ Cortar pared</span><span class="pl-chip ${UI.plRmMeas?"on":""}" onclick="plRmMeasToggle()" title="Regla: arrastrá de un punto a otro para medir (también con clic derecho)">📏 Medir</span><span class="pl-chip ${UI.plRmShared===false?"":"on"}" onclick="UI.plRmShared=UI.plRmShared===false;render()">🔗 Si achico, los vecinos ocupan el espacio libre</span><span class="pl-chip" onclick="plRmReset()">↺ Restablecer medidas originales</span></div>`:""}`;
 }
 // ═══ (Tanda 490) Vista 3D del plano: selector «Plano 2D · Vista 3D» (por defecto 2D). La biblioteca 3D (three.js, embebida) arma el modelo a partir de las mismas formas/colores/textos del plano 2D. ═══
 function pl3dToggle(){return `<div class="pl-sw" title="Ver el plano en 2D o en 3D"><span class="${UI.pl3d?"":"on"}" onclick="plSet3d(false)">2D</span><span class="${UI.pl3d?"on":""}" onclick="plSet3d(true)">3D</span></div>`;}
@@ -46728,7 +46851,7 @@ window.agNotify=(title,opts)=>{
 };
 window.pwaNotifPedir=async()=>{try{await Notification.requestPermission();}catch(e){}render();};
 // (Tanda 448) Número de versión visible en Mi cuenta, para comprobar que el sitio publicado tiene la última.
-const APP_BUILD="v512";
+const APP_BUILD="v513";
 function pwaCuentaHtml(){
   const inst=pwaStandalone();
   const np=typeof Notification!=="undefined"?Notification.permission:"unsupported";
