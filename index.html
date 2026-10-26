@@ -43916,7 +43916,51 @@ function plD(){
   if(D.plano.cf||D.plano.ca||__plCuCf||__plCuCa)plCustomApply();
   return D.plano;
 }
-function plSave(){lsS(K.plano,plD());}
+// ═══ (Tanda 506) Deshacer / Rehacer del plano: cada plSave() guarda una foto del estado anterior de D.plano ═══
+const __plH={u:[],r:[],cur:null,ref:null,max:60};
+function plHJson(){try{return JSON.stringify(D.plano);}catch(e){return null;}}
+function plHInit(){ // línea base: al abrir el plano (o si D.plano fue reemplazado desde afuera, p. ej. por la nube, se empieza de cero)
+  if(!D.plano||typeof D.plano!=="object")return;
+  if(__plH.cur===null||__plH.ref!==D.plano){const n=plHJson();if(n!==null){if(__plH.ref!==D.plano){__plH.u=[];__plH.r=[];}__plH.cur=n;__plH.ref=D.plano;}}
+}
+function plSave(quiet){
+  try{const n=plHJson();
+    if(n!==null){
+      if(!quiet&&__plH.cur!==null&&__plH.ref===D.plano&&n!==__plH.cur){__plH.u.push(__plH.cur);if(__plH.u.length>__plH.max)__plH.u.shift();__plH.r=[];}
+      __plH.cur=n;__plH.ref=D.plano;
+    }}catch(e){}
+  lsS(K.plano,plD());
+}
+function plHGo(dir){
+  if(!plManager())return false;
+  const from=dir<0?__plH.u:__plH.r,to=dir<0?__plH.r:__plH.u;
+  if(!from.length)return false;
+  const now=plHJson(),st=from.pop();if(now!==null)to.push(now);
+  try{D.plano=JSON.parse(st);}catch(e){return false;}
+  __plH.cur=st;__plH.ref=D.plano;
+  try{plCustomInval();}catch(e){}
+  lsS(K.plano,plD());
+  UI.mod=null;UI.plF=null;UI.dwF=null;UI.ptF=null;UI.baF=null;UI.plA=null;UI.tyF=null;
+  try{render();}catch(e){console.warn(e);}
+  return true;
+}
+window.plUndo=()=>plHGo(-1);
+window.plRedo=()=>plHGo(1);
+function plHBtns(){
+  if(!plManager())return "";
+  const u=__plH.u.length,r=__plH.r.length,st=on=>on?"":"opacity:.38;pointer-events:none";
+  return `<span class="pl-chip" style="${st(u)}" onclick="plUndo()" title="Deshacer el último cambio del plano (Ctrl+Z)">↶ Deshacer${u?` (${u})`:""}</span><span class="pl-chip" style="${st(r)}" onclick="plRedo()" title="Rehacer (Ctrl+Y)">↷ Rehacer${r?` (${r})`:""}</span>`;
+}
+if(!window.__plHKey){window.__plHKey=1;document.addEventListener("keydown",ev=>{
+  try{
+    if(!(ev.ctrlKey||ev.metaKey)||ev.altKey)return;
+    const k=String(ev.key||"").toLowerCase();if(k!=="z"&&k!=="y")return;
+    const t=ev.target;if(t&&(/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)||t.isContentEditable))return;
+    if(UI.mod||!plManager()||!document.querySelector("svg.pl-svg"))return;
+    ev.preventDefault();
+    if(k==="y"||ev.shiftKey)plHGo(1);else plHGo(-1);
+  }catch(e){}
+});}
 function plManager(){try{return ["ger","admin","coord"].includes(ROLE)||isAdminAuth();}catch(e){return false;}}
 function plRestNom(){return plD().rest||"Don Benito";}
 function plEff(b){
@@ -44359,21 +44403,20 @@ function plSvg(fid,o){
     });});
   }
   if(o.cornerEdit)bh+=cornerH;
-  if(o.roomEdit){ // (Tanda 492) modo «Medidas de ambientes»: cada lado exterior del ambiente se arrastra para agrandar/achicar
-    items.forEach(it=>{
-      const R=it.rects;if(!R.length)return;const T=8,A=`data-fl="${fid}" data-sid="${it.e.id}"`;
-      const mnx=Math.min(...R.map(q=>q[0])),mxx=Math.max(...R.map(q=>q[2])),mny=Math.min(...R.map(q=>q[1])),mxy=Math.max(...R.map(q=>q[3]));
-      const sides={l:[],r:[],t:[],b:[]};
-      R.forEach(q=>{if(Math.abs(q[0]-mnx)<.8)sides.l.push(q);if(Math.abs(q[2]-mxx)<.8)sides.r.push(q);if(Math.abs(q[1]-mny)<.8)sides.t.push(q);if(Math.abs(q[3]-mxy)<.8)sides.b.push(q);});
-      Object.keys(sides).forEach(k=>{
-        let best=null,bl=0;
-        sides[k].forEach(q=>{const hz=k==="t"||k==="b",x=hz?q[0]:(k==="l"?q[0]:q[2]),y=hz?(k==="t"?q[1]:q[3]):q[1],len=hz?q[2]-q[0]:q[3]-q[1];
-          bh+=`<rect class="pl-rh" ${A} data-h="${k}" x="${(hz?x:x-T/2).toFixed(1)}" y="${(hz?y-T/2:y).toFixed(1)}" width="${(hz?len:T).toFixed(1)}" height="${(hz?T:len).toFixed(1)}" fill="transparent"/>`
-            +`<line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${(hz?x+len:x).toFixed(1)}" y2="${(hz?y:y+len).toFixed(1)}" stroke="#1d7a6b" stroke-width="1.5" stroke-dasharray="4 2" style="pointer-events:none"/>`;
-          if(len>bl){bl=len;best=[hz?x+len/2:x,hz?y:y+len/2,hz];}});
-        if(best)bh+=best[2]?`<rect x="${(best[0]-6).toFixed(1)}" y="${(best[1]-2.5).toFixed(1)}" width="12" height="5" rx="2" fill="#fff" stroke="#1d7a6b" stroke-width="1.2" style="pointer-events:none"/>`:`<rect x="${(best[0]-2.5).toFixed(1)}" y="${(best[1]-6).toFixed(1)}" width="5" height="12" rx="2" fill="#fff" stroke="#1d7a6b" stroke-width="1.2" style="pointer-events:none"/>`;
-      });
+  if(o.roomEdit){ // (Tanda 492/505) modo «Medidas de ambientes»: cada TRAMO exterior de pared se arrastra por separado (se puede partir una pared con «✂ Cortar pared»)
+    const segs=plRmSegs(items),T=8,cutM=!!UI.plRmCut;
+    segs.sort((p,q)=>(q.b-q.a)-(p.b-p.a)); // los tramos cortos quedan arriba de los largos (el más específico gana)
+    const tk={};
+    segs.forEach(s=>{const hz=s.k==="t"||s.k==="b",A=`data-fl="${fid}" data-sid="${s.id}" data-h="${s.k}" data-c="${s.c}" data-a="${s.a}" data-b="${s.b}"`,len=s.b-s.a;
+      const x0=hz?s.a:s.c,y0=hz?s.c:s.a;
+      bh+=`<rect class="pl-rh${cutM?" pl-rc":""}" ${A} x="${(hz?x0:x0-T/2).toFixed(1)}" y="${(hz?y0-T/2:y0).toFixed(1)}" width="${(hz?len:T).toFixed(1)}" height="${(hz?T:len).toFixed(1)}" fill="transparent"/>`
+        +`<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${(hz?x0+len:x0).toFixed(1)}" y2="${(hz?y0:y0+len).toFixed(1)}" stroke="${cutM?"#c2410c":"#1d7a6b"}" stroke-width="1.5" stroke-dasharray="4 2" style="pointer-events:none"/>`;
+      const kl=Math.min(12,len*.6),kc=(s.a+s.b)/2;
+      bh+=hz?`<rect x="${(kc-kl/2).toFixed(1)}" y="${(s.c-2.5).toFixed(1)}" width="${kl.toFixed(1)}" height="5" rx="2" fill="#fff" stroke="#1d7a6b" stroke-width="1.2" style="pointer-events:none"/>`:`<rect x="${(s.c-2.5).toFixed(1)}" y="${(kc-kl/2).toFixed(1)}" width="5" height="${kl.toFixed(1)}" rx="2" fill="#fff" stroke="#1d7a6b" stroke-width="1.2" style="pointer-events:none"/>`;
+      [s.a,s.b].forEach(p=>{const key=s.id+"|"+s.k+"|"+s.c+"|"+p;(tk[key]=tk[key]||[]).push(s);});
     });
+    Object.keys(tk).forEach(key=>{const L=tk[key];if(L.length<2)return;const s=L[0],hz=s.k==="t"||s.k==="b",p=+key.split("|")[3]; // corte: dos tramos del mismo ambiente se tocan
+      bh+=hz?`<line x1="${p}" y1="${s.c-5}" x2="${p}" y2="${s.c+5}" stroke="#c2410c" stroke-width="2" style="pointer-events:none"/>`:`<line x1="${s.c-5}" y1="${p}" x2="${s.c+5}" y2="${p}" stroke="#c2410c" stroke-width="2" style="pointer-events:none"/>`;});
   }
   // puntos técnicos
   let pts="";
@@ -44722,39 +44765,97 @@ window.plCornerToggle=(sid,x,y,rd,cx,ev)=>{
 // ═══ (Tanda 482) Arrastrar el texto de cada ambiente: ov[id].tp=[dx,dy] (unidades del plano, respecto del centro automático) ═══
 window.plTxMoveToggle=()=>{UI.plTxMove=!UI.plTxMove;render();};
 // ═══ (Tanda 492) Medidas de ambientes: ov[id].rr = rectángulos reemplazados (agrandar/achicar desde cualquier lado exterior; opcionalmente mueve la pared del vecino) ═══
-window.plRmToggle=()=>{if(!plManager())return;UI.plRmMode=!UI.plRmMode;render();};
+window.plRmToggle=()=>{if(!plManager())return;UI.plRmMode=!UI.plRmMode;if(!UI.plRmMode)UI.plRmCut=false;render();};
+window.plRmCutToggle=()=>{if(!plManager())return;UI.plRmCut=!UI.plRmCut;render();};
 function plRmMembers(fid){return PLANO_BASE.filter(b=>b.f===fid).map(b=>({id:b.id,own:plOwnerId(b.id),R:plRectsOf(b).map(q=>q.slice())}));}
-// Calcula cómo queda todo si el lado h del ambiente sid se lleva a la coordenada c1 (null → solo datos del lado).
-function plRmCalc(fid,sid,h,c1){
-  const M=plRmMembers(fid),self=M.filter(m=>m.own===sid),oth=M.filter(m=>m.own!==sid);
-  const ax=(h==="l"||h==="r")?0:1,lo=ax,hi=ax+2,isMax=(h==="r"||h==="b"),idx=isMax?hi:lo,oi=isMax?lo:hi,EPS=.8,MIN=12,MN=6;
-  const all=[];self.forEach(m=>m.R.forEach(q=>all.push(q)));if(!all.length)return null;
-  const c0=isMax?Math.max(...all.map(q=>q[hi])):Math.min(...all.map(q=>q[lo]));
-  const spans=[];all.filter(q=>Math.abs(q[idx]-c0)<EPS).forEach(q=>spans.push([q[1-ax],q[3-ax]]));
-  const shared=UI.plRmShared!==false;
-  // rectángulos de otros ambientes que están del otro lado de la pared (y se pisan en el tramo que se mueve)
-  const far=[];oth.forEach(m=>m.R.forEach(q=>{
-    const side=isMax?q[lo]>=c0-EPS:q[hi]<=c0+EPS;
-    if(side&&spans.some(sp=>Math.min(sp[1],q[3-ax])-Math.max(sp[0],q[1-ax])>1))far.push({m,q});}));
+// (Tanda 505) Tramos exteriores de pared de cada ambiente: [{id,k:"l|r|t|b",c,a,b}] (c = coordenada de la pared, a..b = tramo). Cada rectángulo aporta el pedazo de lado que no toca otro rectángulo del mismo ambiente.
+function plRmSegs(items){
+  const EPS=.8,out=[];
+  items.forEach(it=>{const R=it.rects;
+    R.forEach((q,qi)=>{
+      [["l",0,q[0]],["r",0,q[2]],["t",1,q[1]],["b",1,q[3]]].forEach(s=>{
+        const k=s[0],ax=s[1],c=s[2],cr=1-ax;let iv=[[q[cr],q[cr+2]]];
+        R.forEach((p,pi)=>{if(pi===qi)return;
+          const fe=k==="l"?p[2]:k==="r"?p[0]:k==="t"?p[3]:p[1];if(Math.abs(fe-c)>EPS)return;
+          const a=p[cr],b=p[cr+2],nx=[];
+          iv.forEach(v=>{if(b<=v[0]||a>=v[1]){nx.push(v);return;}if(a>v[0])nx.push([v[0],a]);if(b<v[1])nx.push([b,v[1]]);});iv=nx;});
+        iv.forEach(v=>{if(v[1]-v[0]>1)out.push({id:it.e.id,k,c:Math.round(c*10)/10,a:Math.round(v[0]*10)/10,b:Math.round(v[1]*10)/10});});
+      });
+    });
+  });
+  return out;
+}
+// Calcula cómo queda todo si el TRAMO [a,b] de la pared h (coordenada c0) del ambiente sid se lleva a la coordenada c1 (null → solo límites).
+// Solo se mueve ese tramo: los rectángulos del propio ambiente y de los vecinos se parten en el tramo y se corrige únicamente la parte interior.
+function plRmCalc(fid,sid,h,c0,a,b,c1){
+  const M=plRmMembers(fid);
+  const ax=(h==="l"||h==="r")?0:1,cr=1-ax,lo=ax,hi=ax+2,isMax=(h==="r"||h==="b"),idx=isMax?hi:lo,oi=isMax?lo:hi,EPS=.8,MIN=12,MN=6;
+  let P=[];M.forEach(m=>m.R.forEach(q=>P.push({m,q:q.slice(),self:m.own===sid,t:false,w:false})));
+  if(!P.some(p=>p.self))return null;
+  const ovl=q=>Math.min(q[cr+2],b)-Math.max(q[cr],a);
+  const snaps=[];P.forEach(p=>{snaps.push(p.q[lo],p.q[hi]);});
+  const mv=P.filter(p=>p.self&&Math.abs(p.q[idx]-c0)<EPS&&ovl(p.q)>1);
+  if(!mv.length)return null;
+  const far=P.filter(p=>!p.self&&(isMax?p.q[lo]>=c0-EPS:p.q[hi]<=c0+EPS)&&ovl(p.q)>1);
+  const split=pc=>{const q=pc.q;
+    if(q[cr]<a-.5){const n=q.slice();n[cr+2]=a;P.push({m:pc.m,q:n,self:pc.self,t:true,w:false});q[cr]=a;pc.t=true;}
+    if(q[cr+2]>b+.5){const n=q.slice();n[cr]=b;P.push({m:pc.m,q:n,self:pc.self,t:true,w:false});q[cr+2]=b;pc.t=true;}};
   let min=-1e9,max=1e9;
-  // límite del propio ambiente al achicar
-  if(isMax)min=all.reduce((a,q)=>Math.min(a,q[lo]),1e9)+MIN;else max=all.reduce((a,q)=>Math.max(a,q[hi]),-1e9)-MIN;
-  // al agrandar, ningún vecino puede quedar de menos de MN: se frena antes
+  if(isMax)min=Math.max(...mv.map(p=>p.q[lo]))+MIN;else max=Math.min(...mv.map(p=>p.q[hi]))-MIN;
   far.forEach(x=>{const q=x.q;
     if(isMax){const up=(q[hi]-MN>q[lo])?q[hi]-MN:q[lo];max=Math.min(max,up);}
     else{const dn=(q[lo]+MN<q[hi])?q[lo]+MN:q[hi];min=Math.max(min,dn);}});
-  const snaps=[];M.forEach(m=>m.R.forEach(q=>{snaps.push(q[lo],q[hi]);}));
   if(c1===null)return {c0,min,max,snaps:snaps.filter(v=>Math.abs(v-c0)>EPS)};
   c1=Math.max(min,Math.min(max,c1));
-  const ch={};
-  self.forEach(m=>{m.R.forEach(q=>{if(Math.abs(q[idx]-c0)<EPS){q[idx]=isMax?Math.max(c1,q[lo]+1.5):Math.min(c1,q[hi]-1.5);ch[m.id]=m.R;}});});
+  const shared=UI.plRmShared!==false;
+  mv.concat(far).forEach(split);
   const touched=[];
+  mv.forEach(p=>{p.q[idx]=isMax?Math.max(c1,p.q[lo]+1.5):Math.min(c1,p.q[hi]-1.5);p.t=true;p.w=true;});
   far.forEach(x=>{const q=x.q,touch=Math.abs(q[oi]-c0)<EPS;
-    if(isMax?c1>q[lo]+.05:c1<q[hi]-.05){q[oi]=isMax?Math.min(c1,q[hi]-1.5):Math.max(c1,q[lo]+1.5);ch[x.m.id]=x.m.R;touched.push(x.m.own);} // el vecino se achica para no superponerse
-    else if(shared&&touch){q[oi]=isMax?Math.min(c1,q[hi]-1.5):Math.max(c1,q[lo]+1.5);ch[x.m.id]=x.m.R;touched.push(x.m.own);} // al achicar, el vecino ocupa el espacio libre
+    if(isMax?c1>q[lo]+.05:c1<q[hi]-.05){q[oi]=isMax?Math.min(c1,q[hi]-1.5):Math.max(c1,q[lo]+1.5);x.t=true;x.w=true;touched.push(x.m.own);}
+    else if(shared&&touch){q[oi]=isMax?Math.min(c1,q[hi]-1.5):Math.max(c1,q[lo]+1.5);x.t=true;x.w=true;touched.push(x.m.own);}});
+  // re-une pedazos del mismo ambiente que quedaron alineados (solo si alguno fue tocado ahora: un corte hecho a mano no se deshace solo)
+  const al=(u,v)=>Math.abs(u-v)<.15;let ch2=true,g=0;
+  while(ch2&&g++<200){ch2=false;
+    outer:for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const A=P[i],B=P[j];if(A.m!==B.m||!(A.t||B.t))continue;
+      for(const e of [0,1]){const c=1-e;if(al(A.q[e],B.q[e])&&al(A.q[e+2],B.q[e+2])&&(al(A.q[c+2],B.q[c])||al(B.q[c+2],A.q[c]))){
+        const q=A.q.slice();q[c]=Math.min(A.q[c],B.q[c]);q[c+2]=Math.max(A.q[c+2],B.q[c+2]);A.q=q;A.t=A.t||B.t;A.w=A.w||B.w;P.splice(j,1);ch2=true;break outer;}}}}
+  const ch={},selfR=[];
+  M.forEach(m=>{const nr=P.filter(p=>p.m===m).map(p=>p.q.map(v=>Math.round(v*10)/10));
+    if(JSON.stringify(nr)!==JSON.stringify(m.R.map(q=>q.map(v=>Math.round(v*10)/10))))ch[m.id]=nr;});
+  P.filter(p=>p.self).forEach(p=>selfR.push(p.q));
+  const bb=[1e9,1e9,-1e9,-1e9];selfR.forEach(q=>{bb[0]=Math.min(bb[0],q[0]);bb[1]=Math.min(bb[1],q[1]);bb[2]=Math.max(bb[2],q[2]);bb[3]=Math.max(bb[3],q[3]);});
+  return {c0,c1,min,max,ch,bb,selfR,owners:[...new Set([sid].concat(touched))]};
+}
+// (Tanda 505) el punto de corte se pega a bordes de otros ambientes de la planta (a menos de 2,5 unidades)
+function plRmCutSnap(fid,h,c0,p){
+  const cr=(h==="l"||h==="r")?1:0;let best=p,bd=2.5;
+  PLANO_BASE.filter(b=>b.f===fid).forEach(b=>plRectsOf(b).forEach(q=>[q[cr],q[cr+2]].forEach(v=>{const d=Math.abs(v-p);if(d<bd){bd=d;best=v;}})));
+  return Math.round(best*10)/10;
+}
+// (Tanda 505) Corte de pared: parte en dos (por la coordenada p del eje de la pared) todos los rectángulos de la planta que tienen su borde en la pared c0 y pasan por p
+function plRmCutAt(fid,h,c0,p){
+  const ax=(h==="l"||h==="r")?0:1,cr=1-ax,EPS=.8,ov=plD().ov;let n=0;
+  PLANO_BASE.filter(b=>b.f===fid).forEach(b=>{
+    const out=[];let ch=false;
+    plRectsOf(b).forEach(q0=>{const q=q0.slice();
+      if((Math.abs(q[ax]-c0)<EPS||Math.abs(q[ax+2]-c0)<EPS)&&p>q[cr]+3&&p<q[cr+2]-3){const u=q.slice(),v=q.slice();u[cr+2]=p;v[cr]=p;out.push(u,v);ch=true;n++;}else out.push(q);});
+    if(ch){const o=ov[b.id]=ov[b.id]||{};o.rr=out.map(q=>q.map(v=>Math.round(v*10)/10));}
   });
-  const bb=[1e9,1e9,-1e9,-1e9];self.forEach(m=>m.R.forEach(q=>{bb[0]=Math.min(bb[0],q[0]);bb[1]=Math.min(bb[1],q[1]);bb[2]=Math.max(bb[2],q[2]);bb[3]=Math.max(bb[3],q[3]);}));
-  return {c0,c1,min,max,ch,bb,owners:[...new Set([sid].concat(touched))]};
+  return n;
+}
+// (Tanda 505) deshace un corte en la posición p de la pared c0: re-une los rectángulos alineados que se tocan ahí
+function plRmUncutAt(fid,h,c0,p){
+  const ax=(h==="l"||h==="r")?0:1,cr=1-ax,EPS=.8,ov=plD().ov;let n=0;
+  PLANO_BASE.filter(b=>b.f===fid).forEach(b=>{
+    const R=plRectsOf(b).map(q=>q.slice());let ch=true,any=false;
+    while(ch){ch=false;
+      outer:for(let i=0;i<R.length;i++)for(let j=0;j<R.length;j++){if(i===j)continue;const A=R[i],B=R[j];
+        if(Math.abs(A[cr+2]-p)<EPS&&Math.abs(B[cr]-p)<EPS&&Math.abs(A[ax]-B[ax])<EPS&&Math.abs(A[ax+2]-B[ax+2])<EPS&&(Math.abs(A[ax]-c0)<EPS||Math.abs(A[ax+2]-c0)<EPS)){
+          const q=A.slice();q[cr+2]=B[cr+2];R[i]=q;R.splice(j,1);ch=true;any=true;n++;break outer;}}}
+    if(any){const o=ov[b.id]=ov[b.id]||{};o.rr=R.map(q=>q.map(v=>Math.round(v*10)/10));if(JSON.stringify(o.rr)===JSON.stringify(b.r)){delete o.rr;if(!Object.keys(o).length)delete ov[b.id];}}
+  });
+  return n;
 }
 function plRmM2(oid){
   const ov=plD().ov,b=_plIdx[oid];if(!b)return;
@@ -44780,15 +44881,27 @@ window.plRmReset=()=>{
 (function(){
   if(window.__plRmDrag)return;window.__plRmDrag=1;
   let d=null;
-  const css=document.createElement("style");css.textContent=".pl-rh{touch-action:none}.pl-rh[data-h=l],.pl-rh[data-h=r]{cursor:ew-resize}.pl-rh[data-h=t],.pl-rh[data-h=b]{cursor:ns-resize}";document.head.appendChild(css);
+  const css=document.createElement("style");css.textContent=".pl-rh{touch-action:none}.pl-rh[data-h=l],.pl-rh[data-h=r]{cursor:ew-resize}.pl-rh[data-h=t],.pl-rh[data-h=b]{cursor:ns-resize}.pl-rh.pl-rc{cursor:crosshair!important}";document.head.appendChild(css);
   const fmt=v=>(Math.round(v/21.41*100)/100).toFixed(2).replace(".",",");
   document.addEventListener("pointerdown",ev=>{
     if(!UI.plRmMode||!plManager())return;
     const h=ev.target&&ev.target.closest?ev.target.closest(".pl-rh"):null;if(!h)return;
     const svg=h.closest("svg.pl-svg"),m=svg&&svg.getScreenCTM();if(!m)return;
-    const info=plRmCalc(h.dataset.fl,h.dataset.sid,h.dataset.h,null);if(!info)return;
+    const hh=h.dataset.h,c0=+h.dataset.c,sa=+h.dataset.a,sb=+h.dataset.b;
+    if(UI.plRmCut){ // (Tanda 505) herramienta «✂ Cortar pared»: un toque parte la pared en ese punto (o deshace el corte si se toca uno ya hecho)
+      ev.preventDefault();ev.stopPropagation();
+      const pp=svg.createSVGPoint();pp.x=ev.clientX;pp.y=ev.clientY;const sp=pp.matrixTransform(m.inverse());
+      const hz=hh==="t"||hh==="b";let p=Math.round((hz?sp.x:sp.y)*10)/10;
+      const near=plRmCutSnap(h.dataset.fl,hh,c0,p);p=near;
+      let n=0;
+      if(Math.abs(p-sa)<4||Math.abs(p-sb)<4)n=plRmUncutAt(h.dataset.fl,hh,c0,Math.abs(p-sa)<4?sa:sb);
+      if(!n)n=plRmCutAt(h.dataset.fl,hh,c0,p);
+      if(n){plSave();setTimeout(()=>{try{render();}catch(e){}},0);}
+      return;
+    }
+    const info=plRmCalc(h.dataset.fl,h.dataset.sid,hh,c0,sa,sb,null);if(!info)return;
     ev.preventDefault();ev.stopPropagation();
-    d={h:h.dataset.h,fl:h.dataset.fl,sid:h.dataset.sid,m,svg,x:ev.clientX,y:ev.clientY,info,c1:info.c0,res:null,gh:null,tx:null};
+    d={h:hh,c0,sa,sb,fl:h.dataset.fl,sid:h.dataset.sid,m,svg,x:ev.clientX,y:ev.clientY,info,c1:info.c0,res:null,gh:null,tx:null};
     try{h.setPointerCapture&&h.setPointerCapture(ev.pointerId);}catch(_){}
   },true);
   document.addEventListener("pointermove",ev=>{
@@ -44796,12 +44909,13 @@ window.plRmReset=()=>{
     const hz=d.h==="l"||d.h==="r",dl=hz?(ev.clientX-d.x)/d.m.a:(ev.clientY-d.y)/d.m.d;
     let c=d.info.c0+dl;const sn=d.info.snaps.reduce((a,v)=>Math.abs(v-c)<Math.abs(a-c)?v:a,1e9);if(Math.abs(sn-c)<2.5)c=sn;
     c=Math.round(c*10)/10;
-    const r=plRmCalc(d.fl,d.sid,d.h,c);if(!r)return;d.res=r;d.c1=r.c1;
+    const r=plRmCalc(d.fl,d.sid,d.h,d.c0,d.sa,d.sb,c);if(!r)return;d.res=r;d.c1=r.c1;
     const ns="http://www.w3.org/2000/svg";
-    if(!d.gh){d.gh=document.createElementNS(ns,"rect");d.gh.setAttribute("fill","rgba(29,122,107,.18)");d.gh.setAttribute("stroke","#1d7a6b");d.gh.setAttribute("stroke-width","1.6");d.gh.setAttribute("stroke-dasharray","5 3");d.gh.style.pointerEvents="none";d.svg.appendChild(d.gh);
+    if(!d.gh){d.gh=document.createElementNS(ns,"path");d.gh.setAttribute("fill","rgba(29,122,107,.18)");d.gh.setAttribute("stroke","#1d7a6b");d.gh.setAttribute("stroke-width","1.6");d.gh.setAttribute("stroke-dasharray","5 3");d.gh.style.pointerEvents="none";d.svg.appendChild(d.gh);
       d.tx=document.createElementNS(ns,"text");d.tx.setAttribute("text-anchor","middle");d.tx.setAttribute("font-size","9");d.tx.setAttribute("font-weight","700");d.tx.setAttribute("fill","#0d4d42");d.tx.style.pointerEvents="none";d.tx.style.paintOrder="stroke";d.tx.setAttribute("stroke","#fff");d.tx.setAttribute("stroke-width","3");d.svg.appendChild(d.tx);}
-    const b=r.bb;d.gh.setAttribute("x",b[0]);d.gh.setAttribute("y",b[1]);d.gh.setAttribute("width",b[2]-b[0]);d.gh.setAttribute("height",b[3]-b[1]);
-    d.tx.setAttribute("x",(b[0]+b[2])/2);d.tx.setAttribute("y",(b[1]+b[3])/2);d.tx.textContent=fmt(b[2]-b[0])+" × "+fmt(b[3]-b[1])+" m";
+    const b=r.bb;let pd="";try{pd=plShape(r.selfR.map(q=>q.map(v=>Math.round(v*10)/10)),.9,7).d;}catch(e){}
+    d.gh.setAttribute("d",pd);
+    d.tx.setAttribute("x",(b[0]+b[2])/2);d.tx.setAttribute("y",(b[1]+b[3])/2);d.tx.textContent=fmt(b[2]-b[0])+" × "+fmt(b[3]-b[1])+" m · tramo "+(r.c1>=r.c0?"+":"−")+fmt(Math.abs(r.c1-r.c0))+" m";
   },true);
   const end=ev=>{
     if(!d)return;const k=d;d=null;
@@ -44966,7 +45080,7 @@ function plBathDoorsSync(){
     Object.keys(baths).forEach(k=>{if(have.has(k))return;const r=plBathDoorRec(baths[k].e,baths[k].q,k);if(r)pd.dw.push(r);});
     pd.bdw=1;ch=true;
   }
-  if(ch)plSave();
+  if(ch)plSave(true);
 }
 function plBathForm(sid,q,bi,isNew){
   const e=plGet(sid),rs=e.r&&plFloor(e.f).find(i=>i.e.id===sid),bb=(rs?rs.rects:e.r).reduce((a,r)=>[Math.min(a[0],r[0]),Math.min(a[1],r[1])],[1e9,1e9]);
@@ -45375,12 +45489,12 @@ window.plMarkType=(id)=>{UI.plMark=UI.plMark===id?null:id;render();};
 window.plTogglePts=()=>{UI.plPts=!UI.plPts;if(!UI.plPts)UI.plMark=null;render();};
 window.plSetCols=(n)=>{UI.plCols=n;try{localStorage.setItem("plCols",String(n));}catch(e){}render();};
 window.plGoFloor=(f)=>{const el=document.getElementById("plfl-"+f);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});};
-window.plSpecToggle=()=>{if(!plManager())return;UI.plSpec=!UI.plSpec;if(!UI.plSpec){UI.plDwMode=false;UI.plTxMove=false;UI.plPts=false;UI.plRmMode=false;UI.plMark=null;}render();};
+window.plSpecToggle=()=>{if(!plManager())return;UI.plSpec=!UI.plSpec;if(!UI.plSpec){UI.plDwMode=false;UI.plTxMove=false;UI.plPts=false;UI.plRmMode=false;UI.plRmCut=false;UI.plMark=null;}render();};
 function plSpecPanel(dwEdit,pts){
   if(!plManager())return "";
-  const btn=`<span class="pl-chip ${UI.plSpec?"on":""}" onclick="plSpecToggle()">⚙ Especificaciones técnicas</span>`;
-  if(!UI.plSpec)return `<div style="margin-bottom:10px">${btn}</div>`;
-  return `<div style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">${btn}<span style="width:1.5px;height:22px;background:var(--border);margin:0 4px"></span><span class="pl-chip ${dwEdit?"on":""}" onclick="plDwToggle()">✎ Editar puertas y ventanas</span><span class="pl-chip ${pts?"on":""}" onclick="plTogglePts()">📍 Puntos técnicos</span><span class="pl-chip" onclick="plColOpen()">🎨 Colores y letra</span><span class="pl-chip ${UI.plTxMove?"on":""}" onclick="plTxMoveToggle()">✥ Mover textos, baños y esquinas</span><span class="pl-chip ${UI.plRmMode?"on":""}" onclick="plRmToggle()">📐 Medidas de ambientes</span><span class="pl-chip" onclick="plBuildOpen()">🏗️ Pisos y ambientes</span><span class="pl-chip ${UI.plGhost?"on":""}" onclick="plGhostToggle()" title="Muestra, en naranja punteado, las paredes del piso de arriba sobre cada plano">👁 Calco del piso de arriba</span></div>${UI.plRmMode?`<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:-4px 0 10px"><span style="font-size:11.5px;color:var(--text3)">Arrastrá cualquier lado de un ambiente (línea punteada) para agrandarlo o achicarlo. Nunca se superpone: los ambientes vecinos se achican solos.</span><span class="pl-chip ${UI.plRmShared===false?"":"on"}" onclick="UI.plRmShared=UI.plRmShared===false;render()">🔗 Si achico, los vecinos ocupan el espacio libre</span><span class="pl-chip" onclick="plRmReset()">↺ Restablecer medidas originales</span></div>`:""}`;
+  const btn=`<span class="pl-chip ${UI.plSpec?"on":""}" onclick="plSpecToggle()">⚙ Especificaciones técnicas</span>`+plHBtns();
+  if(!UI.plSpec)return `<div style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">${btn}</div>`;
+  return `<div style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">${btn}<span style="width:1.5px;height:22px;background:var(--border);margin:0 4px"></span><span class="pl-chip ${dwEdit?"on":""}" onclick="plDwToggle()">✎ Editar puertas y ventanas</span><span class="pl-chip ${pts?"on":""}" onclick="plTogglePts()">📍 Puntos técnicos</span><span class="pl-chip" onclick="plColOpen()">🎨 Colores y letra</span><span class="pl-chip ${UI.plTxMove?"on":""}" onclick="plTxMoveToggle()">✥ Mover textos, baños y esquinas</span><span class="pl-chip ${UI.plRmMode?"on":""}" onclick="plRmToggle()">📐 Medidas de ambientes</span><span class="pl-chip" onclick="plBuildOpen()">🏗️ Pisos y ambientes</span><span class="pl-chip ${UI.plGhost?"on":""}" onclick="plGhostToggle()" title="Muestra, en naranja punteado, las paredes del piso de arriba sobre cada plano">👁 Calco del piso de arriba</span></div>${UI.plRmMode?`<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:-4px 0 10px"><span style="font-size:11.5px;color:var(--text3)">${UI.plRmCut?"✂ Tocá un punto de una pared (línea punteada) para PARTIRLA en dos tramos; tocá una marca naranja de corte para volver a unirlos.":"Arrastrá cualquier tramo de pared (línea punteada) para agrandar o achicar el ambiente. Nunca se superpone: los vecinos se achican solos."}</span><span class="pl-chip ${UI.plRmCut?"on":""}" onclick="plRmCutToggle()" title="Parte una pared en dos tramos para mover cada uno por separado">✂ Cortar pared</span><span class="pl-chip ${UI.plRmShared===false?"":"on"}" onclick="UI.plRmShared=UI.plRmShared===false;render()">🔗 Si achico, los vecinos ocupan el espacio libre</span><span class="pl-chip" onclick="plRmReset()">↺ Restablecer medidas originales</span></div>`:""}`;
 }
 // ═══ (Tanda 490) Vista 3D del plano: selector «Plano 2D · Vista 3D» (por defecto 2D). La biblioteca 3D (three.js, embebida) arma el modelo a partir de las mismas formas/colores/textos del plano 2D. ═══
 function pl3dToggle(){return `<div class="pl-sw" title="Ver el plano en 2D o en 3D"><span class="${UI.pl3d?"":"on"}" onclick="plSet3d(false)">2D</span><span class="${UI.pl3d?"on":""}" onclick="plSet3d(true)">3D</span></div>`;}
@@ -45444,6 +45558,7 @@ function vPlano3d(){
 function vPlanoHabs(){
   if(UI.pl3d)return vPlano3d();
   try{plBathDoorsSync();}catch(e){console.warn("plBathDoorsSync",e);}
+  plHInit();
   const acc=plPtsAccess(),pts=!!UI.plPts&&acc;
   const hlR=(UI.mod==="plPt"&&UI.ptF&&UI.ptF.rooms&&UI.ptF.rooms.length)?UI.ptF.rooms:null;
   const dwEdit=!!UI.plDwMode&&plManager();
@@ -46495,7 +46610,7 @@ window.agNotify=(title,opts)=>{
 };
 window.pwaNotifPedir=async()=>{try{await Notification.requestPermission();}catch(e){}render();};
 // (Tanda 448) Número de versión visible en Mi cuenta, para comprobar que el sitio publicado tiene la última.
-const APP_BUILD="v509";
+const APP_BUILD="v511";
 function pwaCuentaHtml(){
   const inst=pwaStandalone();
   const np=typeof Notification!=="undefined"?Notification.permission:"unsupported";
