@@ -52,3 +52,10 @@
 # apenas pasada la medianoche. Si algún día se quiere que NO borre nada (solo respaldar): variable de entorno ROOMINGS_NO_DELETE = 1.
 [functions."backup-roomings"]
   schedule = "59 2 * * *"
+
+# (Tanda 511) backup-sistema.js: COPIA DE SEGURIDAD DIARIA de todo el sistema (la base principal: habitaciones, usuarios, cocheras, caja, plano,
+# etc.; NO incluye los roomings, que tienen su propia función backup-roomings). Manda un ZIP por mail a copahueadmin@gmail.com y se recupera
+# desde la app: Admin → «Copias de seguridad». Misma hora que la de roomings: 23:59 hs de Argentina = 02:59 UTC (Netlify programa en UTC).
+# Usa las mismas variables que ya existen (RESEND_API_KEY, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY); no hace falta cargar nada nuevo.
+[functions."backup-sistema"]
+  schedule = "59 2 * * *"

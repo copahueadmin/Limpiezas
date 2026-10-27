@@ -188,19 +188,42 @@ function buildPdf(d, meta) {
 // ───────── ZIP (store/deflate, UTF-8) ─────────
 const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
 function crc32(buf) { let c = 0xffffffff; for (let i = 0; i < buf.length; i++) c = CRC[(c ^ buf[i]) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; }
-function buildZip(files) { // files: [{name, data:Buffer}]
+// (Tanda 519) Clave opcional: si existe la variable de entorno BACKUP_ZIP_PASSWORD en Netlify, el ZIP sale cifrado con AES-256 (formato WinZip AE-2:
+// se abre con 7-Zip, WinRAR, Keka, The Unarchiver, etc.). Sin esa variable el ZIP sale sin clave, como antes.
+const ZIP_PWD = () => String(process.env.BACKUP_ZIP_PASSWORD || "").trim();
+function aesCtrLE(key, data) { // AES-CTR con contador little-endian que arranca en 1 (así lo pide WinZip AES)
+  const nb = Math.ceil(data.length / 16), ctr = Buffer.alloc(nb * 16);
+  for (let i = 0; i < nb; i++) { const c = i + 1; ctr.writeUInt32LE(c >>> 0, i * 16); ctr.writeUInt32LE(Math.floor(c / 4294967296) >>> 0, i * 16 + 4); }
+  const ci = crypto.createCipheriv("aes-256-ecb", key, null); ci.setAutoPadding(false);
+  const ks = Buffer.concat([ci.update(ctr), ci.final()]), out = Buffer.alloc(data.length);
+  for (let i = 0; i < data.length; i++) out[i] = data[i] ^ ks[i];
+  return out;
+}
+function aesWrap(raw, pwd) { // → Buffer: sal(16) + verificación(2) + datos cifrados + autenticación(10)
+  const salt = crypto.randomBytes(16), dk = crypto.pbkdf2Sync(Buffer.from(pwd, "utf8"), salt, 1000, 66, "sha1");
+  const enc = aesCtrLE(dk.subarray(0, 32), raw), mac = crypto.createHmac("sha1", dk.subarray(32, 64)).update(enc).digest().subarray(0, 10);
+  return Buffer.concat([salt, dk.subarray(64, 66), enc, mac]);
+}
+function buildZip(files, pwd) { // files: [{name, data:Buffer}]; pwd opcional (cifra con AES-256)
+  pwd = pwd === undefined ? ZIP_PWD() : String(pwd || "");
   const locals = [], central = []; let off = 0; const now = argNow();
   const dt = ((now.getUTCHours() << 11) | (now.getUTCMinutes() << 5) | (now.getUTCSeconds() >> 1)) & 0xffff, dd = (((now.getUTCFullYear() - 1980) << 9) | ((now.getUTCMonth() + 1) << 5) | now.getUTCDate()) & 0xffff;
   files.forEach((f) => {
-    const nm = Buffer.from(f.name, "utf8"), raw = f.data, def = zlib.deflateRawSync(raw, { level: 6 }), useDef = def.length < raw.length, body = useDef ? def : raw, crc = crc32(raw);
-    const lh = Buffer.alloc(30); lh.writeUInt32LE(0x04034b50, 0); lh.writeUInt16LE(20, 4); lh.writeUInt16LE(0x0800, 6); lh.writeUInt16LE(useDef ? 8 : 0, 8); lh.writeUInt16LE(dt, 10); lh.writeUInt16LE(dd, 12); lh.writeUInt32LE(crc, 14); lh.writeUInt32LE(body.length, 18); lh.writeUInt32LE(raw.length, 22); lh.writeUInt16LE(nm.length, 26); lh.writeUInt16LE(0, 28);
-    locals.push(lh, nm, body);
-    const ch = Buffer.alloc(46); ch.writeUInt32LE(0x02014b50, 0); ch.writeUInt16LE(20, 4); ch.writeUInt16LE(20, 6); ch.writeUInt16LE(0x0800, 8); ch.writeUInt16LE(useDef ? 8 : 0, 10); ch.writeUInt16LE(dt, 12); ch.writeUInt16LE(dd, 14); ch.writeUInt32LE(crc, 16); ch.writeUInt32LE(body.length, 20); ch.writeUInt32LE(raw.length, 24); ch.writeUInt16LE(nm.length, 28); ch.writeUInt32LE(off, 42);
-    central.push(ch, nm); off += 30 + nm.length + body.length;
+    const nm = Buffer.from(f.name, "utf8"), raw = f.data, def = zlib.deflateRawSync(raw, { level: 6 }), useDef = def.length < raw.length;
+    let body = useDef ? def : raw, crc = crc32(raw), method = useDef ? 8 : 0, flag = 0x0800, ver = 20, extra = Buffer.alloc(0);
+    if (pwd) { // AE-2: método 99, CRC = 0, campo extra 0x9901
+      body = aesWrap(body, pwd); extra = Buffer.alloc(11); extra.writeUInt16LE(0x9901, 0); extra.writeUInt16LE(7, 2); extra.writeUInt16LE(2, 4); extra.write("AE", 6, "latin1"); extra.writeUInt8(3, 8); extra.writeUInt16LE(method, 9);
+      method = 99; flag |= 1; ver = 51; crc = 0;
+    }
+    const lh = Buffer.alloc(30); lh.writeUInt32LE(0x04034b50, 0); lh.writeUInt16LE(ver, 4); lh.writeUInt16LE(flag, 6); lh.writeUInt16LE(method, 8); lh.writeUInt16LE(dt, 10); lh.writeUInt16LE(dd, 12); lh.writeUInt32LE(crc, 14); lh.writeUInt32LE(body.length, 18); lh.writeUInt32LE(raw.length, 22); lh.writeUInt16LE(nm.length, 26); lh.writeUInt16LE(extra.length, 28);
+    locals.push(lh, nm, extra, body);
+    const ch = Buffer.alloc(46); ch.writeUInt32LE(0x02014b50, 0); ch.writeUInt16LE(ver, 4); ch.writeUInt16LE(ver, 6); ch.writeUInt16LE(flag, 8); ch.writeUInt16LE(method, 10); ch.writeUInt16LE(dt, 12); ch.writeUInt16LE(dd, 14); ch.writeUInt32LE(crc, 16); ch.writeUInt32LE(body.length, 20); ch.writeUInt32LE(raw.length, 24); ch.writeUInt16LE(nm.length, 28); ch.writeUInt16LE(extra.length, 30); ch.writeUInt32LE(off, 42);
+    central.push(ch, nm, extra); off += 30 + nm.length + extra.length + body.length;
   });
   const cd = Buffer.concat(central), end = Buffer.alloc(22); end.writeUInt32LE(0x06054b50, 0); end.writeUInt16LE(files.length, 8); end.writeUInt16LE(files.length, 10); end.writeUInt32LE(cd.length, 12); end.writeUInt32LE(off, 16);
   return Buffer.concat([...locals, cd, end]);
 }
+function claveTxt() { return ZIP_PWD() ? "\n\nEste ZIP está protegido con CLAVE (cifrado AES-256). Para abrirlo usá 7-Zip, WinRAR, Keka o The Unarchiver: el explorador de archivos común de Windows / Mac no soporta este tipo de clave. Para restaurar en la app: descomprimilo con la clave y subí los archivos (carpeta «datos»)." : "\n\n(Este ZIP NO tiene clave. Para protegerlo: en Netlify → Site configuration → Environment variables → agregar BACKUP_ZIP_PASSWORD con la clave que quieras.)"; }
 function safeName(s) { return String(s || "Rooming").replace(/[\\/:*?"<>|\u0000-\u001f]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 60) || "Rooming"; }
 
 // ───────── mail (Resend) ─────────
@@ -248,7 +271,7 @@ async function run(opts) {
     const zip = buildZip(files), fname = folder + (parts.length > 1 ? "_parte" + (i + 1) + "de" + parts.length : "") + ".zip";
     try {
       await sendMail(key, "Copia de seguridad de roomings — " + today + (parts.length > 1 ? " (" + (i + 1) + "/" + parts.length + ")" : ""),
-        "Copia de seguridad automática de todos los roomings del sistema (" + parts[i].length + " en este envío).\n\nAdjunto: " + fname + "\nAl descomprimirlo vas a encontrar la carpeta «PDF» con un PDF por rooming (para abrir o imprimir) y la carpeta «Datos_para_restaurar» con el contenido completo de cada uno.\n\nSe generó el " + today + " a las 23:59 hs (hora de Argentina).\nSe ignoran los documentos de prueba (id «zz_…»)." + (junk ? " Ignorados hoy: " + junk + "." : ""),
+        "Copia de seguridad automática de todos los roomings del sistema (" + parts[i].length + " en este envío).\n\nAdjunto: " + fname + "\nAl descomprimirlo vas a encontrar la carpeta «PDF» con un PDF por rooming (para abrir o imprimir) y la carpeta «Datos_para_restaurar» con el contenido completo de cada uno.\n\nSe generó el " + today + " a las 23:59 hs (hora de Argentina).\nSe ignoran los documentos de prueba (id «zz_…»)." + (junk ? " Ignorados hoy: " + junk + "." : "") + claveTxt(),
         [{ filename: fname, data: zip }]);
       res.enviados++;
     } catch (er) { allOk = false; res.errores.push("ZIP " + (i + 1) + ": " + er.message); }
@@ -286,4 +309,4 @@ exports.handler = async (event) => {
     return { statusCode: 500, body: JSON.stringify({ error: String(er && er.message || er) }) };
   }
 };
-exports._t = { buildPdf, buildZip, run, isDue, isJunk, crc32 };
+exports._t = { aesWrap, buildPdf, buildZip, run, isDue, isJunk, crc32 };

@@ -1,7 +1,7 @@
 {
-  "name": "Hotel Copahue — Sistema de limpiezas",
+  "name": "Sistema de Gestión Hotelero",
   "short_name": "Copahue",
-  "description": "Sistema interno del Hotel Copahue: limpiezas, recepción, coordinación, administración y agenda.",
+  "description": "Sistema interno del Hotel Copahue: limpiezas, recepción, coordinación y administración.",
   "lang": "es-AR",
   "id": "/",
   "start_url": "/",
