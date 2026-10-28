@@ -2784,6 +2784,16 @@ body.dark .cj-tbl tr.cj-pend td.cj-ek{background:#3b2020}
 #cjTbl tfoot tr.cj-tf1 td#cjT_e{background:#15564b;color:#fff;font-size:22px;font-weight:800;letter-spacing:.2px;box-shadow:inset 0 3px 0 #f08a5d}
 body.dark #cjTbl tfoot tr.cj-tf1 td#cjT_e{background:#0f3d36;color:#fff}
 .cj-h{font-weight:800;font-size:14px;margin:2px 0 10px;color:var(--text)}
+/* (Tanda 535) Resumen del mes en el subtítulo de Control de cajas: sub-total entregado y, destacado, el total post retiros */
+.cj-hh{display:flex;align-items:center;justify-content:space-between;gap:8px 18px;flex-wrap:wrap}
+.cj-hs{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;margin-left:auto}
+.cj-hs-sub{font-size:12px;font-weight:600;color:var(--text2);white-space:nowrap}
+.cj-hs-sub b{font-size:14px;font-weight:800;color:var(--text);margin-left:4px;font-variant-numeric:tabular-nums}
+.cj-hs-post{display:flex;align-items:baseline;gap:9px;padding:6px 16px;border-radius:12px;background:#15564b;color:#fff;white-space:nowrap;box-shadow:0 2px 10px rgba(21,86,75,.28)}
+.cj-hs-post i{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;opacity:.9}
+.cj-hs-post b{font-size:21px;font-weight:900;letter-spacing:.2px;font-variant-numeric:tabular-nums}
+.cj-hs-post.neg{background:#9b2c2c;box-shadow:0 2px 10px rgba(155,44,44,.3)}
+body.dark .cj-hs-post{background:#1d7a6b}body.dark .cj-hs-post.neg{background:#b94040}
 .cj-retadd{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;flex:1 1 560px;justify-content:flex-end}
 .cj-ret-top{display:flex;gap:10px 22px;flex-wrap:wrap;align-items:flex-end;justify-content:space-between}
 .cj-ret-ttl{flex:1 1 260px;min-width:0}
@@ -29903,6 +29913,68 @@ function cjCfgSave(metodos){
   metodos.forEach(m=>nombres[m.id]=m.n);
   D.cajasCfg={metodos,nombres};lsS(K.cajasCfg,D.cajasCfg);
 }
+// ═══ (Tanda 535) Actualización suave de Control de cajas ═══
+// Cuando llegan novedades de la nube (otra pantalla del hotel) o pasa el minuto del reloj, ya no se reconstruye la pantalla
+// (eso subía la planilla al comienzo y sacaba el foco de la casilla): solo se corrigen las casillas que cambiaron.
+const cjSig=ym=>ym+"|"+(cjCan()?"w":"r")+"|"+cjMetodosMes(ym).map(m=>m.id).join(",");
+const cjRetSig=ym=>{const m=(D.cajasMes||{})[ym]||{};return JSON.stringify([m.ret||[],cjCan()]);};
+function cjCellWant(el){
+  const r=cjRec(el.dataset.i,el.dataset.t),f=el.dataset.f;
+  if(f==="c")return cjCap(r.c!==undefined?r.c:((((D.consAg||{})[el.dataset.i]||{})[el.dataset.t]||{}).nombre||""));
+  const v=f==="e"?r.e:f==="k"?r.k:(r.p||{})[f.slice(2)];
+  return v==null?"":"$"+cjNumFmt(v);
+}
+function cjSoftSync(){
+  const tbl=document.getElementById("cjTbl");if(!tbl)return false;
+  const ym=UI.cjYm;if(!ym||tbl.dataset.sig!==cjSig(ym))return false; // cambió la estructura (mes, métodos de pago, rol): hay que redibujar
+  const ae=document.activeElement;
+  const ins=[].slice.call(tbl.querySelectorAll(".cj-in"));
+  const mins={};
+  ins.forEach(el=>{
+    if(el!==ae){
+      const w=cjCellWant(el);
+      if(el.value!==w){el.value=w;const mir=el.previousElementSibling;if(mir&&mir.classList.contains("cj-mir"))mir.textContent=w||el.placeholder;}
+    }
+    const k=+el.dataset.c;
+    if(k>=1){const need=Math.ceil(el.value.length*(k<=2?9.2:7.6))+(k>2?38:30);if(!(mins[k]>need))mins[k]=need;}
+  });
+  // anchos mínimos de columna según el importe más largo
+  let wch=false;
+  [].slice.call(tbl.querySelectorAll("col[data-w]")).forEach((c,k)=>{
+    const base=k===0?100:k<=2?96:88,m=Math.max(base,mins[k]||0);
+    if(+c.dataset.min!==m){c.dataset.min=m;wch=true;}
+  });
+  tbl.querySelectorAll("tbody tr.cj-r").forEach(tr=>{
+    cjRowMark(tr);
+    const rec=cjRec(tr.dataset.i,tr.dataset.t),tc=tr.querySelector("td.cj-tc");
+    if(tc)tc.classList.toggle("cj-recom",!!rec.cr);
+  });
+  tbl.querySelectorAll("td[data-cm]").forEach(td=>{
+    const t=cjCmGet(ym,td.getAttribute("data-cm"));
+    td.classList.toggle("cj-hascm",!!t);
+    if(t){if(td.title!==t)td.title=t;}else if(td.hasAttribute("title")&&td.classList.contains("cj-hascm")===false&&!td.classList.contains("cj-tc"))td.removeAttribute("title");
+  });
+  if(wch)cjFitCols();
+  cjRefreshTotals();
+  const rt=document.getElementById("cjRetiros");
+  if(rt){const sg=cjRetSig(ym);if(sg!==UI._cjRetSig&&!rt.contains(ae)){UI._cjRetSig=sg;rt.innerHTML=cjRetirosHtml(ym);}}
+  return true;
+}
+// Si igual hace falta redibujar (cambió la estructura): se conserva la posición de la planilla, de la página y la casilla activa.
+function cjRenderKeep(){
+  const ae=document.activeElement;
+  const k=(ae&&ae.classList&&ae.classList.contains("cj-in"))?{r:ae.dataset.r,c:ae.dataset.c,s:ae.selectionStart,e:ae.selectionEnd}:null;
+  const sc=document.getElementById("cjScroll"),t=sc?sc.scrollTop:0,l=sc?sc.scrollLeft:0;
+  const ct=document.querySelector(".content"),ctt=ct?ct.scrollTop:0;
+  window._cjNoCenter=true;
+  try{render();}finally{window._cjNoCenter=false;}
+  const s2=document.getElementById("cjScroll");if(s2){s2.scrollTop=t;s2.scrollLeft=l;}
+  const c2=document.querySelector(".content");if(c2&&ctt)c2.scrollTop=ctt;
+  if(k){
+    const n=document.querySelector('.cj-in[data-r="'+k.r+'"][data-c="'+k.c+'"]');
+    if(n){window._cjNoCenter=true;try{n.focus({preventScroll:true});try{n.setSelectionRange(k.s,k.e);}catch(e){}}finally{window._cjNoCenter=false;}}
+  }
+}
 // Render de la sección conservando el scroll de la planilla (render() rearma toda la pantalla).
 function cjRender(){
   cjFlush();
@@ -29929,8 +30001,11 @@ window.cjIn=el=>{
   else{const c=cjCap(el.value);if(c!==el.value){const s=el.selectionStart,e=el.selectionEnd;el.value=c;try{el.setSelectionRange(s,e);}catch(x){}}}
   cjSetRaw(el.dataset.i,el.dataset.t,f,el.value);
   const mir=el.previousElementSibling;if(mir&&mir.classList.contains("cj-mir"))mir.textContent=el.value||el.placeholder;
-  cjRefreshTotals();
+  cjRtSoon();
 };
+// (Tanda 535) Los totales se recalculan una sola vez por cuadro (no por cada tecla): escribir en la planilla queda fluido.
+let _cjRtRaf=0;
+function cjRtSoon(){if(_cjRtRaf)return;_cjRtRaf=requestAnimationFrame(()=>{_cjRtRaf=0;try{cjRefreshTotals();}catch(e){console.warn("cjRefreshTotals",e);}});}
 // (Tanda 306) Conserje / $ Entregado / $ En caja ya cargados: para modificarlos se pregunta "¿Estás seguro?" (Enter = Sí)
 function cjHasVal(el){
   const f=el.dataset.f;if(f!=="c"&&f!=="e"&&f!=="k")return false;
@@ -29940,9 +30015,12 @@ function cjHasVal(el){
 window.cjFocus=el=>{
   const u=UI.cjUnl;
   el._cjLocked=cjCan()&&cjHasVal(el)&&!(u&&u.i===el.dataset.i&&u.t===el.dataset.t&&u.f===el.dataset.f);
+  if(window._cjNoCenter)return; // refoco automatico (no mover nada ni cambiar la seleccion)
   el._cjSel=true;try{el.select();}catch(e){}
-  cjCenterRow(el);
+  if(!window._cjPtr)cjCenterRow(el); // (Tanda 535) con el mouse no se mueve la planilla: solo al navegar con el teclado (Tab / Enter / flechas)
 };
+document.addEventListener("pointerdown",e=>{window._cjPtr=!!(e.target&&e.target.closest&&e.target.closest("#cjTbl"));},true);
+document.addEventListener("keydown",()=>{window._cjPtr=false;},true);
 // (Tanda 310) El renglon que se esta editando queda siempre en el centro (vertical) de la planilla
 function cjCenterRow(el){
   const tr=el.closest("tr"),sc=document.getElementById("cjScroll");if(!tr||!sc||!sc.contains(tr))return;
@@ -29951,8 +30029,9 @@ function cjCenterRow(el){
     const hh=th?th.getBoundingClientRect().height:0,fh=tf?tf.getBoundingClientRect().height:0;
     const sr=sc.getBoundingClientRect(),rr=tr.getBoundingClientRect();
     const rowC=(rr.top-sr.top)+sc.scrollTop+rr.height/2;
-    const target=rowC-(hh+(sc.clientHeight-hh-fh)/2);
-    sc.scrollTo({top:Math.max(0,target),behavior:"smooth"});
+    const target=Math.max(0,rowC-(hh+(sc.clientHeight-hh-fh)/2));
+    if(Math.abs(sc.scrollTop-target)<3)return;
+    sc.scrollTop=target; // (Tanda 535) directo, sin animacion: al pasar rapido de fila en fila no se acumulan desplazamientos
   };
   setTimeout(go,0);
 }
@@ -29977,17 +30056,22 @@ document.addEventListener("beforeinput",e=>{
   el.setRangeText(",",a,b,"end");
   el.dispatchEvent(new Event("input",{bubbles:true}));
 },true);
+// (Tanda 535) El cartel se dibuja directo (sin reconstruir toda la pantalla): sale al instante, y Enter / Esc lo cierran sin demora.
 function cjAskOpen(el){
+  if(UI.mod==="cjAsk"&&document.getElementById("cjAskYes"))return;
   cjFlush();
-  UI.cjAsk={i:el.dataset.i,t:el.dataset.t,f:el.dataset.f,v:el.value};UI.mod="cjAsk";render();
-  setTimeout(()=>{const b=document.getElementById("cjAskYes");if(b)b.focus();},30);
+  UI.cjAsk={i:el.dataset.i,t:el.dataset.t,f:el.dataset.f,v:el.value};UI.mod="cjAsk";
+  const app=document.getElementById("app");
+  if(app)app.insertAdjacentHTML("beforeend",modCjAsk());
+  const b=document.getElementById("cjAskYes");if(b)b.focus({preventScroll:true});
 }
 function cjAskRefocus(a){
   const el=document.querySelector('.cj-in[data-i="'+a.i+'"][data-t="'+a.t+'"][data-f="'+a.f+'"]');
-  if(el){el.focus();}
+  if(el){window._cjNoCenter=true;try{el.focus({preventScroll:true});try{el.select();}catch(e){}el._cjSel=true;}finally{window._cjNoCenter=false;}}
 }
-window.cjAskYes=()=>{const a=UI.cjAsk;if(!a)return;UI.cjUnl={i:a.i,t:a.t,f:a.f};UI.cjAsk=null;UI.mod=null;cjRender();cjAskRefocus(a);};
-window.cjAskNo=()=>{const a=UI.cjAsk;UI.cjAsk=null;UI.mod=null;cjRender();if(a)cjAskRefocus(a);};
+function cjAskClose(){const b=document.getElementById("cjAskYes"),ov=b&&b.closest(".ov");if(ov)ov.remove();}
+window.cjAskYes=()=>{const a=UI.cjAsk;if(!a)return;UI.cjUnl={i:a.i,t:a.t,f:a.f};UI.cjAsk=null;UI.mod=null;cjAskClose();cjAskRefocus(a);};
+window.cjAskNo=()=>{const a=UI.cjAsk;UI.cjAsk=null;UI.mod=null;cjAskClose();if(a)cjAskRefocus(a);};
 document.addEventListener("keydown",e=>{
   if(UI.mod!=="cjAsk")return;
   if(e.key==="Enter"){e.preventDefault();e.stopPropagation();cjAskYes();}
@@ -29995,7 +30079,7 @@ document.addEventListener("keydown",e=>{
 },true);
 function modCjAsk(){
   const a=UI.cjAsk||{},lbl=a.f==="c"?"el nombre del conserje":a.f==="e"?"el importe entregado":"el importe en caja";
-  return `<div class="ov"><div class="mod" onclick="event.stopPropagation()" style="max-width:420px">
+  return `<div class="ov" style="backdrop-filter:none;-webkit-backdrop-filter:none"><div class="mod" onclick="event.stopPropagation()" style="max-width:420px">
     <div class="mh"><h2>Modificar dato cargado</h2></div>
     <div class="mc">
       <div style="font-size:14px;line-height:1.45">Ya hay cargado ${lbl}: <b>${cnEsc(a.v||"")}</b>.<br>¿Estás seguro de que querés modificarlo?</div>
@@ -30313,8 +30397,21 @@ function cjResumenHtml(ym,c){
       </div>
     </div>`;
 }
+// (Tanda 535) Resumen del mes junto al subtítulo: Sub-total = total entregado; Total post retiros = lo que efectivamente se tiene
+// (entregado + saldo previo - retiros, o sea el «Total a entregar» del resumen de abajo).
+function cjHsHtml(c){
+  const tip="Entregado en el mes"+(c.saldoPrev?" + saldo previo ("+cjMoney(c.saldoPrev)+")":"")+" − retiros ("+cjMoney(c.totRet)+")";
+  return `<span class="cj-hs-sub" title="Total entregado por conserjería en el mes">Sub-total (entregado) <b id="cjHs_sub">${cjMoney(c.entregado)}</b></span><span class="cj-hs-post${c.aEntregar<0?" neg":""}" id="cjHs_postBox" title="${cnEsc(tip)}"><i>Total post retiros</i><b id="cjHs_post">${cjMoney(c.aEntregar)}</b></span>`;
+}
+function cjHsPatch(c){
+  const a=document.getElementById("cjHs_sub"),b=document.getElementById("cjHs_post"),bx=document.getElementById("cjHs_postBox");
+  if(a&&a.textContent!==cjMoney(c.entregado))a.textContent=cjMoney(c.entregado);
+  if(b&&b.textContent!==cjMoney(c.aEntregar))b.textContent=cjMoney(c.aEntregar);
+  if(bx){bx.classList.toggle("neg",c.aEntregar<0);bx.title="Entregado en el mes"+(c.saldoPrev?" + saldo previo ("+cjMoney(c.saldoPrev)+")":"")+" − retiros ("+cjMoney(c.totRet)+")";}
+}
 // Actualiza el resumen "en el lugar" (sin reconstruirlo, para no perder el foco ni un click en curso sobre un botón).
 function cjResumenPatch(ym){
+  try{cjHsPatch(cjCalc(ym));}catch(e){}
   if(!document.getElementById("cjResumen"))return;
   const c=cjCalc(ym),set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
   set("cjV_ingP",cjMoney(c.ingPesos));set("cjV_ingV",cjMoney(c.ingVip));set("cjV_ingT",cjMoney(c.ingTot));set("cjV_ent",cjMoney(c.entregado));
@@ -30575,6 +30672,7 @@ function cajasSectionHtml(){
   const ym=UI.cjYm=UI.cjYm||cjDefaultYm();
   if(!ro){try{cjPrecargar(ym);}catch(e){console.warn("cjPrecargar",e);}} // (Tanda 453) conserjes recomendados según los francos publicados
   const metodos=cjMetodosMes(ym),groups=cjShifts(ym),c=cjCalc(ym),hoy=hoyISO(),now=Date.now();
+  UI._cjRetSig=cjRetSig(ym);
   const sep=i=>i===0?" cj-sep":"";
   let r=0;
   const cmAt=key=>{const t=cjCmGet(ym,key);return {a:` data-cm="${key}" ondblclick="cjCmOpen(event,this)" oncontextmenu="cjCmOpen(event,this)"${t?` title="${cnEsc(t)}"`:""}`,c:t?" cj-hascm":""};};
@@ -30619,9 +30717,9 @@ function cajasSectionHtml(){
     ${ro?"":`<button type="button" class="card cj-bar cj-comp-btn" style="flex:1 1 360px;min-width:0;justify-content:center" onclick="cjCompOpen()" title="Emitir un comprobante de pago en efectivo"><i class="ti ti-receipt"></i> Emitir comprobante de pago en efectivo</button>`}
     </div>
     <div class="card" style="padding:10px">
-      <div class="cj-h" style="margin-top:0">Control de cajas · ${cjMesLbl(ym)}</div>
+      <div class="cj-h cj-hh" style="margin-top:0"><span>Control de cajas · ${cjMesLbl(ym)}</span><span class="cj-hs" id="cjHs">${cjHsHtml(c)}</span></div>
       <div class="cj-sum" id="cjSum">${cjSumHtml(c)}</div>
-      <div class="cj-scroll" id="cjScroll"><table class="cj-tbl" id="cjTbl" style="min-width:${118+colMin.reduce((x,y)=>x+y,0)}px">
+      <div class="cj-scroll" id="cjScroll"><table class="cj-tbl" id="cjTbl" data-sig="${cjSig(ym)}" style="min-width:${118+colMin.reduce((x,y)=>x+y,0)}px">
         <colgroup><col style="width:54px"><col style="width:64px">${colWt.map((w,i)=>`<col data-w="${w}" data-min="${colMin[i]}" style="width:${colMin[i]}px">`).join("")}</colgroup>
         <thead><tr><th class="cj-stk0 cj-hg1">Fecha</th><th class="cj-stk1 cj-hg1">Turno</th><th class="cj-stk2 cj-hg1">Conserje</th><th class="cj-hg2">$ Entregado</th><th class="cj-hg2">$ En caja</th>${metodos.map((m,mi)=>`<th class="cj-hg3${sep(mi)}">${cnEsc(m.n)}</th>`).join("")}</tr></thead>
         <tbody>${bodyRec}</tbody>
@@ -32781,6 +32879,10 @@ function ccSoftSync(){
 // Reemplaza a render() en las actualizaciones que no inició la persona (datos nuevos de la nube, otra pestaña, reloj)
 function softRender(){
   if(ccActive()){try{ccSoftSync();return;}catch(e){console.warn("ccSoftSync",e);}}
+  if(document.getElementById("cjTbl")){ // (Tanda 535) Control de cajas abierto: actualización suave (sin tocar scroll ni foco)
+    try{if(cjSoftSync())return;}catch(e){console.warn("cjSoftSync",e);}
+    try{cjRenderKeep();return;}catch(e){console.warn("cjRenderKeep",e);}
+  }
   render();
 }
 function ccListRefresh(){
@@ -47279,7 +47381,7 @@ window.agNotify=(title,opts)=>{
 };
 window.pwaNotifPedir=async()=>{try{await Notification.requestPermission();}catch(e){}render();};
 // (Tanda 448) Número de versión visible en Mi cuenta, para comprobar que el sitio publicado tiene la última.
-const APP_BUILD="v538";
+const APP_BUILD="v539";
 function pwaCuentaHtml(){
   const inst=pwaStandalone();
   const np=typeof Notification!=="undefined"?Notification.permission:"unsupported";
