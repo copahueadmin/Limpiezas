@@ -3,7 +3,7 @@
    - Librerías y tipografías externas (Firebase, Google Fonts, iconos): se guardan y se refrescan en segundo plano.
    - NO toca Firestore, las funciones de Netlify (/.netlify/*) ni ninguna llamada que no sea GET: los datos siempre salen directo a la red.
    Para forzar que todos descarguen una versión nueva de este archivo, cambiar VERSION. */
-const VERSION = "copahue-v2";
+const VERSION = "copahue-v1";
 const SHELL_KEY = "/__app-shell";
 const STATIC_HOSTS = ["www.gstatic.com", "fonts.googleapis.com", "fonts.gstatic.com", "cdn.jsdelivr.net"];
 const PRECACHE = [
