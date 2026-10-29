@@ -53,10 +53,27 @@ function base64url(input) {
   return Buffer.from(input).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
+// Normaliza la clave privada de la cuenta de servicio (variable de Netlify) para que OpenSSL 3 la pueda leer.
+// Acepta: PEM con saltos reales, con "\n" literales, entre comillas, con \r, en una sola línea con espacios,
+// el JSON completo de la cuenta de servicio, o el PEM codificado en base64.
+function normalizePrivateKey(raw) {
+  let s = String(raw == null ? "" : raw).trim();
+  if (!s) return "";
+  if (s[0] === "{") { try { const j = JSON.parse(s); if (j && j.private_key) s = String(j.private_key); } catch (e) {} }
+  s = s.trim().replace(/^["'`]+|["'`,;]+$/g, "").trim();
+  if (!/-----BEGIN/.test(s)) {
+    try { const d = Buffer.from(s, "base64").toString("utf8"); if (/-----BEGIN/.test(d)) s = d; } catch (e) {}
+  }
+  s = s.replace(/\\r/g, "").replace(/\\n/g, "\n").replace(/\r/g, "");
+  const m = s.match(/-----BEGIN ([A-Z ]+)-----([\s\S]*?)-----END \1-----/);
+  if (m) {
+    const body = m[2].replace(/[^A-Za-z0-9+\/=]/g, "");
+    s = "-----BEGIN " + m[1] + "-----\n" + (body.match(/.{1,64}/g) || []).join("\n") + "\n-----END " + m[1] + "-----\n";
+  }
+  return s;
+}
 function unescapePrivateKey(raw) {
-  // Admite tanto una clave pegada con saltos de línea reales como una pegada en una sola línea con
-  // "\n" literales (2 caracteres) -- ver el punto 2 de las instrucciones de arriba.
-  return String(raw || "").includes("\\n") ? raw.replace(/\\n/g, "\n") : raw;
+  return normalizePrivateKey(raw);
 }
 
 async function getAccessToken(clientEmail, privateKeyPem) {

@@ -11398,6 +11398,10 @@ const K={habit:"ch_habit",cochPrecios:"ch_cochprecios",cochQr:"ch_cochqr",cochCl
   // (Tanda 104 / ítem 6) Permisos individuales del sistema de Stock: {[userId]:{verCatalogo,pedir,
   // bajarStock,aprobarRechazar,confirmarEntrega,gestionarCatalogo}} -- ver stockPuede() más abajo.
   stockPerms:"ch_stockperms",
+  // (Tanda 557) Botones de la pantalla de Inicio (selección de área): {hidden:[ids],order:[ids],custom:[{id,icon,label,tipo:"link"|"sec",url,embed,area,sec}]} -- ver homeItems()/rSel()
+  homeCfg:"ch_homecfg",
+  // (Tanda 558) Historial de accesos (últimos 30 días): [{id,ts,area,uid,n,dv,sc,ip,lc,la,lo,ac,dir,src}] -- ver accLogAdd()
+  accessLog:"ch_accesslog",
   // (Tanda 112 / ítem 2) Textos/emojis personalizados de los botones YA EXISTENTES del sidebar (no los
   // "accesos personalizados" de D.customLinks, que ya eran editables desde antes) -- a diferencia de
   // D.sidebarPrefs (personalización POR USUARIO, solo el orden), esto es POR ÁREA: lo carga el
@@ -12079,6 +12083,8 @@ let D={
   // (Tanda 104) Ver comentario junto a K.sidebarPrefs/K.stockPerms.
   sidebarPrefs:lsG(K.sidebarPrefs,{}),
   stockPerms:lsG(K.stockPerms,{}),
+  homeCfg:lsG(K.homeCfg,{}),
+  accessLog:lsG(K.accessLog,[]),
   // (Tanda 112) Ver comentario junto a K.sbItemOverrides.
   sbItemOverrides:lsG(K.sbItemOverrides,{}),
   plaCfg:lsG(K.plaCfg,{}),
@@ -12220,6 +12226,8 @@ function loadD(){
   D.insumosUnidades=lsG(K.insumosUnidades,D.insumosUnidades);
   D.sidebarPrefs=lsG(K.sidebarPrefs,D.sidebarPrefs);
   D.stockPerms=lsG(K.stockPerms,D.stockPerms);
+  D.homeCfg=lsG(K.homeCfg,D.homeCfg);
+  D.accessLog=lsG(K.accessLog,D.accessLog);
   D.sbItemOverrides=lsG(K.sbItemOverrides,D.sbItemOverrides);
   D.plaCfg=lsG(K.plaCfg,D.plaCfg);
   D.ntfHide=lsG(K.ntfHide,D.ntfHide);
@@ -15700,6 +15708,191 @@ function pwEyeHtml(){var on=!!UI.pwShow;return '<button type="button" class="pw-
 function pwToggle(btn){var w=btn.closest('.pw-wrap');var i=w&&w.querySelector('input');if(!i)return;UI.pwShow=!UI.pwShow;
   document.querySelectorAll('.pw-wrap').forEach(function(x){var inp=x.querySelector('input'),b=x.querySelector('.pw-eye');if(inp)inp.type=UI.pwShow?'text':'password';if(b)b.classList.toggle('on',UI.pwShow);});
   try{i.focus();var l=i.value.length;i.setSelectionRange(l,l);}catch(e){}}
+// ═══════════════ (Tanda 557) Botones de la pantalla de Inicio editables por el admin ═══════════════
+// Los 7 botones de siempre se pueden ocultar/mostrar y reordenar, y se pueden sumar botones propios: un enlace externo (en pestaña nueva
+// o en una ventana embebida) o un acceso a una sección de cualquier área (pide usuario y clave del área como siempre y, al entrar, abre esa sección).
+const HOME_BUILTIN=[{id:"cop",ic:"🤖",lbl:"Copahuito"},{id:"rec",ic:"🛎️",lbl:"Recepción"},{id:"mu",ic:"🛏️",lbl:"Limpiezas"},{id:"mant",ic:"🔧",lbl:"Mantenimiento"},{id:"ger",ic:"💼",lbl:"Gerencia"},{id:"admin",ic:"🗂️",lbl:"Administración"},{id:"coord",ic:"🧭",lbl:"Coordinación"}];
+function homeCfgObj(){return (D.homeCfg&&typeof D.homeCfg==="object"&&!Array.isArray(D.homeCfg))?D.homeCfg:{};}
+function homeItems(){
+  const cfg=homeCfgObj(),hid=cfg.hidden||[],ord=cfg.order||[];
+  const all=[...HOME_BUILTIN.map(b=>({...b,custom:false})),...(cfg.custom||[]).map(c=>({id:c.id,ic:c.icon||"🔗",lbl:c.label||"Botón",custom:true,c}))];
+  const pos=x=>{const i=ord.indexOf(x.id);return i<0?1000+all.indexOf(x):i;};
+  return all.slice().sort((a,b)=>pos(a)-pos(b)).map(x=>({...x,hidden:hid.includes(x.id)}));
+}
+function homeEsc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function homeCardsHtml(A){
+  return homeItems().filter(x=>!x.hidden).map(x=>{
+    if(x.id==="cop")return `<div class="sel-card sel-card-cop" onclick="kioskCopEnter()"><span class="sel-emoji">${x.ic}</span><h3>${x.lbl}</h3></div>`;
+    if(!x.custom)return `<div class="sel-card ${A===x.id?"on":""}" onclick="selC('${x.id}')"><span class="sel-emoji">${x.ic}</span><h3>${x.lbl}</h3></div>`;
+    return `<div class="sel-card sel-card-hb" onclick="homeBtnGo('${x.id}')"><span class="sel-emoji">${homeEsc(x.ic)}</span><h3>${homeEsc(x.lbl)}</h3></div>`;
+  }).join("");
+}
+window.homeBtnGo=(id)=>{
+  const c=(homeCfgObj().custom||[]).find(x=>x.id===id);if(!c)return;
+  if(c.tipo==="link"){
+    let u=String(c.url||"").trim();if(!u)return;if(!/^https?:\/\//i.test(u))u="https://"+u;
+    if(c.embed)abrirSitioEmbebido(c.label||"Enlace",u);else window.open(u,"_blank","noopener");
+    return;
+  }
+  selC(c.area);UI.homeTarget={area:c.area,sec:c.sec||""};
+};
+// Editor (panel de Administración)
+function hbSave0(cfg){D.homeCfg={...homeCfgObj(),...cfg};lsS(K.homeCfg,D.homeCfg);render();}
+window.hbMove=(id,dir)=>{const ids=homeItems().map(x=>x.id),i=ids.indexOf(id),j=i+dir;if(i<0||j<0||j>=ids.length)return;[ids[i],ids[j]]=[ids[j],ids[i]];hbSave0({order:ids});};
+window.hbToggleHide=(id)=>{const hid=new Set(homeCfgObj().hidden||[]);if(hid.has(id))hid.delete(id);else hid.add(id);hbSave0({hidden:[...hid]});};
+window.hbNew=()=>{UI.hbF={id:null,tipo:"link",icon:"🔗",label:"",url:"",embed:false,area:"ger",sec:""};UI.hbErr="";render();};
+window.hbEdit=(id)=>{const c=(homeCfgObj().custom||[]).find(x=>x.id===id);if(!c)return;UI.hbF={id:c.id,tipo:c.tipo||"link",icon:c.icon||"🔗",label:c.label||"",url:c.url||"",embed:!!c.embed,area:c.area||"ger",sec:c.sec||""};UI.hbErr="";render();};
+window.hbCancel=()=>{UI.hbF=null;UI.hbErr="";UI.emoOpen=null;render();};
+window.hbDel=(id)=>{
+  if(!confirm("¿Eliminar este botón del Inicio?"))return;
+  const cfg=homeCfgObj();
+  hbSave0({custom:(cfg.custom||[]).filter(x=>x.id!==id),order:(cfg.order||[]).filter(x=>x!==id),hidden:(cfg.hidden||[]).filter(x=>x!==id)});
+};
+window.hbSave=()=>{
+  const f=UI.hbF;if(!f)return;
+  const label=(f.label||"").trim();
+  if(!label){UI.hbErr="Poné un nombre para el botón";render();return;}
+  let url=(f.url||"").trim();
+  if(f.tipo==="link"){if(!url){UI.hbErr="Poné el enlace (https://...)";render();return;}if(!/^https?:\/\//i.test(url))url="https://"+url;}
+  const rec={id:f.id||("hb"+uid()),tipo:f.tipo,icon:(f.icon||"").trim()||(f.tipo==="link"?"🔗":"📌"),label,url:f.tipo==="link"?url:"",embed:f.tipo==="link"&&!!f.embed,area:f.tipo==="sec"?f.area:"",sec:f.tipo==="sec"?(f.sec||""):""};
+  const cfg=homeCfgObj(),cus=cfg.custom||[];
+  UI.hbF=null;UI.hbErr="";UI.emoOpen=null;
+  hbSave0({custom:f.id?cus.map(x=>x.id===f.id?rec:x):[...cus,rec]});
+};
+function hbSecOptions(area){
+  const out=[{key:"",lbl:"Inicio del área (sin sección puntual)"}];
+  (AREA_CATS[area]||[]).forEach(c=>c.items.forEach(it=>{if(it.key==="vacpersonal")return;out.push({key:it.key,lbl:(it.ic?it.ic+" ":"")+sbLbl(area,it.key,it.lbl)});}));
+  return out;
+}
+const HB_AREAS=[["rec","Recepción"],["mu","Limpiezas (mucamas)"],["mant","Mantenimiento"],["ger","Gerencia"],["admin","Administración"],["coord","Coordinación"]];
+function homeBtnsAdminHtml(){
+  const items=homeItems(),f=UI.hbF,n=items.length;
+  const rows=items.map((x,i)=>`<div class="adm-row" style="${x.hidden?'opacity:.55':''}">
+    <span style="font-size:18px;width:26px;text-align:center">${homeEsc(x.ic)}</span>
+    <div style="flex:1;min-width:0"><b>${homeEsc(x.lbl)}</b> <span class="adm-sub">${x.custom?(x.c.tipo==="link"?"enlace externo"+(x.c.embed?" (ventana embebida)":" (pestaña nueva)"):"→ "+((HB_AREAS.find(a=>a[0]===x.c.area)||[])[1]||x.c.area)+(x.c.sec?" › "+homeEsc((hbSecOptions(x.c.area).find(o=>o.key===x.c.sec)||{}).lbl||x.c.sec):"")):"botón de siempre"}${x.hidden?" · oculto":""}</span></div>
+    <button class="adm-mini" ${i===0?'disabled style="opacity:.3"':''} onclick="hbMove('${x.id}',-1)" title="Mover antes"><i class="ti ti-chevron-up"></i></button>
+    <button class="adm-mini" ${i===n-1?'disabled style="opacity:.3"':''} onclick="hbMove('${x.id}',1)" title="Mover después"><i class="ti ti-chevron-down"></i></button>
+    ${x.custom?`<button class="adm-mini" onclick="hbEdit('${x.id}')" title="Editar"><i class="ti ti-pencil"></i></button><button class="adm-mini" style="color:#b91c1c" onclick="hbDel('${x.id}')" title="Eliminar"><i class="ti ti-trash"></i></button>`
+      :`<button class="adm-mini" onclick="hbToggleHide('${x.id}')" title="${x.hidden?'Mostrar':'Quitar del Inicio'}"><i class="ti ti-eye${x.hidden?'':'-off'}"></i></button>`}
+  </div>`).join("");
+  const form=f?`<div style="border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-top:10px">
+    <div style="font-weight:800;margin-bottom:8px">${f.id?"Editar botón":"Nuevo botón"}</div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px;font-size:13px">
+      <label style="display:flex;gap:5px;align-items:center;cursor:pointer"><input type="radio" name="hbTipo" ${f.tipo==="link"?"checked":""} onchange="UI.hbF.tipo='link';render()"> Enlace externo</label>
+      <label style="display:flex;gap:5px;align-items:center;cursor:pointer"><input type="radio" name="hbTipo" ${f.tipo==="sec"?"checked":""} onchange="UI.hbF.tipo='sec';render()"> Sección / área del sistema</label>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+      <button type="button" class="btn btn-sm" title="Elegir ícono" style="width:58px;font-size:18px;padding:3px 4px;flex-shrink:0" onclick="emoToggle('hb')">${homeEsc(f.icon||"🔗")} <span style="font-size:10px">▾</span></button>
+      <input class="fc" style="flex:1" placeholder="Nombre del botón" value="${homeEsc(f.label)}" oninput="UI.hbF.label=this.value">
+    </div>
+    ${UI.emoOpen==="hb"?emoPicker("hb"):""}
+    ${f.tipo==="link"?`<input class="fc" style="margin-bottom:6px" placeholder="https://..." value="${homeEsc(f.url)}" oninput="UI.hbF.url=this.value">
+      <label style="display:flex;gap:6px;align-items:center;cursor:pointer;font-size:12.5px;margin-bottom:6px"><input type="checkbox" ${f.embed?"checked":""} onchange="UI.hbF.embed=this.checked"> Abrir en una ventana dentro del sistema (si el sitio lo permite); sin tildar, abre en una pestaña nueva</label>`
+    :`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+        <select class="fc" style="flex:1;min-width:170px" onchange="UI.hbF.area=this.value;UI.hbF.sec='';render()">${HB_AREAS.map(a=>`<option value="${a[0]}" ${f.area===a[0]?"selected":""}>${a[1]}</option>`).join("")}</select>
+        <select class="fc" style="flex:1;min-width:200px" onchange="UI.hbF.sec=this.value">${hbSecOptions(f.area).map(o=>`<option value="${o.key}" ${f.sec===o.key?"selected":""}>${homeEsc(o.lbl)}</option>`).join("")}</select>
+      </div>
+      <div class="adm-note" style="margin-bottom:6px">Pide el usuario y la clave del área (como siempre) y, al entrar, abre directamente esa sección.</div>`}
+    ${UI.hbErr?`<div style="color:#b91c1c;font-size:12px;margin-bottom:6px">${UI.hbErr}</div>`:""}
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-sm" onclick="hbCancel()">Cancelar</button><button class="btn btn-p btn-sm" onclick="hbSave()"><i class="ti ti-check"></i> Guardar</button></div>
+  </div>`:`<div style="margin-top:10px"><button class="btn btn-p btn-sm" onclick="hbNew()"><i class="ti ti-plus"></i> Agregar botón</button></div>`;
+  return `<div class="adm-sec adm-tbody"><div class="adm-note" style="margin-bottom:8px">Botones de la pantalla de Inicio (donde se elige el área). Podés quitar u ordenar los de siempre y sumar botones a enlaces externos o a secciones de cualquier área. Quitar un botón no borra nada: se puede volver a mostrar. (El acceso de Administración sigue disponible desde el logo.)</div>${rows}${form}</div>`;
+}
+// ═══════════════ (Tanda 558) Historial de accesos ═══════════════
+// Cada ingreso (usuario + clave) queda registrado con fecha/hora, dispositivo y ubicación. La ubicación se completa en segundo plano:
+// primero aproximada por IP (sin permisos) y, si el navegador lo permite (pide autorización a la persona), con GPS + dirección (OpenStreetMap).
+// Se conservan 30 días; lo más viejo se borra solo (al registrar un ingreso, al abrir el historial y al iniciar la app).
+const ACC_DIAS=30,ACC_MAX=3000;
+function accPrune(list){const lim=Date.now()-ACC_DIAS*86400000;let out=(Array.isArray(list)?list:[]).filter(e=>e&&e.ts>=lim);if(out.length>ACC_MAX)out=out.sort((a,b)=>b.ts-a.ts).slice(0,ACC_MAX);return out;}
+function accPruneNow(){
+  try{
+    const cur=Array.isArray(D.accessLog)?D.accessLog:[],nx=accPrune(cur);
+    if(nx.length!==cur.length){D.accessLog=nx;lsS(K.accessLog,D.accessLog);}
+  }catch(e){}
+}
+function accDevice(){
+  const ua=navigator.userAgent||"";let os="Dispositivo",br="Navegador",m;
+  if(/Windows NT 10/.test(ua))os="Windows 10/11";else if(/Windows/.test(ua))os="Windows";
+  else if((m=/Android ([\d.]+)/.exec(ua)))os="Android "+m[1];
+  else if(/iPhone|iPad|iPod/.test(ua)){m=/OS (\d+)/.exec(ua);os=(/iPad/.test(ua)?"iPadOS ":"iOS ")+(m?m[1]:"");}
+  else if(/Mac OS X|Macintosh/.test(ua))os="macOS";else if(/CrOS/.test(ua))os="ChromeOS";else if(/Linux/.test(ua))os="Linux";
+  if((m=/Edg\/(\d+)/.exec(ua)))br="Edge "+m[1];else if((m=/OPR\/(\d+)/.exec(ua)))br="Opera "+m[1];else if((m=/SamsungBrowser\/(\d+)/.exec(ua)))br="Samsung Internet "+m[1];
+  else if((m=/(?:Firefox|FxiOS)\/(\d+)/.exec(ua)))br="Firefox "+m[1];else if((m=/(?:Chrome|CriOS)\/(\d+)/.exec(ua)))br="Chrome "+m[1];else if((m=/Version\/(\d+).*Safari/.exec(ua)))br="Safari "+m[1];
+  const tablet=/iPad|Tablet/.test(ua)||(/Android/.test(ua)&&!/Mobile/.test(ua));
+  const mobile=!tablet&&/Mobi|iPhone|iPod|Android/.test(ua);
+  let app=false;try{app=!!((window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone);}catch(e){}
+  return (tablet?"Tablet":mobile?"Celular":"Computadora")+" · "+os+" · "+br+(app?" · App instalada":"");
+}
+function accLogAdd(area,uid0,nombre){
+  try{
+    const e={id:uid(),ts:Date.now(),area,uid:uid0||"",n:nombre||"",dv:accDevice(),sc:(screen.width||0)+"×"+(screen.height||0)};
+    D.accessLog=[...accPrune(D.accessLog),e];
+    lsS(K.accessLog,D.accessLog);
+    accLocate(e.id);
+  }catch(err){}
+}
+function accLocate(id){
+  const upd=(fn)=>{
+    const cur=Array.isArray(D.accessLog)?D.accessLog:[];
+    D.accessLog=cur.map(e=>e.id===id?{...e,...fn(e)}:e);
+    try{lsS(K.accessLog,D.accessLog);}catch(err){}
+    try{if(UI.adminMode==='panel'&&UI.admOpen==='acc')render();}catch(err){}
+  };
+  const T=(u)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);return fetch(u,{signal:c.signal}).then(r=>r.json()).finally(()=>clearTimeout(t));};
+  const ipPut=(ip,lc,la,lo,isp)=>upd(e=>e.src==="gps"?{ip}:{ip,lc,la:la==null?e.la:+(+la).toFixed(4),lo:lo==null?e.lo:+(+lo).toFixed(4),isp:isp||"",src:"ip"});
+  T("https://ipwho.is/").then(j=>{if(!j||j.success===false)throw 0;ipPut(j.ip||"",[j.city,j.region,j.country].filter(Boolean).join(", "),j.latitude,j.longitude,(j.connection||{}).isp);})
+   .catch(()=>T("https://ipapi.co/json/").then(j=>{if(!j||j.error)throw 0;ipPut(j.ip||"",[j.city,j.region,j.country_name].filter(Boolean).join(", "),j.latitude,j.longitude,j.org);}).catch(()=>upd(e=>e.src?{}:{src:"-"})));
+  try{
+    if(navigator.geolocation)navigator.geolocation.getCurrentPosition(pos=>{
+      const la=+pos.coords.latitude.toFixed(5),lo=+pos.coords.longitude.toFixed(5),ac=Math.round(pos.coords.accuracy||0);
+      upd(()=>({la,lo,ac,src:"gps"}));
+      T("https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&accept-language=es&lat="+la+"&lon="+lo).then(j=>{
+        const a=(j&&j.address)||{};
+        const calle=[a.road||a.pedestrian||a.footway||"",a.house_number||""].filter(Boolean).join(" ");
+        const dir=[calle,a.suburb||a.neighbourhood||"",a.city||a.town||a.village||a.municipality||"",a.state||""].filter(Boolean).join(", ")||(j&&j.display_name)||"";
+        if(dir)upd(()=>({dir}));
+      }).catch(()=>{});
+    },()=>{},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+  }catch(err){}
+}
+const ACC_AREAS=[["rec","Recepción"],["mu","Mucamas"],["mant","Mantenimiento"],["ger","Gerencia"],["admin","Administración"],["coord","Coordinación"]];
+window.accTab=(k)=>{UI.accArea=k;render();};
+window.accFiltro=(v)=>{UI.accUser=v;render();};
+function accHistHtml(){
+  accPruneNow();
+  const esc=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  const all=Array.isArray(D.accessLog)?D.accessLog:[];
+  const cnt=k=>all.filter(e=>e.area===k).length;
+  let tab=UI.accArea;if(!tab||!ACC_AREAS.some(a=>a[0]===tab))tab=(ACC_AREAS.find(a=>cnt(a[0]))||ACC_AREAS[0])[0];
+  const rowsAll=all.filter(e=>e.area===tab).sort((a,b)=>b.ts-a.ts);
+  const users=[...new Set(rowsAll.map(e=>e.n||"?"))].sort((a,b)=>a.localeCompare(b,"es"));
+  const fu=UI.accUser&&users.includes(UI.accUser)?UI.accUser:"";
+  const rows=fu?rowsAll.filter(e=>(e.n||"?")===fu):rowsAll;
+  const tabs=ACC_AREAS.map(a=>`<button type="button" class="btn btn-sm ${tab===a[0]?"btn-p":"btn-g"}" onclick="accTab('${a[0]}')">${a[1]} <span style="opacity:.75">(${cnt(a[0])})</span></button>`).join("");
+  const loc=e=>{
+    let t="";
+    if(e.dir)t=e.dir;else if(e.lc)t=e.lc;
+    const pos=(e.la!=null&&e.lo!=null)?` <a href="https://www.google.com/maps?q=${e.la},${e.lo}" target="_blank" rel="noopener" style="color:var(--teal)">ver mapa</a>`:"";
+    const pre=e.src==="gps"?`<span style="color:#15803d;font-weight:700">GPS${e.ac?` ±${e.ac} m`:""}</span>`:e.src==="ip"?`<span style="color:#b45309;font-weight:700">aprox. por IP</span>`:"";
+    if(!t&&e.src===undefined&&Date.now()-e.ts<60000)return "Obteniendo ubicación…";
+    if(!t&&!pos)return "No disponible";
+    const ipx=(e.src==="gps"&&e.lc&&e.lc!==e.dir)?`<div style="font-size:10.5px;color:var(--text3)">Red: ${esc(e.lc)}${e.ip?" · IP "+esc(e.ip):""}</div>`:(e.ip&&e.src!=="gps"?`<div style="font-size:10.5px;color:var(--text3)">IP ${esc(e.ip)}${e.isp?" · "+esc(e.isp):""}</div>`:"");
+    return `${esc(t)||"Sin dirección"}${pos}<div style="font-size:10.5px">${pre}</div>${ipx}`;
+  };
+  const tbl=rows.length?`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
+    <thead><tr style="text-align:left;color:var(--text3);font-size:10.5px;text-transform:uppercase;letter-spacing:.4px"><th style="padding:6px 8px">Fecha</th><th style="padding:6px 8px">Hora</th><th style="padding:6px 8px">Usuario</th><th style="padding:6px 8px">Dispositivo</th><th style="padding:6px 8px">Ubicación</th></tr></thead>
+    <tbody>${rows.map(e=>{const d=new Date(e.ts);return `<tr style="border-top:1px solid var(--border);vertical-align:top">
+      <td style="padding:6px 8px;white-space:nowrap">${d.toLocaleDateString("es-AR",{weekday:"short",day:"2-digit",month:"2-digit",year:"numeric"})}</td>
+      <td style="padding:6px 8px;white-space:nowrap">${d.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false})}</td>
+      <td style="padding:6px 8px;font-weight:700">${esc(e.n||"?")}</td>
+      <td style="padding:6px 8px">${esc(e.dv||"—")}${e.sc?`<div style="font-size:10.5px;color:var(--text3)">pantalla ${esc(e.sc)}</div>`:""}</td>
+      <td style="padding:6px 8px;min-width:220px">${loc(e)}</td></tr>`;}).join("")}</tbody></table></div>`
+    :`<div style="text-align:center;color:var(--text3);padding:18px;font-size:12px">Sin accesos registrados${fu?" para este usuario":" en esta área"}.</div>`;
+  return `<div class="adm-sec adm-tbody"><div class="adm-note" style="margin-bottom:8px">Ingresos con usuario y clave de los últimos ${ACC_DIAS} días, separados por área (lo anterior se borra solo). La ubicación sale por GPS cuando la persona autoriza al navegador y, si no, aproximada por la conexión (IP).</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${tabs}</div>
+    ${users.length>1?`<div style="margin-bottom:8px"><select class="fc" style="max-width:260px;font-size:12px" onchange="accFiltro(this.value)"><option value="">Todos los usuarios</option>${users.map(u=>`<option value="${esc(u)}" ${fu===u?"selected":""}>${esc(u)}</option>`).join("")}</select></div>`:""}
+    ${tbl}</div>`;
+}
 function rSel(){
   const A=UI.rolCard;
   // Admin login/panel screens
@@ -15787,13 +15980,7 @@ function rSel(){
            ".sel-card.on" en el CSS de celular más arriba: las tarjetas vuelven a ser siempre las mismas,
            sin achicarse nunca. -->
       <div class="sel-cards">
-        <div class="sel-card sel-card-cop" onclick="kioskCopEnter()"><span class="sel-emoji">\ud83e\udd16</span><h3>Copahuito</h3></div>
-        <div class="sel-card ${A==="rec"?"on":""}" onclick="selC('rec')"><span class="sel-emoji">\ud83d\udece\ufe0f</span><h3>Recepci\u00f3n</h3></div>
-        <div class="sel-card ${A==="mu"?"on":""}" onclick="selC('mu')"><span class="sel-emoji">\ud83d\udecf\ufe0f</span><h3>Limpiezas</h3></div>
-        <div class="sel-card ${A==="mant"?"on":""}" onclick="selC('mant')"><span class="sel-emoji">\ud83d\udd27</span><h3>Mantenimiento</h3></div>
-        <div class="sel-card ${A==="ger"?"on":""}" onclick="selC('ger')"><span class="sel-emoji">\ud83d\udcbc</span><h3>Gerencia</h3></div>
-        <div class="sel-card ${A==="admin"?"on":""}" onclick="selC('admin')"><span class="sel-emoji">\ud83d\uddc2\ufe0f</span><h3>Administraci\u00f3n</h3></div>
-        <div class="sel-card ${A==="coord"?"on":""}" onclick="selC('coord')"><span class="sel-emoji">\ud83e\udded</span><h3>Coordinaci\u00f3n</h3></div>
+        ${homeCardsHtml(A)}
       </div>
       ${showN?`<div class="sel-names"><h4>${A==='mu'?'\u00bfCu\u00e1l es tu nombre?':'Eleg\u00ed tu usuario'}</h4><div class="sel-names-row">${names}</div></div>`:""}
       <!-- (Tanda 125) El usuario sacó el límite de 2 dígitos numéricos de la clave (ver uSave() más
@@ -16406,7 +16593,7 @@ function testSeasonBtnsHtml(){
     </div>
   </div>`;
 }
-window.selC=c=>{UI.rolCard=c;UI.rolName=null;UI.rolClave='';UI.rolErr='';render();};
+window.selC=c=>{UI.homeTarget=null;UI.rolCard=c;UI.rolName=null;UI.rolClave='';UI.rolErr='';render();};
 window.selN=(id,n)=>{UI.rolName=id;UI.rolNombre=n;UI.rolClave='';UI.rolErr='';render();};
 // (Tanda 293) Ingreso automático: apenas lo escrito coincide con la clave del usuario elegido se entra, sin tocar "Ingresar".
 // Mientras no coincide no se hace nada (no cuenta como intento fallido ni muestra error); Enter y el botón siguen funcionando.
@@ -16440,6 +16627,7 @@ window.enterRole=()=>{
   sessionStorage.setItem("ch_rid",RID||"");
   sessionStorage.setItem("ch_rname",RNAME||"");
   sessStart();
+  accLogAdd(A,person.id,person.nombre||''); // (Tanda 558) historial de accesos
   // (Tanda 46) D.muLogins (a pesar del nombre) ahora trackea login/logout de Mucamas Y Mantenimiento
   // por igual -- lo necesita el indicador de "en línea" de Recepción (ver onlineStaffHtml()). Antes
   // solo se registraba para "mu" (lo usa también muLoginsDelDia()/Rendimiento, que sigue mirando solo
@@ -16465,6 +16653,9 @@ window.enterRole=()=>{
   UI.rolClave='';UI.rolErr='';UI.shiftDone=false;UI.shiftSnoozeTo=null;UI.shiftDismissed=false;
   // (Tanda 374) Recepcion: cada vez que se ingresa se empieza en Inicio y con el menu lateral expandido.
   if(A==='rec'){UI.v='gen';UI.sbCollapsed=false;UI._cntReload=true;}
+  // (Tanda 557) Botón del Inicio que apunta a una sección puntual: al entrar se abre esa sección
+  if(UI.homeTarget&&UI.homeTarget.area===A&&UI.homeTarget.sec){const _hs=UI.homeTarget.sec;if(A==='rec')UI.v=(_hs==='home'?'gen':_hs);else if(A!=='mu'&&A!=='mant'){UI.areaSec=UI.areaSec||{};UI.areaSec[A]=_hs;}}
+  UI.homeTarget=null;
     // (Tanda 105 / \u00edtem 3) Chequeo de cumplea\u00f1os -- ver comentario junto a birthdayCheckOnLogin().
     // (Tanda 109) Se le pasa "person" (el registro completo, con .apodo) en vez de RNAME (el nombre
     // completo nada m\u00e1s) -- as\u00ed birthdayCheckOnLogin() puede usar el apodo si la persona tiene uno.
@@ -20176,7 +20367,7 @@ window.adminCheck=()=>{
   // (Tanda 256) Bloqueo temporal tras varios intentos fallidos + aviso a Administración y Coordinación.
   const _lk=admLockLeft('super');
   if(_lk){UI.admErr=admLockMsg(_lk);UI.admP='';render();return;}
-  if((UI.admU||'').trim()===ADM_USER&&(UI.admP||'')===D.adminPass){UI.adminMode='hub';UI.admErr='';sessionStorage.setItem('ch_admin_auth','1');admOk('super');}
+  if((UI.admU||'').trim()===ADM_USER&&(UI.admP||'')===D.adminPass){UI.adminMode='hub';UI.admErr='';sessionStorage.setItem('ch_admin_auth','1');admOk('super');accLogAdd('admin','super','Admin (usuario principal)');}
   else{
     admFail('super','Admin (usuario principal)');
     const _lk2=admLockLeft('super');
@@ -20269,6 +20460,7 @@ function adminPanel(){
       <div style="font-size:10px;color:#9ca3af;margin-bottom:8px">Si tiene hijos/as, recibe un saludo en el D\u00eda de la Madre (g\u00e9nero femenino) o del Padre (masculino), o el pr\u00f3ximo d\u00eda que ingrese al sistema.</div>
       ${(ed.area==='rec'||ed.area==='mu'||ed.area==='mant')?`<label style="display:flex;gap:7px;align-items:center;cursor:pointer;font-size:13px;margin:10px 0 2px;font-weight:700"><input type="checkbox" ${ed.oculto?'checked':''} onchange="UI.uEdit.oculto=this.checked"> \ud83d\ude48 Usuario oculto (en preparaci\u00f3n)</label><div style="font-size:10.5px;color:#9ca3af;margin-bottom:8px;line-height:1.45">Mientras est\u00e9 tildado no aparece al tocar el \u00e1rea en el Inicio (y no puede ingresar) ni lo ven Recepci\u00f3n, Mucamas o Mantenimiento: tampoco sus francos ni el PDF de francos. Gerencia, Administraci\u00f3n y Coordinaci\u00f3n s\u00ed lo ven y pueden asignarle francos. No cuenta para el l\u00edmite de usuarios del \u00e1rea. Al destildarlo, queda visible para todos con lo que ya tenga cargado.</div>`:''}
       ${ed.area==='rec'?`<div class="fg"><span class="fl">Puesto en Conserjer\u00eda</span><select class="fc" onchange="UI.uEdit.puesto=this.value">${[['','Sin puesto (sin restricci\u00f3n de horario)'],['manana','Turno ma\u00f1ana (07 a 15 hs)'],['tarde','Turno tarde (15 a 23 hs)'],['noche','Turno noche (23 a 07 hs)'],['franquero','Franquero (cubre francos)']].map(o=>`<option value="${o[0]}" ${(ed.puesto||'')===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select><div style="font-size:10px;color:#9ca3af;margin-top:3px">Con puesto cargado, solo puede usar Conserjer\u00eda dentro de su horario (\u00b1 unos minutos); fuera de \u00e9l solo ve sus francos. El franquero trabaja el turno de quien tenga franco y lo cubra.</div></div>`:''}
+      ${ed.area==='rec'?recVisEditorHtml(ed):''}
       ${ed.area==='rec'?`<div style="font-size:11px;color:#9ca3af;margin-top:4px">Recepci\u00f3n recibe el aviso de cambio de turno autom\u00e1ticamente a las 07, 15 y 23 hs.</div>`:''}
       ${UI.uErr?`<div style="color:#b91c1c;font-size:12px;margin-top:8px">${UI.uErr}</div>`:''}
       <div class="mf"><button class="btn btn-sm" onclick="uCancel()">Cancelar</button><button class="btn btn-sm btn-p" onclick="uSave()"><i class="ti ti-check"></i> Guardar</button></div>
@@ -20287,6 +20479,8 @@ function adminPanel(){
       <div class="adm-toolbtns">
         <button type="button" class="adm-tbtn${UI.admOpen==='cust'?' on':''}" onclick="UI.admOpen=UI.admOpen==='cust'?null:'cust';render()"><i class="ti ti-link"></i> Accesos personalizados <i class="ti ti-chevron-${UI.admOpen==='cust'?'up':'down'}" style="margin-left:auto"></i></button>
         <button type="button" class="adm-tbtn${UI.admOpen==='btns'?' on':''}" onclick="UI.admOpen=UI.admOpen==='btns'?null:'btns';render()"><i class="ti ti-pencil"></i> Editar botones existentes <i class="ti ti-chevron-${UI.admOpen==='btns'?'up':'down'}" style="margin-left:auto"></i></button>
+        <button type="button" class="adm-tbtn${UI.admOpen==='home'?' on':''}" onclick="UI.admOpen=UI.admOpen==='home'?null:'home';render()"><i class="ti ti-home"></i> Botones del Inicio <i class="ti ti-chevron-${UI.admOpen==='home'?'up':'down'}" style="margin-left:auto"></i></button>
+        <button type="button" class="adm-tbtn${UI.admOpen==='acc'?' on':''}" onclick="UI.admOpen=UI.admOpen==='acc'?null:'acc';render()"><i class="ti ti-history"></i> Historial de accesos <i class="ti ti-chevron-${UI.admOpen==='acc'?'up':'down'}" style="margin-left:auto"></i></button>
         ${bkpBtnHtml()}
         ${usuariosResetBtnHtml()}
       </div>
@@ -20306,6 +20500,8 @@ function adminPanel(){
           <button class="btn btn-g btn-sm" onclick="sbItemsEditOpen('admin')"><i class="ti ti-pencil"></i> Administración</button>
           <button class="btn btn-g btn-sm" onclick="sbItemsEditOpen('coord')"><i class="ti ti-pencil"></i> Coordinación</button>
         </div></div>`:''}
+      ${UI.admOpen==='home'?homeBtnsAdminHtml():''}
+      ${UI.admOpen==='acc'?accHistHtml():''}
       ${UI.admOpen==='reset'?usuariosResetHtml():''}
       ${UI.admOpen==='bkp'?bkpHtml():''}
     </div>
@@ -20316,7 +20512,7 @@ function adminPanel(){
 window.adminExit=()=>{UI.adminMode=null;UI.uEdit=null;render();};
 function uEyeSvg(on){return on?'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A10.4 10.4 0 0 1 12 5c5 0 8.5 4 10 7a15 15 0 0 1-3.2 4.2M6.2 6.3C4 7.8 2.6 10 2 12c1.5 3 5 7 10 7 1.6 0 3-.4 4.3-1"/></svg>':'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c1.5-3 5-7 10-7s8.5 4 10 7c-1.5 3-5 7-10 7S3.5 15 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';}
 window.uClaveToggle=(btn)=>{UI.uClaveVer=!UI.uClaveVer;const i=document.getElementById('uClaveIn');if(i)i.type=UI.uClaveVer?'text':'password';if(btn)btn.innerHTML=uEyeSvg(!!UI.uClaveVer);};
-window.uNew=area=>{UI.uClaveVer=false;UI.uEdit={area:area,id:null,nombre:'',apodo:'',email:'',clave:'',claveOriginal:'',claveTs:null,ingreso:'',genero:'',hijos:false,puesto:'',oculto:false};UI.uErr='';render();};
+window.uNew=area=>{UI.uClaveVer=false;UI.uEdit={area:area,id:null,nombre:'',apodo:'',email:'',clave:'',claveOriginal:'',claveTs:null,ingreso:'',genero:'',hijos:false,puesto:'',oculto:false,recLim:false,recVis:[]};UI.uErr='';render();};
 window.uEdit=(area,id)=>{
   UI.uClaveVer=false;
   let src=area==='mu'?D.mu.find(m=>m.id===id):D.users.find(u=>u.id===id);
@@ -20327,10 +20523,21 @@ window.uEdit=(area,id)=>{
   // sin tocar la clave) se pisaría la fecha. `claveTs` se precarga para mostrarle al admin, debajo del
   // campo, cuándo se creó o cambió por última vez (a pedido del usuario: "debe poder ver cuando fue la
   // última vez que se la cambió o bien que se la creó").
-  UI.uEdit={area:area,id:id,nombre:src.nombre||'',apodo:src.apodo||'',email:area==='mu'?'':userEmailDe(src),clave:src.clave||'',claveOriginal:src.clave||'',claveTs:src.claveTs||null,ingreso:src.ingreso||'',genero:src.genero||'',hijos:!!src.hijos,puesto:src.puesto||'',oculto:!!src.oculto};
+  UI.uEdit={area:area,id:id,nombre:src.nombre||'',apodo:src.apodo||'',email:area==='mu'?'':userEmailDe(src),clave:src.clave||'',claveOriginal:src.clave||'',claveTs:src.claveTs||null,ingreso:src.ingreso||'',genero:src.genero||'',hijos:!!src.hijos,puesto:src.puesto||'',oculto:!!src.oculto,recLim:Array.isArray(src.recVis),recVis:Array.isArray(src.recVis)?src.recVis.slice():[]};
   UI.uErr='';render();
 };
 window.uCancel=()=>{UI.uEdit=null;UI.uErr='';render();};
+// (Tanda 556) Bloque «Ventanas que puede ver» del editor de usuarios de Recepción
+function recVisEditorHtml(ed){
+  const its=recVisItems(),sel=new Set(ed.recVis||[]);
+  return `<div class="fg" style="margin-top:10px;border:1px solid var(--border);border-radius:10px;padding:10px 12px">
+    <label style="display:flex;gap:7px;align-items:center;cursor:pointer;font-size:13px;font-weight:700"><input type="checkbox" ${ed.recLim?'checked':''} onchange="UI.uEdit.recLim=this.checked;if(this.checked&&!(UI.uEdit.recVis||[]).length)UI.uEdit.recVis=recVisItems().map(x=>x.key);render()"> \ud83d\udd12 Limitar las ventanas que puede ver</label>
+    <div style="font-size:10.5px;color:#9ca3af;margin:3px 0 ${ed.recLim?'8':'0'}px;line-height:1.45">Sin tildar, esta persona ve todas las ventanas de Recepci\u00f3n. Tildado, solo ve las que elijas (el resto no aparece en su men\u00fa ni se puede abrir).</div>
+    ${ed.recLim?`<div style="display:flex;gap:8px;margin-bottom:6px"><button type="button" class="btn btn-g btn-sm" onclick="UI.uEdit.recVis=recVisItems().map(x=>x.key);render()">Todas</button><button type="button" class="btn btn-g btn-sm" onclick="UI.uEdit.recVis=[];render()">Ninguna</button></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:4px 12px">${its.map(it=>`<label style="display:flex;gap:6px;align-items:center;cursor:pointer;font-size:12.5px"><input type="checkbox" ${sel.has(it.key)?'checked':''} onchange="uRecVisToggle('${it.key}',this.checked)"> <span>${it.ic} ${it.lbl}</span></label>`).join('')}</div>`:''}
+  </div>`;
+}
+window.uRecVisToggle=(k,on)=>{const e=UI.uEdit;if(!e)return;const s=new Set(e.recVis||[]);if(on)s.add(k);else s.delete(k);e.recVis=recVisItems().map(x=>x.key).filter(x=>s.has(x));};
 // (Tanda 253) ÚNICA vía para eliminar un usuario: solo con sesión de Admin y dejando una lápida
 // (D.userDel) -- sin ella, la salvaguarda (guardUsers()/mergeUsersList()) vuelve a agregarlo. El usuario
 // queda además archivado (D.userArc) y se puede restaurar desde Admin > "Usuarios recuperables".
@@ -20492,6 +20699,24 @@ window.bkpRestaurar=async()=>{
   }
   render();
 };
+window.bkpManual=async()=>{
+  const M=UI.bkpMan||(UI.bkpMan={busy:false,msg:"",ok:false});if(M.busy)return;
+  if(!isAdminAuth()){M.msg="Solo el Admin puede descargar una copia.";M.ok=false;render();return;}
+  if(!fsDB){M.msg="No hay conexión con la nube: no se pudo armar la copia.";M.ok=false;render();return;}
+  M.busy=true;M.ok=false;M.msg="Leyendo los datos de la nube…";render();
+  try{
+    const te=new TextEncoder(),d0=new Date(),z2=n=>(n<10?"0":"")+n,fch=d0.getFullYear()+"-"+z2(d0.getMonth()+1)+"-"+z2(d0.getDate()),stamp=fch+"_"+z2(d0.getHours())+"-"+z2(d0.getMinutes());
+    const carpeta="Copia_sistema_"+stamp,files=[{name:carpeta+"/LEEME.txt",data:te.encode("Copia de seguridad manual del sistema del hotel, descargada el "+d0.toLocaleString("es-AR")+".\r\nPara volver a esta versión: Admin → Copias de seguridad → subir este ZIP.\r\n")}];
+    const snap=await bkpConTope(fsDB.collection("estado").get({source:"server"}),60000,"No se pudo leer la nube (¿sin internet?).");
+    let n=0;
+    snap.forEach(doc=>{files.push({name:carpeta+"/datos/"+encodeURIComponent(doc.id)+".json",data:te.encode(JSON.stringify({copia:BKP_FORMATO,id:doc.id,campos:doc.data()},null,1))});n++;});
+    if(!n)throw new Error("la nube no devolvió datos.");
+    bkpDescargar(await bkpZipBuild(files),carpeta+".zip");
+    try{logChange("Copia de seguridad descargada manualmente ("+n+" documentos)");}catch(e){}
+    M.msg="✓ Listo: se descargó «"+carpeta+".zip» con "+n+" documentos.";M.ok=true;
+  }catch(er){M.msg="No se pudo armar la copia: "+(er&&er.message||er);M.ok=false;}
+  M.busy=false;render();
+};
 function bkpBtnHtml(){const ab=UI.admOpen==='bkp';return `<button type="button" class="adm-tbtn${ab?' on':''}" onclick="UI.admOpen=UI.admOpen==='bkp'?null:'bkp';render()"><i class="ti ti-database-export"></i> Copias de seguridad <i class="ti ti-chevron-${ab?'up':'down'}" style="margin-left:auto"></i></button>`;}
 function bkpHtml(){
   const B=UI.bkp,n=B?B.docs.filter(d=>d.sel).length:0;
@@ -20512,6 +20737,12 @@ function bkpHtml(){
   const ign=B&&B.ign&&B.ign.length?`<div class="adm-note" style="margin-top:6px">Se ignoraron ${B.ign.length} archivo(s) que no son datos del sistema.</div>`:"";
   return `<div class="adm-sec adm-tbody">
     <div class="adm-note" style="margin-bottom:10px">Cada noche a las <b>23:59</b> el sistema manda por mail a <b>copahueadmin@gmail.com</b> una copia de seguridad (un ZIP). Para volver a una versión anterior, subí acá ese mismo ZIP, o los archivos ya descomprimidos (la carpeta «datos»). Si el ZIP tiene clave (variable <b>BACKUP_ZIP_PASSWORD</b> en Netlify), descomprimilo primero con la clave (7-Zip, WinRAR, Keka) y subí la carpeta «datos». Los <b>roomings</b> se respaldan aparte.</div>
+    <div style="background:#eef6ee;border:1px solid #b9d9bb;border-radius:10px;padding:10px 12px;margin-bottom:12px">
+      <div style="font-size:12.5px;margin-bottom:8px"><b>Descargar una copia ahora</b>: arma un ZIP con todos los datos actuales del sistema (mismo formato que el que llega por mail) y lo baja a este dispositivo.</div>
+      <button type="button" class="btn btn-p btn-sm" ${UI.bkpMan&&UI.bkpMan.busy?'disabled':''} onclick="bkpManual()"><i class="ti ti-download"></i> ${UI.bkpMan&&UI.bkpMan.busy?'Preparando…':'Descargar copia ahora'}</button>
+      ${UI.bkpMan&&UI.bkpMan.msg?`<div style="margin-top:8px;font-size:12.5px;font-weight:700;color:${UI.bkpMan.ok?'#15803d':(UI.bkpMan.busy?'#8a6a1f':'#b91c1c')}">${bkpEsc(UI.bkpMan.msg)}</div>`:''}
+    </div>
+    <div style="font-size:12.5px;font-weight:700;margin-bottom:6px">Restaurar una copia</div>
     ${pick}${msg}${cuerpo}${ign}
   </div>`;
 }
@@ -20609,6 +20840,7 @@ window.uSave=()=>{
   // Administración/Coordinación (ver nombreMostrar() más abajo), en vez del nombre completo. El nombre
   // completo (`nombre`) se sigue guardando y usando sin cambios en el resto de la app.
   const apodo=(e.apodo||'').trim();
+  if(e.area==='rec'&&e.recLim&&!(e.recVis||[]).length){UI.uErr='Elegí al menos una ventana que pueda ver (o destildá la limitaci\u00f3n).';render();return;}
   // (Tanda 142 / ítem 4/5) Solo se renueva `claveTs` cuando la clave efectivamente CAMBIÓ respecto de
   // la que tenía al abrir este editor (`claveOriginal`) -- así guardar el resto de los datos sin tocar
   // la clave no pisa la fecha de "última vez que se cambió".
@@ -20618,8 +20850,8 @@ window.uSave=()=>{
     else{D.mu=[...D.mu,{id:uid(),nombre:e.nombre.trim(),apodo,clave:e.clave,claveTs:e.clave?Date.now():null,entrada:'08:00',salida:'16:00',color:'#1d7a6b',cod:(apodo||e.nombre.trim()).slice(0,2).toUpperCase(),dias:[hoyISO()],ingreso:e.ingreso||'',genero:e.genero||'',hijos:!!e.hijos,oculto:!!e.oculto}];}
     lsS(K.mu,D.mu);
   } else {
-    if(e.id){D.users=D.users.map(u=>u.id===e.id?{...u,email,nombre:e.nombre.trim(),apodo,clave:e.clave,claveTs:claveCambio?Date.now():(u.claveTs||null),ingreso:e.ingreso||'',genero:e.genero||'',hijos:!!e.hijos,oculto:!!e.oculto,...(e.area==='rec'?{puesto:e.puesto||''}:{})}:u);}
-    else{D.users=[...D.users,{id:uid(),area:e.area,email,nombre:e.nombre.trim(),apodo,clave:e.clave,claveTs:e.clave?Date.now():null,ingreso:e.ingreso||'',genero:e.genero||'',hijos:!!e.hijos,oculto:!!e.oculto,...(e.area==='rec'?{puesto:e.puesto||''}:{})}];}
+    if(e.id){D.users=D.users.map(u=>u.id===e.id?{...u,email,nombre:e.nombre.trim(),apodo,clave:e.clave,claveTs:claveCambio?Date.now():(u.claveTs||null),ingreso:e.ingreso||'',genero:e.genero||'',hijos:!!e.hijos,oculto:!!e.oculto,...(e.area==='rec'?{puesto:e.puesto||'',recVis:e.recLim?(e.recVis||[]):null}:{})}:u);}
+    else{D.users=[...D.users,{id:uid(),area:e.area,email,nombre:e.nombre.trim(),apodo,clave:e.clave,claveTs:e.clave?Date.now():null,ingreso:e.ingreso||'',genero:e.genero||'',hijos:!!e.hijos,oculto:!!e.oculto,...(e.area==='rec'?{puesto:e.puesto||'',recVis:e.recLim?(e.recVis||[]):null}:{})}];}
     lsS(K.users,D.users);
     if(e.id&&D.personalFichas&&D.personalFichas[e.id]&&email){D.personalFichas={...D.personalFichas,[e.id]:{...D.personalFichas[e.id],email}};lsS(K.personalFichas,D.personalFichas);}
   }
@@ -20633,12 +20865,28 @@ const VTIT={dash:"Resumen del día",plan:"Limpiezas",audit:"Auditoría nocturna"
 // "Stock") desde el sidebar de Administración -- ver el comentario junto a `rAdminArea()`.
 // `vAsistenteCopahuito()` no tiene ningún gating por rol adentro (solo embebe un iframe), así que
 // se pudo reutilizar tal cual sin tocar esa función.
+// (Tanda 556) Ventanas visibles por usuario de Recepción: el admin puede limitar, desde «Gestión de usuarios», qué ventanas de Recepción ve cada persona
+// (u.recVis = lista de claves de AREA_CATS.rec; sin lista = ve todas). Devuelve un Set de claves permitidas, o null si no hay restricción.
+function recVisPermitidas(){
+  try{
+    if(typeof ROLE==="undefined"||ROLE!=="rec"||!RID)return null;
+    const u=(D.users||[]).find(x=>x.id===RID);
+    return (u&&Array.isArray(u.recVis))?new Set(u.recVis):null;
+  }catch(e){return null;}
+}
+function recVisItems(){const out=[];(AREA_CATS.rec||[]).forEach(c=>c.items.forEach(it=>out.push({key:it.key,ic:sbIc("rec",it.key,it.ic||""),lbl:sbLbl("rec",it.key,it.lbl)})));return out;}
 function rRec(){
   // (Tanda 422) Acceso por puesto/horario: con puesto cargado, fuera del turno (± margen) solo se ve "Francos".
   const _recFuera=recFueraDeHorario();
   UI._recFueraPrev=!!_recFuera;
   try{document.body.classList.toggle("rec-fuera",!!_recFuera);}catch(e){}
   if(_recFuera&&UI.v!=="francos")UI.v="francos";
+  // (Tanda 556) Usuario con ventanas limitadas: si la vista actual no está permitida (por un aviso, un atajo o el Inicio por defecto) pasa a la primera permitida
+  const _recVis=_recFuera?null:recVisPermitidas();
+  if(_recVis){
+    const _navKeys=recVisItems().map(x=>x.key);
+    if(_navKeys.includes(UI.v)&&!_recVis.has(UI.v)){const _first=_navKeys.find(k=>_recVis.has(k)&&k!=="vacpersonal");if(_first)UI.v=_first;}
+  }
   // (Tanda 286) En celular el panel de cocheras (Inicio) arranca oculto -- se abre a pantalla completa con "Mostrar cocheras".
   if(UI._recMobInit===undefined){UI._recMobInit=true;try{if(window.matchMedia("(max-width:860px)").matches)UI.parkHidden=true;}catch(e){}}
   const oi=D.issues.filter(i=>i.estado==="abierto").length;
@@ -20694,6 +20942,7 @@ function rRec(){
   // defaultSidebarCats() y el mismo agregado en rAreaShell().
   spOwnLinks().forEach(l=>{itemHtmlByKeyRec["ol:"+l.id]=`<div class="nb" onclick="abrirSitioEmbebido('${(l.label||"").replace(/'/g,"\\'")}','${(l.url||"").replace(/'/g,"\\'")}')"><span class="nb-ico">${l.icon||"🔗"}</span><span class="nb-lbl">${l.label}</span></div>`;});
   const sbRecLayout=sidebarLayoutFor("rec",RID);
+  if(_recVis)Object.keys(itemHtmlByKeyRec).forEach(k=>{if(recVisItems().some(x=>x.key===k)&&!_recVis.has(k))delete itemHtmlByKeyRec[k];}); // (Tanda 556)
   const sidebarSectionsHtmlRec=_recFuera?`<div class="sb-grp">Fuera de horario</div>${itemHtmlByKeyRec.francos}`:renderSidebarLayout(sbRecLayout,itemHtmlByKeyRec,"sb-grp");
   const _recDt=`
       <div style="font-size:11px;color:#a8d4be;font-weight:600;margin-bottom:9px;text-transform:capitalize">${(()=>{const n=new Date();return n.toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"short"})+" · "+n.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"});})()}</div>
@@ -47000,6 +47249,7 @@ window.emoPick=(ctx,e)=>{
   if(k==="g")return spGrpUpd(id,{icon:e});
   if(k==="gl"){spGlSet(id,"icon",e);return render();}
   if(k==="ol"){UI.spOlIcon=e;return render();}
+  if(k==="hb"){if(UI.hbF)UI.hbF.icon=e;return render();}
 };
 function plEmoPicker(i){return emoPicker("ty:"+i);}
 window.plTypeEmo=(i,e)=>{if(UI.tyF&&UI.tyF[i])UI.tyF[i].ic=e;UI.tyEmo=null;render();};
@@ -47658,7 +47908,8 @@ window.agNotify=(title,opts)=>{
 };
 window.pwaNotifPedir=async()=>{try{await Notification.requestPermission();}catch(e){}render();};
 // (Tanda 448) Número de versión visible en Mi cuenta, para comprobar que el sitio publicado tiene la última.
-const APP_BUILD="v559";
+const APP_BUILD="v563";
+setTimeout(()=>{try{accPruneNow();}catch(e){}},8000); // (Tanda 558) borra del historial de accesos lo que pasó de 30 días
 function pwaCuentaHtml(){
   const inst=pwaStandalone();
   const np=typeof Notification!=="undefined"?Notification.permission:"unsupported";
