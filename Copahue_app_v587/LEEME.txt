@@ -1,0 +1,33 @@
+APP INSTALABLE — Hotel Copahue (Tanda 380)
+
+QUE HAY EN ESTA CARPETA
+  index.html              el sistema (es el mismo archivo de siempre, ya con los cambios; si en su repositorio se llama distinto, reemplacen ese archivo)
+  sw.js                   permite abrir la app sin internet (guarda la ultima copia)
+  manifest.webmanifest    datos de la app: nombre, colores e iconos
+  icons/                  iconos (logo del hotel)
+
+COMO PUBLICARLO (Netlify)
+  1. Copiar index.html, sw.js, manifest.webmanifest y la carpeta icons/ a la RAIZ del repositorio, junto al netlify.toml y la carpeta netlify/ que ya existen.
+     NO reemplazar netlify.toml ni netlify/functions: siguen igual (envio de correos).
+  2. Subir los cambios (commit/push). Netlify publica solo.
+  3. Importante: el sitio tiene que abrirse por https (Netlify ya lo hace).
+  4. Como el sistema cambia la direccion (/inicio, /roomings, etc.), el netlify.toml debe tener la regla de siempre que manda todo a la pagina principal:
+        [[redirects]]
+          from = "/*"
+          to = "/index.html"
+          status = 200
+     (si ya funciona abrir un enlace como /roomings, ya la tienen). Si el archivo principal NO se llama index.html, usar su nombre en "to".
+
+COMO INSTALAR
+  Computadora (Windows/Mac): abrir el sitio en Chrome o Edge -> icono de instalar en la barra de direcciones (o menu -> "Instalar Hotel Copahue"). Tambien: Mi cuenta -> "Instalar app en este dispositivo".
+  Android: abrir el sitio en Chrome -> menu ⋮ -> "Instalar app" (o "Agregar a la pantalla principal"). Tambien: Mi cuenta -> "Instalar app en este dispositivo".
+  iPhone/iPad: Safari -> Compartir -> "Agregar a pantalla de inicio".
+  Despues, en Mi cuenta -> "Activar avisos del dispositivo" para que la Agenda pueda avisar con notificaciones del sistema.
+
+COMO FUNCIONA SIN CORTES
+  - Todas las apps (navegador, escritorio, Android) usan la misma base de datos en linea: lo que se cambia en una aparece en las otras en segundos.
+  - Sin internet la app abre y se puede seguir trabajando; arriba aparece "Sin conexion". Los cambios quedan guardados en el dispositivo y se envian solos al volver la conexion (aunque se cierre la app mientras tanto).
+  - Limite: si dos personas cambian el MISMO dato sin conexion, gana el ultimo que se sincroniza (igual que antes). Las alarmas de la Agenda suenan mientras la app esta abierta (en cualquier pantalla); con la app cerrada del todo no suenan (eso requiere avisos "push" desde un servidor, es un paso aparte).
+
+PARA ACTUALIZAR EN EL FUTURO
+  Cada vez que cambie el sistema se reemplaza index.html. Los usuarios reciben la version nueva al abrir con internet. Solo si se modifica sw.js hay que cambiar el numero de VERSION dentro de ese archivo.
