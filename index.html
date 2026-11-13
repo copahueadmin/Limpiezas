@@ -2830,18 +2830,25 @@ body.dark #cjTbl tfoot tr.cj-tf1 td#cjT_e{background:#1c3a34;color:#9be3c8}
 .cj-hs-post.neg{background:#9b2c2c;box-shadow:0 2px 10px rgba(155,44,44,.3)}
 body.dark .cj-hs-post{background:#1d7a6b}body.dark .cj-hs-post.neg{background:#b94040}
 .cj-retadd{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;flex:1 1 560px;justify-content:flex-end}
-.cj-ret-top{display:flex;gap:10px 22px;flex-wrap:wrap;align-items:flex-end;justify-content:space-between}
-.cj-ret-ttl{flex:1 1 260px;min-width:0}
-.cj-comp-big{display:flex;align-items:center;gap:14px;margin-top:12px;padding:13px 22px;border:0;border-radius:14px;cursor:pointer;font:inherit;text-align:left;color:#fff;background:linear-gradient(135deg,#176b5d,#2aa08c);box-shadow:0 5px 16px rgba(23,107,93,.38),inset 0 1px 0 rgba(255,255,255,.25);transition:transform .15s,box-shadow .15s,filter .15s}
-.cj-comp-big:hover{transform:translateY(-2px);box-shadow:0 9px 22px rgba(23,107,93,.45),inset 0 1px 0 rgba(255,255,255,.25);filter:brightness(1.06)}
-.cj-comp-big:active{transform:none}
-.cj-comp-big i{font-size:34px;line-height:1;flex:none}
-.cj-comp-big span{display:flex;flex-direction:column;gap:2px}
-.cj-comp-big b{font-size:17px;font-weight:800;letter-spacing:.2px}
-.cj-comp-big small{font-size:12px;font-weight:500;opacity:.88}
-.cj-retlist{margin:10px 0 6px;display:grid;grid-template-columns:repeat(auto-fill,minmax(max(400px,calc((100% - 52px) / 3 - 1px)),1fr));gap:1px 26px}
+.cj-ret-top{display:flex;gap:10px 16px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.cj-ret-ttl{flex:0 1 auto;min-width:0}
+.cj-ret-mes{font-size:17px;font-weight:800;color:var(--text);margin-top:2px;line-height:1.1}
+.cj-retbox{flex:1 1 520px;justify-content:flex-start;padding:12px 18px;border:1px solid var(--cj-line);border-radius:26px;background:rgba(255,255,255,.55);box-shadow:0 3px 12px rgba(0,0,0,.08)}
+body.dark .cj-retbox{background:rgba(255,255,255,.05);box-shadow:0 3px 12px rgba(0,0,0,.3)}
+.cj-comp-big{display:flex;align-items:center;gap:14px;flex:0 0 auto;padding:9px 26px 9px 10px;border:1px solid rgba(255,255,255,.35);border-radius:999px;cursor:pointer;font:inherit;text-align:left;color:#fff;position:relative;overflow:hidden;background:linear-gradient(135deg,#0f5f52 0%,#1d8a77 55%,#34b49b 100%);box-shadow:0 6px 18px rgba(15,95,82,.4),inset 0 1px 0 rgba(255,255,255,.35),inset 0 -2px 0 rgba(0,0,0,.12);transition:transform .15s,box-shadow .15s,filter .15s}
+.cj-comp-big::after{content:"";position:absolute;left:0;right:0;top:0;height:50%;background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0));pointer-events:none;border-radius:999px 999px 0 0}
+.cj-comp-big:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(15,95,82,.48),inset 0 1px 0 rgba(255,255,255,.35),inset 0 -2px 0 rgba(0,0,0,.12);filter:brightness(1.07)}
+.cj-comp-big:active{transform:translateY(0);filter:brightness(.98)}
+.cj-comp-big i{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.22);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);font-size:24px;line-height:1;flex:none}
+.cj-comp-big span{display:flex;flex-direction:column;gap:2px;position:relative;z-index:1}
+.cj-comp-big b{font-size:16.5px;font-weight:800;letter-spacing:.2px;text-shadow:0 1px 2px rgba(0,0,0,.2)}
+.cj-ctxm{position:fixed;z-index:99999;background:var(--white,#fff);border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.28);padding:4px}
+.cj-ctxm button{display:flex;align-items:center;gap:8px;width:100%;border:0;background:transparent;padding:9px 16px;font:inherit;font-size:13.5px;font-weight:700;color:var(--text);cursor:pointer;border-radius:7px;white-space:nowrap}
+.cj-ctxm button:hover{background:rgba(29,138,119,.15)}
+.cj-retlist{margin:12px 0 6px;column-width:430px;column-gap:14px;column-fill:balance}
 .cj-retrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:4px 0}
-.cj-retrow.cj-rr{flex-wrap:nowrap;gap:6px;padding:0;min-width:0}
+.cj-retrow.cj-rr{flex-wrap:nowrap;gap:6px;padding:8px 14px;min-width:0;margin:0 0 9px;break-inside:avoid;-webkit-column-break-inside:avoid;border:1px solid var(--cj-line);border-radius:24px;background:rgba(255,255,255,.55);box-shadow:0 2px 8px rgba(0,0,0,.07)}
+body.dark .cj-retrow.cj-rr{background:rgba(255,255,255,.05);box-shadow:0 2px 8px rgba(0,0,0,.28)}
 .cj-rr .fc{padding:3px 8px;font-size:13.5px;font-weight:600;height:auto}
 .cj-rr .cj-rdate{flex:0 0 auto;width:124px;padding:3px 4px}
 .cj-rr .cj-rdesc{flex:1 1 0;min-width:0;cursor:pointer;text-overflow:ellipsis;text-transform:uppercase}
@@ -2857,6 +2864,7 @@ body.dark .cj-hs-post{background:#1d7a6b}body.dark .cj-hs-post.neg{background:#b
 .cj-sr{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px dashed var(--border);font-size:13px}
 .cj-sr.tot{font-weight:700}
 .cj-sr.big{font-size:15px;font-weight:800}
+.cj-sr.cj-sr-ret{justify-content:flex-end;gap:18px}
 .cj-sr.it span,.cj-sr.it b{font-style:italic}
 .cj-row2{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
 .cj-row2>.card{margin-bottom:0}
@@ -31064,25 +31072,24 @@ function cjRetirosHtml(ym){
   if(!f.f)f.f=hoyISO();
   // (Tanda 312) Encabezado a la izquierda y formulario de alta a la derecha (mismo renglon); historial debajo en hasta 3 columnas
   return `<div class="cj-ret-top">
-      <div class="cj-ret-ttl"><div class="cj-h" style="margin-bottom:4px">Retiros de efectivo · ${cjMesLbl(ym)}</div>
-      ${ro?"":`
-      <button type="button" class="cj-comp-big" onclick="cjCompOpen()" title="Emitir un comprobante de pago en efectivo (se registra solo como retiro)"><i class="ti ti-receipt-2"></i><span><b>Emitir comprobante de pago en efectivo</b></span></button>`}</div>
-      ${ro?"":`<div class="cj-retadd">
+      <div class="cj-ret-ttl"><div class="cj-h" style="margin:0">Retiros de efectivo</div><div class="cj-ret-mes">${cjMesLbl(ym)}</div></div>
+      ${ro?"":`<div class="cj-retadd cj-retbox">
         <div><span class="fl">Fecha</span><input class="fc cj-rdate" type="date" value="${cnEsc(f.f)}" onchange="cjRetF('f',this.value)"></div>
         <div style="flex:1 1 220px;min-width:180px"><span class="fl">Título / comentario <span style="color:var(--red)">*</span></span><input class="fc" id="cjRetTit" type="text" maxlength="120" placeholder="Ej: PAGO A PROVEEDOR" style="text-transform:uppercase" value="${cnEsc(f.t)}" oninput="cjRetF('t',this.value)" onkeydown="if(event.key==='Enter'){document.getElementById('cjRetMon').focus()}"></div>
         <div style="width:130px"><span class="fl">Monto <span style="color:var(--red)">*</span></span><input class="fc cj-money" id="cjRetMon" type="text" inputmode="decimal" placeholder="0" value="${cnEsc(f.m)}" oninput="cjFmtEl(this);cjRetF('m',this.value)" onkeydown="if(event.key==='Enter')cjRetAdd('${ym}')"></div>
         <button class="btn btn-p" onclick="cjRetAdd('${ym}')">Agregar retiro</button>
-      </div>`}
+      </div>
+      <button type="button" class="cj-comp-big" onclick="cjCompOpen()" title="Emitir un comprobante de pago en efectivo (se registra solo como retiro)"><i class="ti ti-receipt-2"></i><span><b>Emitir comprobante de pago en efectivo</b></span></button>`}
     </div>
     ${ro?"":`<div class="cn-err" id="cjRetErr" style="${UI.cjRetErr?"":"display:none;"}margin-top:8px">${cnEsc(UI.cjRetErr||"")}</div>
     <div class="cn-err" id="cjRetMsg" style="display:none;margin-top:8px"></div>`}
-    ${ret.length?`<div class="cj-retlist">${ret.map(r=>`<div class="cj-retrow cj-rr">
+    ${ret.length?`<div class="cj-retlist">${ret.map((r,i)=>({r,i})).sort((x,y)=>(x.r.f<y.r.f?1:x.r.f>y.r.f?-1:y.i-x.i)).map(x=>x.r).map(r=>`<div class="cj-retrow cj-rr" oncontextmenu="cjRetCtx(event,'${ym}','${r.id}')" title="Click derecho: imprimir recibo de pago">
       <input class="fc cj-rdate" type="date" value="${cnEsc(r.f)}" ${ro?"readonly ":""}onchange="cjRetEdit('${ym}','${r.id}','f',this)">
       <input class="fc cj-rdesc" type="text" readonly maxlength="120" value="${cnEsc(r.t)}" onmouseenter="cjRetTip(this,true)" onmouseleave="cjRetTip(this,false)" onclick="cjRetPop(this,'${ym}','${r.id}')">
       <input class="fc cj-money cj-ramt" type="text" inputmode="decimal" data-cur="1" value="$${cnEsc(cjNumFmt(r.m))}" ${ro?"readonly ":""}oninput="cjFmtEl(this)" onblur="cjRetEdit('${ym}','${r.id}','m',this)" onkeydown="if(event.key==='Enter')this.blur()">
       ${ro?"":UI.cjRetDel===r.id?`<span class="cj-ask">¿Eliminar? <button class="btn btn-sm btn-d" onclick="cjRetDelYes('${ym}','${r.id}')">Sí</button> <button class="btn btn-g btn-sm" onclick="cjRetDelNo()">No</button></span>`:`<button class="btn btn-g btn-sm cj-rdel" title="Eliminar retiro" onclick="cjRetDelAsk('${r.id}')"><i class="ti ti-trash"></i></button>`}
     </div>`).join("")}</div>`:`<div class="cn-help" style="margin:10px 0">${ro?"No hay retiros cargados en este mes.":"Todavía no hay retiros cargados en este mes."}</div>`}
-    <div class="cj-sr big"><span>Total retirado en el mes</span><b id="cjRetTot">${cjMoney(cjRetTot(mes))}</b></div>`;
+    <div class="cj-sr big cj-sr-ret"><span>Total retirado en el mes</span><b id="cjRetTot">${cjMoney(cjRetTot(mes))}</b></div>`;
 }
 // (Tanda 312) Descripcion de cada retiro: al pasar el mouse (si no entra) se ve entera en un flotante; con click se expande para editarla
 window.cjRetTip=(inp,on)=>{
@@ -31831,30 +31838,67 @@ window.cjCompGo=()=>{
   if(imp===null||!(imp>0))err="Ingresá el importe (mayor a $0).";
   else if(!nom)err="Ingresá el nombre de la persona a quien se le entrega.";
   if(err){c.err=err;const e=document.getElementById("cjCompErr");if(e){e.textContent=err;e.style.display="";}return;}
+  // (Tanda 603) El comprobante se carga solo como RETIRO de efectivo del mes (título en mayúscula) y después se pregunta si se imprime
+  const hoy=hoyISO(),ymR=cjDefaultYm(),tit=cjUp((nom+(conc?" ("+conc+")":"")).slice(0,120)),rid=uid();
   try{
-    const {base64,filename}=cjBuildComp({imp,nom,conc,fecha:hoyISO()});
-    cjPrintPdf(base64,filename); // (Tanda 598) se abre la ventana de impresión (no se descarga)
-  }catch(e){c.err="No se pudo generar el PDF (¿cargó bien jsPDF?).";const el=document.getElementById("cjCompErr");if(el){el.textContent=c.err;el.style.display="";}return;}
-  // (Tanda 594) El comprobante de pago en efectivo se registra solo como RETIRO de efectivo del mes (título en mayúscula)
-  try{
-    const hoy=hoyISO(),ymR=cjDefaultYm(),tit=cjUp(("PAGO EN EFECTIVO A "+nom+(conc?" - "+conc:"")).slice(0,120));
-    cjMesUpd(ymR,mes=>{mes.ret=[...(mes.ret||[]),{id:uid(),f:hoy,t:tit,m:imp,cp:1}].sort((a,b)=>(a.f<b.f?-1:a.f>b.f?1:0));});
+    cjMesUpd(ymR,mes=>{mes.ret=[...(mes.ret||[]),{id:rid,f:hoy,t:tit,m:imp,cp:1}].sort((a,b)=>(a.f<b.f?-1:a.f>b.f?1:0));});
   }catch(e){console.warn("retiro automático",e);}
   logChange("Recaudaciones: comprobante de pago en efectivo de $"+cjNumFmt(imp)+" a "+nom+(conc?" ("+conc+")":"")+" (registrado como retiro)");
-  UI.cjComp=null;UI.mod=null;render();
+  UI.cjComp={step:"print",imp:cjNumFmt(imp),impN:imp,nom,conc,fecha:hoy,tit,ts:Date.now()};
+  UI.mod="cjComp";render();
+};
+// Imprime el recibo de pago en efectivo (ventana de impresión). d={imp,nom,conc,fecha}
+function cjPrintRecibo(d){
+  try{const {base64,filename}=cjBuildComp(d);cjPrintPdf(base64,filename);return true;}
+  catch(e){alert("No se pudo generar el recibo (¿cargó bien jsPDF?).");return false;}
+}
+window.cjCompPrint=()=>{const c=UI.cjComp;if(!c||c.step!=="print")return;const ok=cjPrintRecibo({imp:c.impN,nom:c.nom,conc:c.conc,fecha:c.fecha});if(ok){UI.cjComp=null;UI.mod=null;render();}};
+window.cjCompClose=()=>{UI.cjComp=null;UI.mod=null;render();};
+// Esc cierra la ventana del comprobante; Enter imprime cuando ya está cargado
+document.addEventListener("keydown",ev=>{
+  const c=UI.cjComp;if(!c||UI.mod!=="cjComp")return;
+  if(ev.key==="Escape"){ev.preventDefault();cjCompClose();}
+  else if(ev.key==="Enter"&&c.step==="print"&&!ev.isComposing&&Date.now()-(c.ts||0)>350){ev.preventDefault();cjCompPrint();}
+});
+// Recibo de un retiro ya cargado: nombre y motivo salen del título "NOMBRE (MOTIVO)"
+function cjRetRecibo(r){
+  const t=String(r.t||"").trim(),m=t.match(/^(.*?)\s*\((.*)\)\s*$/);
+  return {imp:Number(r.m)||0,nom:(m?m[1]:t)||"-",conc:m?m[2].trim():"",fecha:r.f||hoyISO()};
+}
+window.cjRetCtx=(ev,ym,id)=>{
+  const r=(((D.cajasMes||{})[ym]||{}).ret||[]).find(x=>x.id===id);if(!r)return;
+  ev.preventDefault();ev.stopPropagation();
+  const old=document.getElementById("cjRetCtx");if(old)old.remove();
+  const m=document.createElement("div");m.id="cjRetCtx";m.className="cj-ctxm";
+  m.innerHTML='<button type="button"><i class="ti ti-printer"></i> Imprimir recibo de pago</button>';
+  m.style.left=Math.min(ev.clientX,window.innerWidth-240)+"px";m.style.top=Math.min(ev.clientY,window.innerHeight-60)+"px";
+  document.body.appendChild(m);
+  const close=()=>{m.remove();document.removeEventListener("mousedown",away,true);document.removeEventListener("keydown",esc,true);window.removeEventListener("scroll",close,true);};
+  const away=e=>{if(!m.contains(e.target))close();};
+  const esc=e=>{if(e.key==="Escape"){e.stopPropagation();close();}};
+  m.firstChild.onclick=()=>{close();cjPrintRecibo(cjRetRecibo(r));};
+  setTimeout(()=>{document.addEventListener("mousedown",away,true);document.addEventListener("keydown",esc,true);window.addEventListener("scroll",close,true);},0);
 };
 function modCjComp(){
   const c=UI.cjComp;if(!c)return"";
-  const key="if(event.key==='Enter'&&event.target.tagName==='INPUT'){event.preventDefault();cjCompGo()}";
+  if(c.step==="print")return `<div class="ov" onclick="closeMod(event)"><div class="mod" onclick="event.stopPropagation()" style="max-width:440px">
+    <div class="mh"><h2>Comprobante cargado</h2><button class="btn btn-g btn-sm" onclick="cjCompClose()" title="Cerrar (Esc)"><i class="ti ti-x"></i></button></div>
+    <div class="mc">
+      <div style="font-size:14px;line-height:1.5;margin-bottom:6px">Se cargó como <b>retiro de efectivo</b>: <b>${cnEsc(c.tit)}</b> por <b>$${cnEsc(c.imp)}</b>.</div>
+      <div style="font-size:16px;font-weight:800;margin:12px 0 4px">¿Querés imprimir el recibo de pago?</div>
+      <div class="mf"><button class="btn btn-sm" onclick="cjCompClose()">No imprimir <span style="opacity:.6;font-size:11px">(Esc)</span></button><button class="btn btn-sm btn-p" id="cjCompPrintBtn" onclick="cjCompPrint()"><i class="ti ti-printer"></i> Imprimir <span style="opacity:.8;font-size:11px">(Enter)</span></button></div>
+    </div>
+  </div></div>`;
+  const key="if(event.key==='Enter'){event.stopPropagation();if(event.target.tagName==='INPUT'){event.preventDefault();cjCompGo()}}";
   return `<div class="ov" onclick="closeMod(event)"><div class="mod" onclick="event.stopPropagation()" onkeydown="${key}" style="max-width:440px">
-    <div class="mh"><h2>Comprobante de pago en efectivo</h2><button class="btn btn-g btn-sm" onclick="UI.cjComp=null;closeMod()"><i class="ti ti-x"></i></button></div>
+    <div class="mh"><h2>Comprobante de pago en efectivo</h2><button class="btn btn-g btn-sm" onclick="cjCompClose()" title="Cerrar (Esc)"><i class="ti ti-x"></i></button></div>
     <div class="mc">
       <div class="fg"><span class="fl">Importe <span style="color:var(--red)">*</span></span><input id="cjCompImp" class="fc" type="text" inputmode="decimal" autocomplete="off" data-live-field="1" placeholder="$ 0" value="${cnEsc(c.imp)}" oninput="cjCompImp(this)"></div>
       <div class="fg"><span class="fl">Se le entrega a (nombre y apellido) <span style="color:var(--red)">*</span></span><input class="fc" type="text" autocomplete="off" data-live-field="1" placeholder="Ej: Oyarzabal Fabian" value="${cnEsc(c.nom)}" oninput="UI.cjComp.nom=this.value"></div>
       <div class="fg"><span class="fl">Comentario: a qué corresponde (opcional)</span><textarea class="fc" rows="3" data-live-field="1" placeholder="Ej: Colocación de cerradura" oninput="UI.cjComp.conc=this.value">${cnEsc(c.conc)}</textarea></div>
-      <div class="cn-help" style="margin:0 0 8px">Al imprimir el comprobante, el importe se registra solo como <b>retiro de efectivo</b> del mes en Control de cajas.</div>
+      <div class="cn-help" style="margin:0 0 8px">Al emitirlo, el importe se carga solo como <b>retiro de efectivo</b> del mes en Control de cajas y después podés imprimir el recibo.</div>
       <div class="cn-err" id="cjCompErr" style="${c.err?"":"display:none;"}margin-bottom:8px">${cnEsc(c.err||"")}</div>
-      <div class="mf"><button class="btn btn-sm" onclick="UI.cjComp=null;closeMod()">Cancelar</button><button class="btn btn-sm btn-p" onclick="cjCompGo()"><i class="ti ti-printer"></i> Imprimir</button></div>
+      <div class="mf"><button class="btn btn-sm" onclick="cjCompClose()">Cancelar</button><button class="btn btn-sm btn-p" onclick="cjCompGo()"><i class="ti ti-receipt-2"></i> Emitir</button></div>
     </div>
   </div></div>`;
 }
@@ -48417,7 +48461,7 @@ window.agNotify=(title,opts)=>{
 };
 window.pwaNotifPedir=async()=>{try{await Notification.requestPermission();}catch(e){}render();};
 // (Tanda 448) Número de versión visible en Mi cuenta, para comprobar que el sitio publicado tiene la última.
-const APP_BUILD="v598";
+const APP_BUILD="v604";
 setTimeout(()=>{try{accPruneNow();}catch(e){}},8000); // (Tanda 558) borra del historial de accesos lo que pasó de 30 días
 function pwaCuentaHtml(){
   const inst=pwaStandalone();
