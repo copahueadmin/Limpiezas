@@ -2737,6 +2737,7 @@ body.dark .cc-code,body.dark .cc-per-h{color:#f0f0f2!important}
 .cj-root{max-width:none;width:100%;--cj-line:rgba(60,80,70,.16);--cj-vline:rgba(60,80,70,.07);--cj-sepc:#1d7a6b;--cj-sticky:#eef2ee;--cj-foot:#e3ebe6;--cj-cell:rgba(255,255,255,.5)}
 body.dark .cj-root{--cj-line:rgba(255,255,255,.12);--cj-vline:rgba(255,255,255,.05);--cj-sepc:#5dcaa5;--cj-sticky:#25292a;--cj-foot:#2c3233;--cj-cell:rgba(255,255,255,.03)}
 .cj-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cj-bar-in{padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--cj-line)}
 .cj-sum{display:flex;gap:6px 18px;flex-wrap:wrap;font-size:12px;margin:0 2px 8px;color:var(--text2)}
 .cj-warn{color:var(--red);font-weight:700}
 body.dark .cj-warn{color:#f87171}
@@ -2819,6 +2820,8 @@ body.dark #cjTbl tfoot tr.cj-tf1 td#cjT_e{background:#1c3a34;color:#9be3c8}
 /* (Tanda 535) Resumen del mes en el subtítulo de Control de cajas: sub-total entregado y, destacado, el total post retiros */
 .cj-hh{display:flex;align-items:center;justify-content:space-between;gap:8px 18px;flex-wrap:wrap}
 .cj-hs{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;margin-left:auto}
+.cj-hs-wrap{display:flex;justify-content:flex-end;margin-top:10px}
+.cj-ctl-t{font-size:14px;font-weight:800;color:var(--text);margin-left:6px;white-space:nowrap}
 .cj-hs-sub{font-size:12px;font-weight:600;color:var(--text2);white-space:nowrap}
 .cj-hs-sub b{font-size:14px;font-weight:800;color:var(--text);margin-left:4px;font-variant-numeric:tabular-nums}
 .cj-hs-post{display:flex;align-items:baseline;gap:9px;padding:6px 16px;border-radius:12px;background:#15564b;color:#fff;white-space:nowrap;box-shadow:0 2px 10px rgba(21,86,75,.28)}
@@ -2829,12 +2832,20 @@ body.dark .cj-hs-post{background:#1d7a6b}body.dark .cj-hs-post.neg{background:#b
 .cj-retadd{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;flex:1 1 560px;justify-content:flex-end}
 .cj-ret-top{display:flex;gap:10px 22px;flex-wrap:wrap;align-items:flex-end;justify-content:space-between}
 .cj-ret-ttl{flex:1 1 260px;min-width:0}
+.cj-comp-big{display:flex;align-items:center;gap:14px;margin-top:12px;padding:13px 22px;border:0;border-radius:14px;cursor:pointer;font:inherit;text-align:left;color:#fff;background:linear-gradient(135deg,#176b5d,#2aa08c);box-shadow:0 5px 16px rgba(23,107,93,.38),inset 0 1px 0 rgba(255,255,255,.25);transition:transform .15s,box-shadow .15s,filter .15s}
+.cj-comp-big:hover{transform:translateY(-2px);box-shadow:0 9px 22px rgba(23,107,93,.45),inset 0 1px 0 rgba(255,255,255,.25);filter:brightness(1.06)}
+.cj-comp-big:active{transform:none}
+.cj-comp-big i{font-size:34px;line-height:1;flex:none}
+.cj-comp-big span{display:flex;flex-direction:column;gap:2px}
+.cj-comp-big b{font-size:17px;font-weight:800;letter-spacing:.2px}
+.cj-comp-big small{font-size:12px;font-weight:500;opacity:.88}
 .cj-retlist{margin:10px 0 6px;display:grid;grid-template-columns:repeat(auto-fill,minmax(max(400px,calc((100% - 52px) / 3 - 1px)),1fr));gap:1px 26px}
 .cj-retrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:4px 0}
 .cj-retrow.cj-rr{flex-wrap:nowrap;gap:6px;padding:0;min-width:0}
 .cj-rr .fc{padding:3px 8px;font-size:13.5px;font-weight:600;height:auto}
 .cj-rr .cj-rdate{flex:0 0 auto;width:124px;padding:3px 4px}
-.cj-rr .cj-rdesc{flex:1 1 0;min-width:0;cursor:pointer;text-overflow:ellipsis}
+.cj-rr .cj-rdesc{flex:1 1 0;min-width:0;cursor:pointer;text-overflow:ellipsis;text-transform:uppercase}
+.cj-ret-pop textarea{text-transform:uppercase}
 .cj-rr .cj-ramt{flex:0 0 auto;width:104px;text-align:right}
 .cj-rr .cj-rdel{padding:2px 6px;flex:0 0 auto}
 .cj-ret-top .cj-rdate{width:124px;padding:5px 6px}
@@ -30443,6 +30454,7 @@ const cjPad=x=>String(x).padStart(2,"0");
 // (Tanda 242) La primera letra del nombre del conserje va siempre en mayúscula.
 const cjCap=s=>String(s==null?"":s).replace(/[^\p{L}\s.'’\-]/gu,"").toLocaleUpperCase("es"); // (Tanda 309) el conserje solo lleva texto (letras, espacios, punto, apóstrofe y guion)
 const cjR2=x=>Math.round((Number(x)||0)*100)/100;
+const cjUp=s=>String(s==null?"":s).toLocaleUpperCase("es"); // (Tanda 594) el título/comentario de los retiros va siempre en MAYÚSCULA
 const cjGroup=s=>String(s).replace(/\B(?=(\d{3})+(?!\d))/g,".");
 const cjNumFmt=n=>{if(n==null||n==="")return"";const v=cjR2(n);const a=Math.abs(v).toFixed(2).split(".");return (v<0?"-":"")+cjGroup(a[0])+(a[1]==="00"?"":","+a[1]);};
 const cjMoney=n=>{const v=cjR2(n);const a=Math.abs(v).toFixed(2).split(".");return (v<0?"-":"")+"$"+cjGroup(a[0])+","+a[1];};
@@ -31009,7 +31021,7 @@ window.cjRetF=(k,v)=>{UI.cjRetForm=UI.cjRetForm||{};UI.cjRetForm[k]=v;};
 window.cjRetAdd=ym=>{
   if(!cjCan())return;
   const f=UI.cjRetForm||{f:hoyISO(),t:"",m:""};
-  const t=String(f.t||"").trim(),m=cjNum(f.m);
+  const t=cjUp(String(f.t||"").trim()),m=cjNum(f.m);
   if(!f.f){UI.cjRetErr="Indicá la fecha del retiro.";}
   else if(!t){UI.cjRetErr="El título o comentario del retiro es obligatorio.";}
   else if(m===null||m<=0){UI.cjRetErr="Indicá el monto retirado.";}
@@ -31026,7 +31038,7 @@ window.cjRetEdit=(ym,id,k,el)=>{
   if(!cjCan())return;
   const mes=(D.cajasMes||{})[ym]||{},r=(mes.ret||[]).find(x=>x.id===id);if(!r)return;
   let v=el.value,err="";
-  if(k==="t"){v=v.trim();if(!v)err="El título o comentario no puede quedar vacío.";}
+  if(k==="t"){v=cjUp(v.trim());if(!v)err="El título o comentario no puede quedar vacío.";}
   else if(k==="m"){v=cjNum(v);if(v===null||v<=0)err="Indicá un monto válido.";}
   else if(k==="f"){if(!v)err="Indicá la fecha del retiro.";}
   const msg=document.getElementById("cjRetMsg");
@@ -31034,6 +31046,7 @@ window.cjRetEdit=(ym,id,k,el)=>{
   el.classList.remove("bad");if(msg)msg.style.display="none";
   cjMesUpd(ym,m=>{m.ret=(m.ret||[]).map(x=>x.id===id?{...x,[k]:v}:x);});
   if(k==="m")el.value="$"+cjNumFmt(v);
+  if(k==="t")el.value=v;
   const tot=document.getElementById("cjRetTot");if(tot)tot.textContent=cjMoney(cjRetTot((D.cajasMes||{})[ym]));
   cjRefreshTotals();
 };
@@ -31052,10 +31065,11 @@ function cjRetirosHtml(ym){
   // (Tanda 312) Encabezado a la izquierda y formulario de alta a la derecha (mismo renglon); historial debajo en hasta 3 columnas
   return `<div class="cj-ret-top">
       <div class="cj-ret-ttl"><div class="cj-h" style="margin-bottom:4px">Retiros de efectivo · ${cjMesLbl(ym)}</div>
-      ${ro?"":`<div class="cn-help">Cargá cada retiro con su fecha y un título o comentario (obligatorio). Los retiros se descuentan del total a entregar.</div>`}</div>
+      ${ro?"":`
+      <button type="button" class="cj-comp-big" onclick="cjCompOpen()" title="Emitir un comprobante de pago en efectivo (se registra solo como retiro)"><i class="ti ti-receipt-2"></i><span><b>Emitir comprobante de pago en efectivo</b></span></button>`}</div>
       ${ro?"":`<div class="cj-retadd">
         <div><span class="fl">Fecha</span><input class="fc cj-rdate" type="date" value="${cnEsc(f.f)}" onchange="cjRetF('f',this.value)"></div>
-        <div style="flex:1 1 220px;min-width:180px"><span class="fl">Título / comentario <span style="color:var(--red)">*</span></span><input class="fc" id="cjRetTit" type="text" maxlength="120" placeholder="Ej: Pago a proveedor" value="${cnEsc(f.t)}" oninput="cjRetF('t',this.value)" onkeydown="if(event.key==='Enter'){document.getElementById('cjRetMon').focus()}"></div>
+        <div style="flex:1 1 220px;min-width:180px"><span class="fl">Título / comentario <span style="color:var(--red)">*</span></span><input class="fc" id="cjRetTit" type="text" maxlength="120" placeholder="Ej: PAGO A PROVEEDOR" style="text-transform:uppercase" value="${cnEsc(f.t)}" oninput="cjRetF('t',this.value)" onkeydown="if(event.key==='Enter'){document.getElementById('cjRetMon').focus()}"></div>
         <div style="width:130px"><span class="fl">Monto <span style="color:var(--red)">*</span></span><input class="fc cj-money" id="cjRetMon" type="text" inputmode="decimal" placeholder="0" value="${cnEsc(f.m)}" oninput="cjFmtEl(this);cjRetF('m',this.value)" onkeydown="if(event.key==='Enter')cjRetAdd('${ym}')"></div>
         <button class="btn btn-p" onclick="cjRetAdd('${ym}')">Agregar retiro</button>
       </div>`}
@@ -31182,7 +31196,7 @@ function cjResumenPatch(ym){
 function cjSnap(ym){
   const c=cjCalc(ym);
   return {id:uid(),ts:Date.now(),ym,by:RNAME||"",ingPesos:c.ingPesos,ingVip:c.ingVip,ingTot:c.ingTot,entregado:c.entregado,saldoPrev:c.saldoPrev,recaud:c.recaud,totRet:c.totRet,aEntregar:c.aEntregar,entrega:c.entrega,saldoFavor:c.saldoFavor,nPend:c.pend.length,
-    nPesos:cjNombreMetodo("pesos"),nVip:cjNombreMetodo("vip"),ret:c.ret.map(r=>({f:r.f,t:r.t,m:r.m}))};
+    nPesos:cjNombreMetodo("pesos"),nVip:cjNombreMetodo("vip"),ret:c.ret.map(r=>({f:r.f,t:cjUp(r.t),m:r.m}))};
 }
 const CJ_NOTA_MAIL="Nota: el presente informe es meramente un registro digital emitido por el sistema y no puede considerarse parte de la entrega real de las recaudaciones. La entrega efectiva se acredita únicamente con la constancia firmada por Gerencia y Administración.";
 function cjBuildPdf(s,o){
@@ -31219,7 +31233,7 @@ function cjBuildPdf(s,o){
   // El detalle de retiros SIEMPRE arranca a partir de la página 2 (nunca en la primera hoja)
   let y0;
   if(doc.internal.getNumberOfPages()===1){doc.addPage();y0=M+8;}else y0=doc.lastAutoTable.finalY+16;
-  const rb=s.ret&&s.ret.length?s.ret.map(r=>[cjIsoFull(r.f),r.t,cjMoney(r.m)]):[["","Sin retiros en el mes",""]];
+  const rb=s.ret&&s.ret.length?s.ret.map(r=>[cjIsoFull(r.f),cjUp(r.t),cjMoney(r.m)]):[["","Sin retiros en el mes",""]];
   doc.autoTable({...opt,startY:y0,head:[[{content:"Detalle de retiros del mes",colSpan:3}],["Fecha","Título / comentario","Monto"]],
     body:rb.concat(s.ret&&s.ret.length?[[{content:"",styles:{}},B("Total de retiros"),B(cjMoney(s.totRet))]]:[]),
     columnStyles:{0:{cellWidth:80},1:{halign:"left"},2:{halign:"right",cellWidth:110}},didParseCell:d=>{if(d.section==="head"&&d.row.index===1&&d.column.index===2)d.cell.styles.halign="right";}});
@@ -31467,19 +31481,17 @@ function cajasSectionHtml(){
   }));});
   curM=ym;
   const html=`<div class="cj-root">
-    <div class="cj-top">
-    <div class="card cj-bar" style="flex:1 1 360px;min-width:0">
+    <div class="card cj-main" style="padding:10px">
+      <div class="cj-bar cj-bar-in">
       <button class="btn btn-g btn-sm" onclick="cjGoYm('${cjPrevYm(ym)}')" title="Mes anterior"><i class="ti ti-chevron-left"></i></button>
       <input class="fc" type="month" style="width:170px" value="${ym}" onchange="cjGoYm(this.value)">
       <button class="btn btn-g btn-sm" onclick="cjGoYm('${cjNextYm(ym)}')" title="Mes siguiente"><i class="ti ti-chevron-right"></i></button>
       <button class="btn btn-g btn-sm" onclick="cjGoYm(cjDefaultYm())">Mes actual</button>
-      <div style="flex:1;font-size:12px;color:var(--text3);min-width:200px"><b style="color:var(--text);font-size:14px">${cjMesLbl(ym)}</b> · desde el turno noche del ${cjIsoFull(groups[0].iso)} hasta el turno tarde del ${cjIsoFull(groups[groups.length-1].iso)}</div>
+      <span class="cj-ctl-t">Control de cajas · ${all?"todos los meses":cjMesLbl(ym)}</span><button type="button" class="btn btn-g btn-sm" onclick="cjToggleAll()" title="${all?"Volver a ver un solo mes":"Ver todos los meses cargados, de corrido"}">${all?"Ver solo "+cjMesLbl(ym):"📅 Ver todos los meses"}</button>
+      <div style="flex:1;font-size:12px;color:var(--text3);min-width:200px">Desde el turno noche del ${cjIsoFull(groups[0].iso)} hasta el turno tarde del ${cjIsoFull(groups[groups.length-1].iso)}</div>
       ${ro?`<span class="cj-ro">👁 Solo lectura</span>`:`<button class="btn btn-g btn-sm" onclick="cjMetOpen()"><i class="ti ti-settings"></i> Métodos de pago</button>`}<button class="btn btn-g btn-sm" onclick="cjExcel()" title="Descargar el mes en Excel"><i class="ti ti-file-spreadsheet"></i> Descargar Excel</button>
-    </div>
-    ${ro?"":`<button type="button" class="card cj-bar cj-comp-btn" style="flex:1 1 360px;min-width:0;justify-content:center" onclick="cjCompOpen()" title="Emitir un comprobante de pago en efectivo"><i class="ti ti-receipt"></i> Emitir comprobante de pago en efectivo</button>`}
-    </div>
-    <div class="card" style="padding:10px">
-      <div class="cj-h cj-hh" style="margin-top:0"><span>Control de cajas · ${all?"todos los meses":cjMesLbl(ym)}</span><button type="button" class="btn btn-g btn-sm" style="margin-right:auto" onclick="cjToggleAll()" title="${all?"Volver a ver un solo mes":"Ver todos los meses cargados, de corrido"}">${all?"Ver solo "+cjMesLbl(ym):"📅 Ver todos los meses"}</button>${all?"":`<span class="cj-hs" id="cjHs">${cjHsHtml(c)}</span>`}</div>
+    
+      </div>
       ${all?"":`<div class="cj-sum" id="cjSum">${cjSumHtml(c)}</div>`}
       <div class="cj-scroll" id="cjScroll"><table class="cj-tbl" id="cjTbl" data-sig="${cjSig(ym)}" style="min-width:${118+colMin.reduce((x,y)=>x+y,0)}px">
         <colgroup><col style="width:54px"><col style="width:64px">${colWt.map((w,i)=>`<col data-w="${w}" data-min="${colMin[i]}" style="width:${colMin[i]}px">`).join("")}</colgroup>
@@ -31495,7 +31507,8 @@ function cajasSectionHtml(){
         })()}
         </tfoot>
       </table></div>
-      ${ro?`<div class="cn-help" style="margin-top:6px">Vista de solo lectura: acá se ven los resultados del mes en curso y de meses anteriores (usá las flechas o el selector de mes). La carga la hace Administración.</div>`:`<div class="cn-help" style="margin-top:6px">Tab pasa a la casilla siguiente · flechas ← → ↑ ↓ (o Enter) saltan a la casilla de al lado, arriba o abajo · lo que dejes vacío cuenta como $0. El conserje se completa solo desde la agenda de Conserjería y se puede cambiar. "$ Entregado" y "$ En caja" son obligatorios en cada turno ya cerrado (se marcan en rojo si faltan). Los totales del mes se muestran redondeados, sin centavos. Doble click (o click derecho) en cualquier casilla para dejar un comentario: la casilla queda marcada con una esquina naranja.</div>`}
+      ${all?"":`<div class="cj-hs-wrap"><span class="cj-hs" id="cjHs">${cjHsHtml(c)}</span></div>`}
+      ${ro?`<div class="cn-help" style="margin-top:6px">Vista de solo lectura: acá se ven los resultados del mes en curso y de meses anteriores (usá las flechas o el selector de mes). La carga la hace Administración.</div>`:""}
 
     </div>
     <div class="card" id="cjRetiros">${cjRetirosHtml(ym)}</div>
@@ -31796,6 +31809,18 @@ function cjBuildComp(c){
   const nm=c.nom.normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z0-9]+/g,"-").replace(/^-+|-+$/g,"").toLowerCase().slice(0,30)||"comprobante";
   return {base64:doc.output("datauristring").split(",")[1],filename:"comprobante-pago-efectivo-"+c.fecha+"-"+nm+".pdf"};
 }
+// Abre la ventana de impresión con el PDF (iframe oculto). Si el navegador no deja imprimir desde ahí, se abre en una pestaña nueva.
+function cjPrintPdf(base64,filename){
+  const bin=atob(base64),u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);
+  const url=URL.createObjectURL(new Blob([u8],{type:"application/pdf"}));
+  const old=document.getElementById("cjPrintFrame");if(old)old.remove();
+  const f=document.createElement("iframe");f.id="cjPrintFrame";f.setAttribute("aria-hidden","true");
+  f.style.cssText="position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none";
+  let done=false;
+  f.onload=()=>{if(done)return;done=true;setTimeout(()=>{try{f.contentWindow.focus();f.contentWindow.print();}catch(e){window.open(url,"_blank");}},300);};
+  f.src=url;document.body.appendChild(f);
+  setTimeout(()=>{try{URL.revokeObjectURL(url);}catch(e){}const g=document.getElementById("cjPrintFrame");if(g)g.remove();},120000);
+}
 window.cjCompOpen=()=>{if(!cjCan())return;cjFlush();UI.cjComp={imp:"",nom:"",conc:"",err:""};UI.mod="cjComp";render();setTimeout(()=>{const e=document.getElementById("cjCompImp");if(e)e.focus();},60);};
 window.cjCompImp=el=>{el.value=cjFmtTyping(el.value);UI.cjComp.imp=el.value;};
 window.cjCompGo=()=>{
@@ -31808,9 +31833,14 @@ window.cjCompGo=()=>{
   if(err){c.err=err;const e=document.getElementById("cjCompErr");if(e){e.textContent=err;e.style.display="";}return;}
   try{
     const {base64,filename}=cjBuildComp({imp,nom,conc,fecha:hoyISO()});
-    const a=document.createElement("a");a.href="data:application/pdf;base64,"+base64;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+    cjPrintPdf(base64,filename); // (Tanda 598) se abre la ventana de impresión (no se descarga)
   }catch(e){c.err="No se pudo generar el PDF (¿cargó bien jsPDF?).";const el=document.getElementById("cjCompErr");if(el){el.textContent=c.err;el.style.display="";}return;}
-  logChange("Recaudaciones: comprobante de pago en efectivo de $"+cjNumFmt(imp)+" a "+nom+(conc?" ("+conc+")":""));
+  // (Tanda 594) El comprobante de pago en efectivo se registra solo como RETIRO de efectivo del mes (título en mayúscula)
+  try{
+    const hoy=hoyISO(),ymR=cjDefaultYm(),tit=cjUp(("PAGO EN EFECTIVO A "+nom+(conc?" - "+conc:"")).slice(0,120));
+    cjMesUpd(ymR,mes=>{mes.ret=[...(mes.ret||[]),{id:uid(),f:hoy,t:tit,m:imp,cp:1}].sort((a,b)=>(a.f<b.f?-1:a.f>b.f?1:0));});
+  }catch(e){console.warn("retiro automático",e);}
+  logChange("Recaudaciones: comprobante de pago en efectivo de $"+cjNumFmt(imp)+" a "+nom+(conc?" ("+conc+")":"")+" (registrado como retiro)");
   UI.cjComp=null;UI.mod=null;render();
 };
 function modCjComp(){
@@ -31822,8 +31852,9 @@ function modCjComp(){
       <div class="fg"><span class="fl">Importe <span style="color:var(--red)">*</span></span><input id="cjCompImp" class="fc" type="text" inputmode="decimal" autocomplete="off" data-live-field="1" placeholder="$ 0" value="${cnEsc(c.imp)}" oninput="cjCompImp(this)"></div>
       <div class="fg"><span class="fl">Se le entrega a (nombre y apellido) <span style="color:var(--red)">*</span></span><input class="fc" type="text" autocomplete="off" data-live-field="1" placeholder="Ej: Oyarzabal Fabian" value="${cnEsc(c.nom)}" oninput="UI.cjComp.nom=this.value"></div>
       <div class="fg"><span class="fl">Comentario: a qué corresponde (opcional)</span><textarea class="fc" rows="3" data-live-field="1" placeholder="Ej: Colocación de cerradura" oninput="UI.cjComp.conc=this.value">${cnEsc(c.conc)}</textarea></div>
+      <div class="cn-help" style="margin:0 0 8px">Al imprimir el comprobante, el importe se registra solo como <b>retiro de efectivo</b> del mes en Control de cajas.</div>
       <div class="cn-err" id="cjCompErr" style="${c.err?"":"display:none;"}margin-bottom:8px">${cnEsc(c.err||"")}</div>
-      <div class="mf"><button class="btn btn-sm" onclick="UI.cjComp=null;closeMod()">Cancelar</button><button class="btn btn-sm btn-p" onclick="cjCompGo()"><i class="ti ti-download"></i> Descargar PDF</button></div>
+      <div class="mf"><button class="btn btn-sm" onclick="UI.cjComp=null;closeMod()">Cancelar</button><button class="btn btn-sm btn-p" onclick="cjCompGo()"><i class="ti ti-printer"></i> Imprimir</button></div>
     </div>
   </div></div>`;
 }
@@ -48386,7 +48417,7 @@ window.agNotify=(title,opts)=>{
 };
 window.pwaNotifPedir=async()=>{try{await Notification.requestPermission();}catch(e){}render();};
 // (Tanda 448) Número de versión visible en Mi cuenta, para comprobar que el sitio publicado tiene la última.
-const APP_BUILD="v593";
+const APP_BUILD="v598";
 setTimeout(()=>{try{accPruneNow();}catch(e){}},8000); // (Tanda 558) borra del historial de accesos lo que pasó de 30 días
 function pwaCuentaHtml(){
   const inst=pwaStandalone();
