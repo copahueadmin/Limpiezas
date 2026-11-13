@@ -555,6 +555,69 @@ body.dark .cf2-grid{--cf-g:#6f9d8d;--cf-band:#39433f;--cf-bandwe:#33463f;--cf-ou
 .cf2-mes{font-style:italic;font-weight:800;font-size:10px;color:#6d28d9;font-family:'Courier New',Courier,monospace}
 body.dark .cf2-mes{color:#c4b5fd}
 .cf2-vac{font-size:9px;font-weight:700;color:#7c3aed;background:rgba(124,58,237,.12);border-radius:4px;padding:1px 4px}
+
+
+/* (Tanda 605) Gestión del personal: portada en tarjetas grandes (mismo estilo que Finanzas) */
+.pers-bar{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.pers-bar b{font-size:18px}
+.pers-body>.card>div:first-child{display:none!important}
+.pers-body>.card{margin-top:0!important}
+.pers-go .pers-badge{display:inline-block;margin-left:8px;background:#dc2626;color:#fff;border-radius:12px;font-size:12px;padding:1px 8px;vertical-align:middle}
+.pers-big-btn{border:none;cursor:pointer;font-weight:800;font-size:15px;color:#fff!important;background:linear-gradient(135deg,#0f766e,#14b8a6)!important;border-radius:14px;padding:12px 24px;box-shadow:0 8px 20px rgba(15,118,110,.4);transition:transform .15s,box-shadow .15s}
+.pers-big-btn:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(15,118,110,.5)}
+/* (Tanda 605) Barra de Francos */
+.fr-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;position:relative;z-index:30}
+.fr-nav{display:flex;align-items:center;gap:8px}
+.fr-nav b{min-width:140px;text-align:center;font-size:15px}
+.fr-ur{display:flex;align-items:center;gap:4px;background:var(--sand);border:1px solid var(--border);border-radius:12px;padding:3px}
+.fr-ur button{border:none;background:transparent;color:var(--text);width:32px;height:30px;border-radius:9px;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.fr-ur button:hover:not(:disabled){background:var(--white);box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.fr-ur button:disabled{opacity:.3;cursor:default}
+.fr-ur small{font-size:10px;color:var(--text3);padding:0 6px 0 2px;white-space:nowrap}
+.fr-pub{border:none;cursor:pointer;font-weight:800;font-size:15px;letter-spacing:.2px;color:#fff!important;background:linear-gradient(135deg,#0f766e,#14b8a6)!important;border-radius:14px;padding:12px 22px;box-shadow:0 8px 20px rgba(15,118,110,.4);transition:transform .15s,box-shadow .15s;white-space:nowrap}
+.fr-pub:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(15,118,110,.5)}
+.fr-pub.pend{background:linear-gradient(135deg,#ea580c,#f59e0b)!important;box-shadow:0 8px 20px rgba(234,88,12,.45);animation:frPulse 2.2s ease-in-out infinite}
+@keyframes frPulse{0%,100%{box-shadow:0 8px 20px rgba(234,88,12,.45)}50%{box-shadow:0 8px 28px rgba(234,88,12,.75)}}
+.fr-chip{font-size:12px;font-weight:800;border-radius:20px;padding:6px 12px;white-space:nowrap}
+.fr-chip.no{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+.fr-chip.ok{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.fr-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fr-pdf{border:none;cursor:pointer;font-weight:800;font-size:13px;color:#fff!important;background:linear-gradient(135deg,#1e3a8a,#2563eb)!important;border-radius:12px;padding:9px 16px;box-shadow:0 5px 14px rgba(37,99,235,.38);white-space:nowrap}
+.fr-pdf:hover{transform:translateY(-1px)}
+.fr-otro{border:1.5px solid #7c3aed;background:var(--white);color:#6d28d9;font-weight:700;font-size:12px;border-radius:12px;padding:8px 13px;cursor:pointer;white-space:nowrap}
+.fr-otro.on{background:#7c3aed;color:#fff}
+.fr-fer-btn{border:1.5px solid #f59e0b;background:var(--white);color:#92400e;font-weight:800;font-size:12px;border-radius:12px;padding:8px 13px;cursor:pointer;white-space:nowrap}
+.fr-fer-btn.on,.fr-fer-btn:hover{background:#fef3c7}
+.fr-orb{position:relative;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;background:linear-gradient(135deg,#fde68a,#f59e0b);box-shadow:0 6px 16px rgba(217,119,6,.4);flex-shrink:0;cursor:default;transition:transform .18s ease,box-shadow .18s ease;outline:none}
+.fr-orb:hover,.fr-orb:focus{transform:translateY(-2px) scale(1.07);box-shadow:0 10px 22px rgba(217,119,6,.5)}
+.fr-orb-n{position:absolute;top:-4px;right:-4px;min-width:21px;height:21px;border-radius:11px;background:#b91c1c;color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #fff;padding:0 3px}
+.fr-pop,.fer-chip-pop{position:absolute;background:var(--white);color:var(--text);border:1px solid var(--border);border-radius:14px;box-shadow:0 14px 36px rgba(15,23,42,.28);padding:10px 13px;opacity:0;visibility:hidden;transform:translateY(-6px) scale(.97);transition:opacity .15s ease,transform .15s ease,visibility 0s linear .15s;pointer-events:none;text-align:left;font-weight:400;z-index:400}
+.fr-pop{top:calc(100% + 10px);left:0;min-width:270px;max-width:360px;font-size:12px;transform-origin:top left}
+.fr-pop::before,.fer-chip-pop::before{content:"";position:absolute;top:-12px;left:0;right:0;height:12px}
+.fr-orb:hover .fr-pop,.fr-orb:focus .fr-pop,.fer-chip:hover .fer-chip-pop{opacity:1;visibility:visible;transform:none;transition-delay:0s;pointer-events:auto}
+.fr-pop-t{font-weight:800;margin-bottom:6px;font-size:12px}
+.fr-pop-r{display:flex;gap:8px;padding:4px 0;border-top:1px solid var(--border);align-items:baseline}
+.fr-pop-r:first-of-type{border-top:none}
+.fr-pop-r span{font-weight:800;min-width:78px;white-space:nowrap;text-transform:capitalize;color:#b45309}
+.fer-chip{position:absolute;display:inline-flex;align-items:center;justify-content:center;line-height:1;border-radius:11px;padding:1px 2px;border:1px solid transparent;transition:background .15s,box-shadow .15s,padding .15s,border-color .15s;z-index:3}
+.fer-chip-i{font-size:11px;transition:font-size .15s}
+:hover>.fer-chip{background:var(--white);padding:2px 4px;border-color:#f59e0b;box-shadow:0 3px 10px rgba(217,119,6,.45)}
+:hover>.fer-chip .fer-chip-i{font-size:15px}
+.fer-chip-pop{top:calc(100% + 8px);width:max-content;max-width:230px;min-width:140px;font-size:11px;line-height:1.35;transform-origin:top center}
+.fer-chip-pop.r{right:-4px}.fer-chip-pop.l{left:-4px}
+.fer-chip-pop b{display:block;font-size:12px}
+.fer-chip-pop small{color:var(--text3)}
+.cf2-c:hover:not(.cf2-on){z-index:60!important}
+.fr-toast{position:fixed;top:78px;right:22px;z-index:100000;width:290px;background:var(--white);color:var(--text);border:1px solid #86efac;border-left:6px solid #16a34a;border-radius:14px;box-shadow:0 16px 40px rgba(15,23,42,.35);padding:14px 16px 16px;overflow:hidden;animation:frToastIn .28s ease}
+@keyframes frToastIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+.fr-toast-x{position:absolute;top:8px;right:8px;border:none;background:var(--sand);color:var(--text2);width:24px;height:24px;border-radius:12px;cursor:pointer;font-size:12px}
+.fr-toast-t{font-weight:800;font-size:14px;padding-right:26px}
+.fr-toast-s{font-size:11px;color:var(--text3);margin:2px 0 10px;text-transform:capitalize}
+.fr-toast-b{display:flex;gap:8px}
+.fr-toast-b button{flex:1;border:none;border-radius:10px;padding:8px 6px;font-weight:800;font-size:12px;cursor:pointer;background:#0f766e;color:#fff}
+.fr-toast-b button+button{background:#2563eb}
+.fr-toast-bar{position:absolute;left:0;bottom:0;height:3px;background:#16a34a;width:100%;transform-origin:left;animation:frToastBar 12s linear forwards}
+@keyframes frToastBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 /* Mucamas: mismos colores (encabezado verde, banda gris en la fecha, marco verde) */
 .mu-grid .mu-dow{background:#42675c;color:#fff!important;border-radius:6px;padding:5px 0!important;font-size:11px!important}
 .mu-c2{border-color:#42675c!important}
@@ -2998,6 +3061,8 @@ body.dark .cc-r.cc-dark .cc-lnk,body.dark .cc-r.cc-dark .cc-auto,body.dark .cc-r
 .cc-pvt .cc-st{white-space:nowrap}.cc-bad td{background:rgba(179,38,30,.08)}.cc-dupr td{opacity:.55}.cc-dupt{color:#a56a00;font-weight:700}
 .cc-addbtn{display:flex;align-items:center;gap:8px;padding:7px 16px;border-radius:var(--r2);border:1px solid var(--teal2);background:var(--teal2);color:#fff;font:inherit;font-weight:800;font-size:13px;cursor:pointer}
 .cc-addbtn:hover{filter:brightness(1.1)}.cc-addbtn .ti{font-size:18px}
+.cc-addbtn.cc-ab2{flex-wrap:wrap;justify-content:center;row-gap:1px;padding:7px 16px 4px;min-width:150px}
+.cc-addbtn .cc-ult{flex:0 0 100%;text-align:center;font-size:10px;font-weight:600;line-height:1.1;color:rgba(255,255,255,.88);letter-spacing:.2px;white-space:nowrap}
 .cc-bkwrap{max-height:calc(56vh/var(--fz,1));overflow:auto;border:1px solid var(--cc-line);border-radius:var(--r2)}
 .cc-bk{width:100%;border-collapse:collapse;font-size:13px}
 .cc-bk th{position:sticky;top:0;background:var(--white,#fff);z-index:1;text-align:left;font-size:11px;font-weight:800;color:var(--text3);padding:6px 6px;border-bottom:1px solid var(--cc-line)}
@@ -11568,6 +11633,7 @@ function showSaveErrorBanner(show){
   }catch(e){}
 }
 const lsS=(k,v)=>{
+  try{frHistHook(k,v);}catch(e){} // (Tanda 605) historial deshacer/rehacer de Francos
   if(lsSAttempt(k,v)){
     if(SAVE_ERROR){SAVE_ERROR=false;showSaveErrorBanner(false);}
     return;
@@ -15506,6 +15572,7 @@ function _renderOverlays(){
   // de 3 barritas de Mucamas/Mantenimiento (ver muMenuHtml()), mismo patrón de capa global.
   if(UI.mod==="francos"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modFrancos());}
   if(UI.mod==="fpPedir"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modFpPedir());}
+  if(UI.mod==="ferBulk"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modFerBulk());}
   if(UI.mod==="frSinF"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modFrSinF());}
   if(UI.mod==="frNotif"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modFrNotif());}
   if(UI.mod==="cfMes"){const _appEl=document.getElementById("app");if(_appEl)_appEl.insertAdjacentHTML("beforeend",modCfMes());}
@@ -17038,13 +17105,13 @@ function rAreaShell(role,titulo,emoji,navItems,bodyHtml){
   const itemHtmlByKeyDesktop={};
   (navItems||[]).forEach(n=>{const ic=sbIc(role,n.key,n.ic),lbl=sbLbl(role,n.key,n.lbl);itemHtmlByKeyDesktop[n.key]=`<div class="nb ${sec===n.key?"on":""}" onclick="areaNavGo('${role}','${n.key}')"><span class="nb-ico">${ic}</span><span class="nb-lbl">${lbl}${n.badge||""}</span></div>`;});
   if(role!=='ger'){const ic=sbIc(role,"vacpersonal","🏖️"),lbl=sbLbl(role,"vacpersonal","Vacaciones");itemHtmlByKeyDesktop["vacpersonal"]=`<div class="nb" onclick="vacAbrir()"><span class="nb-ico">${ic}</span><span class="nb-lbl">${lbl}</span></div>`;}
-  ((D.customLinks&&D.customLinks[role])||[]).forEach(l=>{itemHtmlByKeyDesktop["cl:"+l.id]=clNb(l);});
+  ((D.customLinks&&D.customLinks[role])||[]).forEach(l0=>{const l=lkOv(l0,"cl:"+l0.id);itemHtmlByKeyDesktop["cl:"+l.id]=clNb(l);});
   // (Tanda 106 / ítem 1) Accesos propios del usuario logueado -- a diferencia de los de arriba (que
   // vienen de D.customLinks[role], compartidos por toda el área), se abren en el modal-embebido de
   // siempre (abrirSitioEmbebido()) en vez de a pantalla completa, así no hace falta whitelistearlos en
   // CNT_EMBED_SECTIONS (pensado para un puñado fijo de accesos por ROL, no un número variable por
   // PERSONA) -- ver el comentario junto a defaultSidebarCats().
-  spOwnLinks().forEach(l=>{itemHtmlByKeyDesktop["ol:"+l.id]=`<div class="nb" onclick="abrirSitioEmbebido('${(l.label||"").replace(/'/g,"\\'")}','${(l.url||"").replace(/'/g,"\\'")}')"><span class="nb-ico">${l.icon||"🔗"}</span><span class="nb-lbl">${l.label}</span></div>`;});
+  spOwnLinks().forEach(l0=>{const l=lkOv(l0,"ol:"+l0.id);itemHtmlByKeyDesktop["ol:"+l.id]=`<div class="nb" onclick="abrirSitioEmbebido('${(l.label||"").replace(/'/g,"\\'")}','${(l.url||"").replace(/'/g,"\\'")}')"><span class="nb-ico">${l.icon||"🔗"}</span><span class="nb-lbl">${l.label}</span></div>`;});
   if((role==="ger"||role==="admin")&&itemHtmlByKeyDesktop["facturacion"]!==undefined){
     const _n=(navItems||[]).find(x=>x.key==="facturacion");
     if(_n){const ic=sbIc(role,"facturacion",_n.ic),lbl=sbLbl(role,"facturacion",_n.lbl);
@@ -17053,8 +17120,8 @@ function rAreaShell(role,titulo,emoji,navItems,bodyHtml){
   const itemHtmlByKeyMobile={};
   (navItems||[]).forEach(n=>{const ic=sbIc(role,n.key,n.ic),lbl=sbLbl(role,n.key,n.lbl);itemHtmlByKeyMobile[n.key]=`<div class="area-menu-item" onclick="UI.areaMenuOpen=false;areaNavGo('${role}','${n.key}')"><span class="area-menu-ic">${ic}</span> ${lbl}${n.badge||""}</div>`;});
   if(role!=='ger'){const ic=sbIc(role,"vacpersonal","🏖️"),lbl=sbLbl(role,"vacpersonal","Vacaciones");itemHtmlByKeyMobile["vacpersonal"]=`<div class="area-menu-item" onclick="UI.areaMenuOpen=false;vacAbrir()"><span class="area-menu-ic">${ic}</span> ${lbl}</div>`;}
-  ((D.customLinks&&D.customLinks[role])||[]).forEach(l=>{itemHtmlByKeyMobile["cl:"+l.id]=clMenuItem(l);});
-  spOwnLinks().forEach(l=>{itemHtmlByKeyMobile["ol:"+l.id]=`<div class="area-menu-item" onclick="UI.areaMenuOpen=false;abrirSitioEmbebido('${(l.label||"").replace(/'/g,"\\'")}','${(l.url||"").replace(/'/g,"\\'")}')"><span class="area-menu-ic">${l.icon||"🔗"}</span> ${l.label}</div>`;});
+  ((D.customLinks&&D.customLinks[role])||[]).forEach(l0=>{const l=lkOv(l0,"cl:"+l0.id);itemHtmlByKeyMobile["cl:"+l.id]=clMenuItem(l);});
+  spOwnLinks().forEach(l0=>{const l=lkOv(l0,"ol:"+l0.id);itemHtmlByKeyMobile["ol:"+l.id]=`<div class="area-menu-item" onclick="UI.areaMenuOpen=false;abrirSitioEmbebido('${(l.label||"").replace(/'/g,"\\'")}','${(l.url||"").replace(/'/g,"\\'")}')"><span class="area-menu-ic">${l.icon||"🔗"}</span> ${l.label}</div>`;});
   // (Tanda 114) Accesos cruzados de otras áreas otorgados por el super-admin (ver
   // CROSS_GRANTABLE_DEF/D.sbCrossGrants, junto a AREA_CATS) -- se agregan igual que cualquier botón
   // nativo (mismo "areaNavGo", mismo resuelto de override vía sbIc/sbLbl); si por algún motivo la clave
@@ -17484,7 +17551,7 @@ function rGer(){
   // (Tanda 116 / ítem 2) Debajo del aviso de vacaciones pendientes, se suma el de período de prueba por
   // vencer (ver probationNotifHtml(), junto a personaIngreso() más abajo) -- mismo patrón visual, pero
   // persistente por persona hasta que Gerencia lo descarta a mano.
-  const body=sec==="feedback"?vFeedbackRec("ger"):sec==="habs"?vHabs():sec==="blancos"?blancosRecapHtml():sec==="personal"?(`<div style="display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px">${verRendimientoBtnHtml()}${verEntradasSalidasBtnHtml()}</div>`+registroFichadoCardHtml()+personalVivoFlotanteHtml()+francosSoloLecturaHtml()+vacCardHtml()+capConsCardHtml()+feriadosCardHtml(false)+fichaPersonalEditableCardHtml()):sec==="insumos"?insumosStockSectionHtml():sec==="facturacion"?facturacionSectionHtml():sec==="cajas"?cajasSectionHtml():sec==="deveng"?vDevengamiento():sec==="tarifas"?vTarifas():sec==="presup"?vPresupuestos():sec==="infodesay"?vInfoDesayuno():sec==="home"?(areaWelcomeCard("Gerencia","💼")+ntfGridHtml(areaAvisosRaw("ger"))):(crossGrantBodyHtml("ger",sec)||areaWelcomeCard("Gerencia","💼"));
+  const body=sec==="feedback"?vFeedbackRec("ger"):sec==="habs"?vHabs():sec==="blancos"?blancosRecapHtml():sec==="personal"?(`<div style="display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px">${verRendimientoBtnHtml()}${verEntradasSalidasBtnHtml()}</div>`+(UI.persSub?"":personalVivoFlotanteHtml())+persLandingBodyHtml("ger",{francos:()=>francosSoloLecturaHtml(),ficha:()=>fichaPersonalEditableCardHtml()})):sec==="insumos"?insumosStockSectionHtml():sec==="facturacion"?facturacionSectionHtml():sec==="cajas"?cajasSectionHtml():sec==="deveng"?vDevengamiento():sec==="tarifas"?vTarifas():sec==="presup"?vPresupuestos():sec==="infodesay"?vInfoDesayuno():sec==="home"?(areaWelcomeCard("Gerencia","💼")+ntfGridHtml(areaAvisosRaw("ger"))):(crossGrantBodyHtml("ger",sec)||areaWelcomeCard("Gerencia","💼"));
   rAreaShell("ger","Gerencia","💼",navItems,body);
 }
 // (Tanda 48 / Fase B, ítem 3) Administración ya tenía una sección real: "Feedback y Soporte técnico".
@@ -21119,10 +21186,10 @@ function rRec(){
     if(itemHtmlByKeyRec[k]!==undefined||!CROSS_GRANTABLE_DEF[k])return;
     itemHtmlByKeyRec[k]=nb(k,CROSS_GRANTABLE_DEF[k].ic,CROSS_GRANTABLE_DEF[k].lbl);
   });
-  ((D.customLinks&&D.customLinks.rec)||[]).forEach(l=>{itemHtmlByKeyRec["cl:"+l.id]=clHtmlRec(l);});
+  ((D.customLinks&&D.customLinks.rec)||[]).forEach(l0=>{const l=lkOv(l0,"cl:"+l0.id);itemHtmlByKeyRec["cl:"+l.id]=clHtmlRec(l);});
   // (Tanda 106 / ítem 1) Accesos propios del usuario logueado -- ver el comentario junto a
   // defaultSidebarCats() y el mismo agregado en rAreaShell().
-  spOwnLinks().forEach(l=>{itemHtmlByKeyRec["ol:"+l.id]=`<div class="nb" onclick="abrirSitioEmbebido('${(l.label||"").replace(/'/g,"\\'")}','${(l.url||"").replace(/'/g,"\\'")}')"><span class="nb-ico">${l.icon||"🔗"}</span><span class="nb-lbl">${l.label}</span></div>`;});
+  spOwnLinks().forEach(l0=>{const l=lkOv(l0,"ol:"+l0.id);itemHtmlByKeyRec["ol:"+l.id]=`<div class="nb" onclick="abrirSitioEmbebido('${(l.label||"").replace(/'/g,"\\'")}','${(l.url||"").replace(/'/g,"\\'")}')"><span class="nb-ico">${l.icon||"🔗"}</span><span class="nb-lbl">${l.label}</span></div>`;});
   const sbRecLayout=sidebarLayoutFor("rec",RID);
   if(_recVis)Object.keys(itemHtmlByKeyRec).forEach(k=>{if(recVisItems().some(x=>x.key===k)&&!_recVis.has(k))delete itemHtmlByKeyRec[k];}); // (Tanda 556)
   const sidebarSectionsHtmlRec=_recFuera?`<div class="sb-grp">Fuera de horario</div>${itemHtmlByKeyRec.francos}`:renderSidebarLayout(sbRecLayout,itemHtmlByKeyRec,"sb-grp");
@@ -32782,7 +32849,35 @@ function ccD(){
   if(!d||typeof d!=="object"||!Array.isArray(d.ch)){d=D.cuentasCte=ccBuildSeed();}
   if(!d.pg||typeof d.pg!=="object")d.pg={};
   if(!Array.isArray(d.cli))d.cli=[];
+  ccAutoMes(d);
   return d;
+}
+// (Tanda 606) El período de un cargo SIEMPRE sigue a su fecha de facturación: si algún cargo ya cargado tiene fecha de otro mes
+// (ej. aparece en octubre con fecha de noviembre) se pasa solo al mes que le corresponde. No toca los cargos ya controlados/cerrados (chk).
+// (Tanda 607) Fecha más reciente entre todos los cargos cargados, para el rótulo «Últ. carga» del botón «Agregar cargos».
+function ccUltCarga(){
+  let mx="";
+  ccD().ch.forEach(x=>{if(x.f&&/^\d{4}-\d{2}-\d{2}$/.test(x.f)&&x.f>mx)mx=x.f;});
+  if(!mx)return "";
+  return `<span class="cc-ult">Últ. carga: ${+mx.slice(8,10)}/${+mx.slice(5,7)}/${mx.slice(2,4)}</span>`;
+}
+function ccAutoMes(d){
+  const now=Date.now();
+  if(window._ccMesChk&&window._ccMesChk.d===d&&window._ccMesChk.n===d.ch.length&&now-window._ccMesChk.t<1500)return;
+  window._ccMesChk={d,n:d.ch.length,t:now};
+  let n=0;const dest={};
+  d.ch.forEach(x=>{
+    if(!x.f||!/^\d{4}-\d{2}-\d{2}$/.test(x.f))return;
+    const m=x.f.slice(0,7);
+    if(m===x.m)return;
+    if(x.chk||(x.pg&&d.ch.some(y=>y.pg===x.pg&&y.chk)))return;
+    x.m=m;n++;dest[m]=(dest[m]||0)+1;
+  });
+  if(n&&typeof ccCan==="function"&&ccCan()){
+    try{lsS(K.cuentasCte,d);}catch(e){}
+    const ms=Object.keys(dest).sort();
+    setTimeout(()=>{try{ccFlash("Se pasaron "+n+" cargo"+(n===1?"":"s")+" al mes de su fecha de facturación ("+ms.map(m=>cjMesLbl(m)+": "+dest[m]).join(", ")+").");}catch(e){}},300);
+  }else if(n){window._ccMesChk=null;} // sin permiso para guardar: se reintenta luego
 }
 function ccSave(){try{ccAutoMat();}catch(e){console.warn("ccAutoMat",e);}lsS(K.cuentasCte,ccD());}
 const ccIsGer=()=>ROLE==="ger";
@@ -33523,7 +33618,7 @@ function ccSumHtml(){
   const pendAll=d.ch.filter(x=>x.est==="Pendiente");
   return `<div class="cc-sumrow">
     <div class="cc-tot"><span>${sc.kind==="one"?"Total del mes":"Total del período"}</span><b>${ccMoney(sum(mes))}</b><i>${mes.length} cargo${mes.length===1?"":"s"}</i></div>
-    ${ccCan()?`<button type="button" class="cc-addbtn" onclick="ccBulkOpen()" title="Agregar cargos al mes (se abre una ventana)"><i class="ti ti-clipboard-plus"></i><span>Agregar cargos</span></button>`:""}
+    ${ccCan()?`<button type="button" class="cc-addbtn cc-ab2" onclick="ccBulkOpen()" title="Agregar cargos al mes (se abre una ventana)"><i class="ti ti-clipboard-plus"></i><span>Agregar cargos</span>${ccUltCarga()}</button>`:""}
     ${chip("Pendiente",by("Pendiente"),"pend","Pendiente")}${chip("Ok",by("Ok"),"ok","Ok")}${chip("Controlar",by("Controlar"),"ctl","Controlar")}${chip("Nota Crédito",by("Nota Crédito"),"nc","Nota Crédito")}${chip("Desayunos",by("Desayunos"),"des","Desayunos")}${by("").length?chip("Sin estado",by(""),"none","_none"):""}
     <div class="cc-tot cc-tot2" title="Todas las facturas en estado Pendiente de todos los meses"><span>Pendiente de cobro (todos los meses)</span><b>${ccMoney(sum(pendAll))}</b><i>${pendAll.length} factura${pendAll.length===1?"":"s"}</i></div>
   </div>`;
@@ -35854,6 +35949,25 @@ window.probationDescartar=(personId)=>{
   logChange("Aviso de período de prueba descartado para "+(p?p.nombre:personId));
   render();
 };
+window.vacSolicitudEliminar=(id)=>{
+  if(!(ROLE==="admin"||isAdminAuth()))return;
+  const r=(D.vacaciones||[]).find(x=>x.id===id);if(!r)return;
+  if(!confirm("¿Eliminar definitivamente la solicitud de "+(r.personNombre||"esta persona")+" ("+r.desde+" al "+r.hasta+")? No se puede deshacer."))return;
+  D.vacaciones=(D.vacaciones||[]).filter(x=>x.id!==id);lsS(K.vacaciones,D.vacaciones);
+  logChange("Se eliminó la solicitud de vacaciones de "+(r.personNombre||"?")+" ("+r.desde+" al "+r.hasta+")");render();
+};
+// (Tanda 605) Gerencia edita la cantidad de días disponibles de una persona: se ajusta el saldo ("Pendientes a utilizar") del primer año visible
+// para que la suma de todos los años visibles dé exactamente el valor tipeado.
+window.vacDisponibleSet=(personId,area,val)=>{
+  if(!(ROLE==="ger"||ROLE==="admin"||isAdminAuth()))return;
+  const n=parseInt(String(val).trim(),10);if(isNaN(n)||n<0){render();return;}
+  const anios=vacAniosHabilitados();if(!anios.length)return;
+  const saldo=(a)=>{const ef=vacDiasEfectivos(personId,area,a);const um=(D.vacUsadosManual&&D.vacUsadosManual[personId]&&D.vacUsadosManual[personId][a])||{};return um.dif!=null?um.dif:(um.dias!=null?ef.dias-um.dias:ef.dias);};
+  const a0=anios[0];const otros=anios.slice(1).reduce((t,a)=>t+saldo(a),0);
+  vacUsadosManualSet(personId,a0,"dif",String(n-otros));
+  const p=personalFichaPersonalList().find(x=>x.id===personId);
+  logChange("Días de vacaciones disponibles de "+(p?p.nombre:personId)+" ajustados a "+n);
+};
 function vacGestionHtml(){
   const aniosVisibles=vacAniosHabilitados();
   const personal=[
@@ -35990,7 +36104,9 @@ function vacGestionHtml(){
         <div style="flex:1 1 auto;min-width:150px;display:flex;align-items:baseline;gap:10px"><b style="font-size:13px;display:inline-block;flex:0 1 auto;width:${vacNombreCh()}ch;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${cnEsc(p.nombre)}">${p.nombre}</b><span style="color:var(--text3);font-size:10.5px;white-space:nowrap">(${p.areaLbl})</span></div>
         <div style="display:flex;align-items:baseline;gap:4px;flex-shrink:0;background:linear-gradient(135deg,#1d7a6b,#15594d);color:#fff;padding:2px 10px;border-radius:16px;box-shadow:0 2px 6px rgba(29,122,107,.3);font-size:11px">
           <span>Disponible:</span>
-          <span style="font-size:16px;font-weight:800;line-height:1">${disponibles}</span>
+          ${(ROLE==="ger"||ROLE==="admin"||isAdminAuth())
+            ?`<input type="number" min="0" value="${disponibles}" title="Editar los días disponibles de ${cnEsc(p.nombre)}" onclick="event.stopPropagation()" onchange="vacDisponibleSet('${p.id}','${p.area}',this.value)" style="width:54px;font-size:16px;font-weight:800;line-height:1;text-align:center;border:1px solid rgba(255,255,255,.6);background:rgba(255,255,255,.18);color:#fff;border-radius:8px;padding:1px 2px">`
+            :`<span style="font-size:16px;font-weight:800;line-height:1">${disponibles}</span>`}
           <span>días</span>
         </div>
         <button class="btn btn-g btn-sm" style="padding:3px 8px;font-size:11px;flex-shrink:0" onclick="event.stopPropagation();vacHistToggle('${p.id}')"><i class="ti ti-chevron-${abierto?"up":"down"}"></i> ${abierto?"Ocultar":"Ver historial"}</button>
@@ -36046,6 +36162,7 @@ function vacGestionHtml(){
         <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:6px;flex-wrap:wrap">
           ${puedeAprobar(r)?`<button class="btn btn-p btn-sm" onclick="vacAvanzar('${r.id}','${ROLE==="coord"?"aprobado_coord":"aprobado_ger"}')">${lblAprobar}</button><button class="btn btn-g btn-sm" style="color:#a32d2d" onclick="vacRechazar('${r.id}')">Rechazar</button>`:""}
           ${r.estado!=="confirmado"?`<button class="btn btn-g btn-sm" onclick="vacEditAbrir('${r.id}')"><i class="ti ti-pencil"></i> Editar fechas</button>`:""}
+          ${(ROLE==="admin"||isAdminAuth())?`<button class="btn btn-g btn-sm" style="color:#a32d2d" onclick="vacSolicitudEliminar('${r.id}')" title="Eliminar este registro (solo Administración)">🗑 Eliminar</button>`:""}
         </div>
       </div>
     </div>
@@ -36688,7 +36805,7 @@ const ferCan=()=>ROLE==="admin"||ROLE==="coord"||ROLE==="ger"; // (Tanda 322) Ge
 function ferAnioSel(){return Number(UI.ferAnio)||Number(hoyISO().slice(0,4));}
 function ferGuardar(y,items,conf){
   const prev=(D.feriados||{})[y];
-  D.feriados={...(D.feriados||{}),[y]:{items:items.map(x=>{const r={id:x.id,f:x.f,n:x.n};if(x.o)r.o=x.o;if(x.e)r.e=1;return r;}),conf:conf===undefined?!!(prev&&prev.conf):!!conf,ts:Date.now()}};
+  D.feriados={...(D.feriados||{}),[y]:{items:items.map(x=>{const r={id:x.id,f:x.f,n:x.n};if(x.o)r.o=x.o;if(x.e)r.e=1;if(x.c)r.c=x.c;return r;}),conf:conf===undefined?!!(prev&&prev.conf):!!conf,ts:Date.now()}};
   lsS(K.feriados,D.feriados);
 }
 window.ferMover=(d)=>{UI.ferAnio=ferAnioSel()+d;UI.ferRestConf=null;render();};
@@ -36725,7 +36842,7 @@ window.ferRestaurar=()=>{
   const d={...(D.feriados||{})};delete d[y];D.feriados=d;lsS(K.feriados,D.feriados);UI.ferRestConf=null;
   logChange("Feriados "+y+": se restableció la lista sugerida");render();
 };
-window.ferIrACargar=(role,y)=>{UI.feriadosOpen=true;UI.ferAnio=y;areaNavGo(role,"personal");};
+window.ferIrACargar=(role,y)=>{UI.feriadosOpen=true;UI.ferAnio=y;UI.persSub="francos";UI.francosOpen=true;areaNavGo(role,"personal");};
 function ferFechaLbl(iso){
   const d=new Date(iso+"T00:00:00");
   return d.toLocaleDateString("es-AR",{weekday:"short"}).replace(".","")+" "+iso.slice(8,10)+"/"+iso.slice(5,7);
@@ -36764,6 +36881,81 @@ function ferLegacyHtml(y,edit){
       <span style="font-weight:800;min-width:78px;text-transform:capitalize">${ferFechaLbl(e.fecha)}</span><div style="flex:1">🏷️ ${ferEsc(e.texto)}${e.visibilidad==="privado"?` <span style="color:var(--text3)">(solo vos)</span>`:""}</div>
       ${edit&&e.creadoPor===RID?`<button class="btn btn-g btn-sm" title="Quitar" onclick="francoEtiquetaQuitar('${e.fecha}','${e.id}')">🗑️</button>`:""}</div>`).join("")}</div>`;
 }
+
+// ═══ (Tanda 605) Carga masiva de feriados / fechas especiales: columna de fechas + columna de nombres (+ comentarios) ═══
+function ferBulkParse(){
+  const b=UI.ferBulk||{f:"",n:"",c:"",t:"f"};
+  const F=String(b.f||"").split(/\r?\n/),N=String(b.n||"").split(/\r?\n/),C=String(b.c||"").split(/\r?\n/);
+  const len=Math.max(F.length,N.length);const out=[];const yDef=ferAnioSel();
+  for(let i=0;i<len;i++){
+    const fr=(F[i]||"").trim(),nm=(N[i]||"").trim(),cm=(C[i]||"").trim();
+    if(!fr&&!nm&&!cm)continue;
+    let iso="";let m;
+    if((m=fr.match(/^(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2}|\d{4}))?$/))){
+      let y=m[3]?(m[3].length===2?2000+Number(m[3]):Number(m[3])):yDef;
+      const d=Number(m[1]),mo=Number(m[2]);
+      const dt=new Date(y,mo-1,d);
+      if(dt.getFullYear()===y&&dt.getMonth()===mo-1&&dt.getDate()===d)iso=isoYMD(y,mo-1,d);
+    }else if((m=fr.match(/^(\d{4})-(\d{2})-(\d{2})$/))){
+      const y=Number(m[1]),mo=Number(m[2]),d=Number(m[3]);const dt=new Date(y,mo-1,d);
+      if(dt.getFullYear()===y&&dt.getMonth()===mo-1&&dt.getDate()===d)iso=fr;
+    }
+    out.push({i:i+1,fr,iso,n:nm,c:cm,err:!iso?"Fecha no válida (usá DD/MM/AA)":(!nm?"Falta el nombre":"")});
+  }
+  return out;
+}
+window.ferBulkAbrir=()=>{if(!ferCan())return;UI.ferBulk={f:"",n:"",c:"",t:"f"};UI.mod="ferBulk";render();};
+window.ferBulkSet=(k,v)=>{
+  UI.ferBulk=UI.ferBulk||{f:"",n:"",c:"",t:"f"};UI.ferBulk[k]=v;
+  // pegado desde planilla (columnas separadas por tab): se reparte solo en las 3 columnas
+  if(k==="f"&&String(v).includes("\t")){
+    const rows=String(v).split(/\r?\n/).map(r=>r.split("\t"));
+    UI.ferBulk.f=rows.map(r=>r[0]||"").join("\n");UI.ferBulk.n=rows.map(r=>r[1]||"").join("\n");UI.ferBulk.c=rows.map(r=>r[2]||"").join("\n");
+    UI.mod="ferBulk";render();return;
+  }
+  ferBulkPrev();
+};
+function ferBulkPrev(){
+  const el=document.getElementById("ferBulkPrev");if(!el)return;
+  const L=ferBulkParse();
+  el.innerHTML=ferBulkPrevHtml(L);
+  const b=document.getElementById("ferBulkOk");if(b){const n=L.filter(x=>!x.err).length;b.disabled=!n||L.some(x=>x.err);b.textContent=n?"Cargar "+n+" fecha"+(n===1?"":"s"):"Cargar";}
+}
+function ferBulkPrevHtml(L){
+  if(!L.length)return `<div style="font-size:12px;color:var(--text3);padding:6px 0">Escribí o pegá las fechas y los nombres: cada línea de una columna se corresponde con la misma línea de la otra.</div>`;
+  return `<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="text-align:left;color:var(--text3)"><th style="padding:3px 6px">#</th><th style="padding:3px 6px">Fecha</th><th style="padding:3px 6px">Nombre</th><th style="padding:3px 6px">Comentario</th></tr></thead><tbody>${L.map(x=>`<tr style="border-top:1px solid var(--border);${x.err?"background:#fef2f2":""}"><td style="padding:3px 6px;color:var(--text3)">${x.i}</td><td style="padding:3px 6px;font-weight:700">${x.iso?ferFechaCorta(x.iso):ferEsc(x.fr||"—")}</td><td style="padding:3px 6px">${ferEsc(x.n||"—")}</td><td style="padding:3px 6px;color:var(--text2)">${ferEsc(x.c)}${x.err?` <b style="color:#b91c1c">${x.err}</b>`:""}</td></tr>`).join("")}</tbody></table>`;
+}
+window.ferBulkGuardar=()=>{
+  if(!ferCan())return;
+  const L=ferBulkParse();if(!L.length||L.some(x=>x.err))return;
+  const esp=(UI.ferBulk&&UI.ferBulk.t)==="e";
+  const porAnio={};L.forEach(x=>{(porAnio[x.iso.slice(0,4)]=porAnio[x.iso.slice(0,4)]||[]).push(x);});
+  Object.keys(porAnio).forEach(y=>{
+    const items=feriadosAnio(y);
+    porAnio[y].forEach(x=>{
+      const ya=items.find(i=>i.f===x.iso&&String(i.n).toLowerCase()===x.n.toLowerCase());
+      if(ya){if(x.c)ya.c=x.c;return;}
+      const it={id:uid(),f:x.iso,n:x.n};if(esp)it.e=1;if(x.c)it.c=x.c;items.push(it);
+    });
+    ferGuardar(y,items);
+  });
+  logChange("Feriados y fechas especiales: carga en bloque de "+L.length+" fecha(s)");
+  UI.ferBulk=null;UI.mod=null;render();
+};
+function modFerBulk(){
+  const b=UI.ferBulk||{f:"",n:"",c:"",t:"f"};const L=ferBulkParse();const ok=L.length&&!L.some(x=>x.err);
+  const ta=(k,lbl,ph)=>`<div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:800;color:var(--text3);margin-bottom:4px">${lbl}</div><textarea class="fc" style="width:100%;height:190px;font-size:12px;line-height:1.5;white-space:pre;overflow:auto;resize:vertical" placeholder="${ph}" oninput="ferBulkSet('${k}',this.value)">${ferEsc(b[k]||"")}</textarea></div>`;
+  return `<div class="ov"><div class="mod" onclick="event.stopPropagation()" style="max-width:820px;width:96vw">
+    <div class="mh"><div><h2>📋 Cargar feriados / fechas especiales en bloque</h2><div class="mh-s">Una fecha por línea, y en la columna de al lado su nombre (y, si querés, un comentario). También podés pegar directo desde una planilla.</div></div><button class="btn btn-g btn-sm" onclick="UI.ferBulk=null;closeMod()">✕</button></div>
+    <div class="mc">
+      <div style="display:flex;gap:10px;margin-bottom:10px">${ta("f","Fechas (DD/MM/AA)","12/10/26\n20/11/26\n24/12/26")}${ta("n","Nombre","Día del Respeto a la Diversidad Cultural\nDía de la Soberanía Nacional\nNochebuena")}${ta("c","Comentario (opcional)","Se traslada del 10/10\n\n")}</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12px">Cargar como:
+        <select class="fc" onchange="UI.ferBulk.t=this.value"><option value="f" ${b.t!=="e"?"selected":""}>Feriado</option><option value="e" ${b.t==="e"?"selected":""}>Fecha especial</option></select>
+        <span style="color:var(--text3)">Si falta el año se usa ${ferAnioSel()}.</span></div>
+      <div id="ferBulkPrev" style="max-height:200px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:6px 8px">${ferBulkPrevHtml(L)}</div>
+      <div class="mf"><button class="btn btn-sm" onclick="UI.ferBulk=null;closeMod()">Cancelar</button><button class="btn btn-sm btn-p" id="ferBulkOk" ${ok?"":"disabled"} onclick="ferBulkGuardar()">${L.length&&ok?"Cargar "+L.length+" fecha"+(L.length===1?"":"s"):"Cargar"}</button></div>
+    </div></div></div>`;
+}
 function feriadosCardHtml(soloLectura){
   const y=ferAnioSel(),open=UI.feriadosOpen===true,edit=!soloLectura&&ferCan();
   const s=(D.feriados||{})[y],conf=!!(s&&s.conf),guard=!!(s&&Array.isArray(s.items));
@@ -36778,7 +36970,8 @@ function feriadosCardHtml(soloLectura){
   const fila=x=>{
     const chip=x.e?`<span style="font-size:10px;font-weight:800;background:#dbeafe;color:#1e40af;border-radius:10px;padding:1px 8px;white-space:nowrap">Fecha especial</span>`:"";
     const mov=x.o&&x.o!==x.f?`<span style="font-size:10px;color:var(--text3)">Se traslada desde el ${x.o.slice(8,10)}/${x.o.slice(5,7)}</span>`:"";
-    const sub=(chip||mov)?`<span class="fer-r">${chip}${mov}</span>`:`<span class="fer-r"></span>`;
+    const com=x.c?`<span style="font-size:10px;color:var(--text2);font-style:italic">💬 ${ferEsc(x.c)}</span>`:"";
+    const sub=(chip||mov||com)?`<span class="fer-r">${chip}${mov}${com}</span>`:`<span class="fer-r"></span>`;
     const dl=ferFechaCorta(x.f);
     // (Tanda 255) Fecha (con el dia dentro del flotante), nombre y quitar SIEMPRE en el mismo renglon.
     return edit
@@ -36794,7 +36987,8 @@ function feriadosCardHtml(soloLectura){
           ${sub}
         </div></div>`;
   };
-  return `<div class="card" style="margin-top:20px">
+  if(!open)return ""; // (Tanda 605) el acceso vive en la barra de solapas de Francos
+  return `<div class="card" style="margin-bottom:16px">
     <div style="display:flex;align-items:center;justify-content:space-between;${open?"margin-bottom:12px":""};cursor:pointer" onclick="UI.feriadosOpen=${open?"false":"true"};render()">
       <h3 style="margin:0">🎌 Feriados nacionales y fechas especiales</h3>
       <span style="pointer-events:none;font-size:15px;color:var(--text3)">${open?"▴":"▾"}</span>
@@ -36807,6 +37001,7 @@ function feriadosCardHtml(soloLectura){
         <div style="flex:1;min-width:200px"><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Nombre</div><input class="fc" type="text" value="${ferEsc(UI.ferNuevaN||"")}" placeholder="Ej: Cumpleaños del hotel, día puente" style="width:100%" onchange="UI.ferNuevaN=this.value"></div>
         <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Tipo</div><select class="fc" onchange="UI.ferNuevaT=this.value"><option value="f" ${UI.ferNuevaT!=="e"?"selected":""}>Feriado</option><option value="e" ${UI.ferNuevaT==="e"?"selected":""}>Fecha especial</option></select></div>
         <button class="btn btn-g btn-sm" onclick="ferAgregar()">+ Agregar</button>
+        <button class="btn btn-sm" style="background:#0f766e;color:#fff;font-weight:800" onclick="ferBulkAbrir()">📋 Cargar en bloque</button>
       </div>
       ${UI.ferErr?`<div style="font-size:11px;color:#b91c1c;margin-bottom:10px">${ferEsc(UI.ferErr)}</div>`:""}
       <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -36874,6 +37069,97 @@ function francosMesNavHtml(){
     <div style="font-weight:800;text-transform:capitalize;min-width:150px;text-align:center">${lbl}</div>
     <button class="btn btn-g btn-sm" onclick="francosCalMesMover(1)"><i class="ti ti-chevron-right"></i></button>
   </div>`;
+}
+
+// ═══ (Tanda 605) Barra de Francos: mes · deshacer/rehacer · Publicar a… · feriados · estado ═══
+// Todo cambio de francos ya se guarda solo (lsS en cada edición). Acá se suma un historial por área
+// (Conserjería/Mucamas/Mantenimiento) con fotos JSON: lsS() avisa a frHistHook() cada vez que se graba una de
+// las 3 claves; deshacer/rehacer vuelven a esas fotos (sirve para cualquier mes, el historial es del área).
+const FR_PUB_NOM={cons:"Conserjería",mu:"Mucamas",mant:"Mantenimiento"};
+const FR_DKEY={cons:"consFrancoDias",mu:"muHorarioFechas",mant:"feriadosMant"};
+const FR_H={cons:{u:[],r:[],last:null},mu:{u:[],r:[],last:null},mant:{u:[],r:[],last:null}};
+let FR_UNDOING=false;
+function frAreaDeKey(k){return k===K.consFrancoDias?"cons":k===K.muHorarioFechas?"mu":k===K.feriadosMant?"mant":"";}
+function frJson(area){try{return JSON.stringify(francosFuenteViva(area)||{});}catch(e){return "{}";}}
+function frHistHook(k,v){
+  const area=frAreaDeKey(k);if(!area||FR_UNDOING)return;
+  const h=FR_H[area];let nuevo;try{nuevo=JSON.stringify(v||{});}catch(e){return;}
+  if(h.last!=null&&h.last!==nuevo){h.u.push(h.last);if(h.u.length>60)h.u.shift();h.r=[];}
+  h.last=nuevo;
+}
+function frApply(area,json){
+  FR_UNDOING=true;
+  try{const key=FR_DKEY[area];D[key]=JSON.parse(json);lsS(K[key],D[key]);FR_H[area].last=json;}finally{FR_UNDOING=false;}
+  UI.cfMove=null;UI.consFrancoPopFecha=null;render();
+}
+window.frUndo=(area)=>{const h=FR_H[area];if(!h.u.length)return;h.r.push(frJson(area));frApply(area,h.u.pop());};
+window.frRedo=(area)=>{const h=FR_H[area];if(!h.r.length)return;h.u.push(frJson(area));frApply(area,h.r.pop());};
+function frPubChipHtml(area){
+  const pub=francosPublicadoInfo(area),pend=francosHayCambiosSinPublicar(area);
+  const fecha=pub?new Date(pub.ts).toLocaleString("es-AR",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"";
+  const quien=pub&&pub.by?" · "+String(pub.by).replace(/</g,"&lt;").replace(/"/g,"&quot;"):"";
+  if(!pub)return `<span class="fr-chip no" title="Todavía no se publicó este calendario.${area==="cons"?" Recepción no ve estos francos hasta que publiques.":""}">⚠️ Sin publicar</span>`;
+  if(pend)return `<span class="fr-chip no" title="Última publicación: ${fecha}${quien}.${area==="cons"?" Recepción sigue viendo la versión publicada anterior.":""}">⚠️ Cambios sin publicar</span>`;
+  return `<span class="fr-chip ok" title="${fecha}${quien}">✅ Publicado ${fecha}</span>`;
+}
+function ferOrbHtml(ym){
+  const L=feriadosAnio(ym.slice(0,4)).filter(x=>x.f.startsWith(ym));
+  const fer=L.filter(x=>!x.e);
+  if(!fer.length)return "";
+  const esp=L.filter(x=>x.e);
+  const conf=!!(((D.feriados||{})[ym.slice(0,4)]||{}).conf);
+  const fila=x=>`<div class="fr-pop-r"><span>${ferFechaLbl(x.f)}</span><div>${ferEsc(x.n)}${x.o&&x.o!==x.f?`<br><small style="color:var(--text3)">Se traslada desde el ${x.o.slice(8,10)}/${x.o.slice(5,7)}</small>`:""}${x.c?`<br><small style="color:var(--text2);font-style:italic">💬 ${ferEsc(x.c)}</small>`:""}</div></div>`;
+  return `<div class="fr-orb" tabindex="0" aria-label="${fer.length} día(s) con feriado este mes">🎌<span class="fr-orb-n">${fer.length}</span>
+    <div class="fr-pop"><div class="fr-pop-t">${fer.length===1?"1 día con feriado":fer.length+" días con feriado"} este mes</div>
+      ${fer.map(fila).join("")}
+      ${esp.length?`<div class="fr-pop-t" style="margin-top:8px;color:var(--text3)">Fechas especiales</div>${esp.map(fila).join("")}`:""}
+      ${conf?"":`<div style="margin-top:6px;font-size:10px;color:#b45309">Lista sin confirmar (revisala en Feriados nacionales).</div>`}
+    </div></div>`;
+}
+function ferChipHtml(iso,posCss,anchor){
+  const x=feriadoDelDia(iso);if(!x)return "";
+  const mov=x.o&&x.o!==x.f?`<small>Se traslada desde el ${x.o.slice(8,10)}/${x.o.slice(5,7)}</small>`:"";
+  return `<span class="fer-chip" style="${posCss}"><span class="fer-chip-i">🎌</span><span class="fer-chip-pop ${anchor||"r"}"><b>${ferEsc(x.n)}</b><small style="text-transform:capitalize">${ferFechaLbl(iso)} · Feriado</small>${mov?"<br>"+mov:""}${x.c?`<br><small style="font-style:italic">💬 ${ferEsc(x.c)}</small>`:""}</span></span>`;
+}
+function francosBarraHtml(tab){
+  const area=tab,h=FR_H[area];
+  const cur=frJson(area);if(h.last!==cur)h.last=cur; // cambio externo (otro dispositivo): no entra al historial
+  const pend=francosHayCambiosSinPublicar(area);
+  const ym=francosCalYM();
+  const [a,m]=ym.split("-").map(Number);
+  const lbl=new Date(a,m-1,1).toLocaleDateString("es-AR",{month:"long",year:"numeric"});
+  const conMes=area!=="mant";
+  const mesModo=!!UI.cfMesModo;
+  return `<div class="fr-bar">
+    ${conMes?`<div class="fr-nav"><button class="btn btn-g btn-sm" onclick="francosCalMesMover(-1)"><i class="ti ti-chevron-left"></i></button><b>${lbl.charAt(0).toUpperCase()+lbl.slice(1)}</b><button class="btn btn-g btn-sm" onclick="francosCalMesMover(1)"><i class="ti ti-chevron-right"></i></button></div>`:""}
+    <div class="fr-ur" title="Los cambios se guardan solos. Con estos botones podés volver atrás o rehacer (de cualquier mes)">
+      <button ${h.u.length?"":"disabled"} onclick="frUndo('${area}')" title="Deshacer el último cambio${h.u.length?" ("+h.u.length+")":""}">↶</button>
+      <button ${h.r.length?"":"disabled"} onclick="frRedo('${area}')" title="Rehacer${h.r.length?" ("+h.r.length+")":""}">↷</button>
+      <small>✓ Guardado automático</small>
+    </div>
+    <button class="fr-pub${pend?" pend":""}" onclick="francosPublicarAsk('${area}')">📢 Publicar a ${FR_PUB_NOM[area]}</button>
+    ${conMes?ferOrbHtml(ym):""}
+    ${frPubChipHtml(area)}
+    ${conMes?`<div class="fr-right">
+      ${area==="cons"?`<button class="fr-otro${mesModo?" on":""}" onclick="cfMesModoToggle()">${mesModo?"Listo":"¿Algún franco pertenece a otro mes?"}</button>`:""}
+      <button class="fr-pdf" onclick="francosDescargarPDF('${area}')">⬇️ Descargar PDF (${area==="cons"?"Recepción":"Mucamas"})</button>
+    </div>`:""}
+  </div>`;
+}
+function frToastClose(){try{clearTimeout(window._frToastT);const d=document.getElementById("frToast");if(d)d.remove();}catch(e){}}
+window.frToastClose=frToastClose;
+window.frToastPrint=(area)=>{try{const r=buildFrancosPDF(area,francosCalYM());cjPrintPdf(r.base64,r.filename);}catch(e){alert("No se pudo generar el PDF para imprimir.");}};
+window.frToastPdf=(area)=>{francosDescargarPDF(area);};
+function frToastShow(area){
+  try{
+    frToastClose();
+    const [a,m]=francosCalYM().split("-").map(Number);
+    const lbl=new Date(a,m-1,1).toLocaleDateString("es-AR",{month:"long",year:"numeric"});
+    const d=document.createElement("div");d.id="frToast";d.className="fr-toast";
+    d.innerHTML=`<button class="fr-toast-x" aria-label="Cerrar" title="Cerrar" onclick="frToastClose()">✕</button><div class="fr-toast-t">✅ Publicado a ${FR_PUB_NOM[area]}</div><div class="fr-toast-s">${lbl}</div>${area!=="mant"?`<div class="fr-toast-b"><button onclick="frToastPrint('${area}')">🖨️ Imprimir</button><button onclick="frToastPdf('${area}')">⬇️ Descargar PDF</button></div>`:""}<div class="fr-toast-bar"></div>`;
+    document.body.appendChild(d);
+    window._frToastT=setTimeout(frToastClose,12000);
+  }catch(e){console.warn("frToastShow",e);}
 }
 // (Tanda 59 / ítem 5) Calendario compartido de Conserjería: se toca un día del calendario para
 // seleccionarlo (UI.consFrancoDiaSel) y, debajo, se cargan hasta 2 entradas {personId,cubreId} para
@@ -37369,8 +37655,8 @@ function conserjeriaFrancosMesHtml(soloLectura,datosOverride,filtroPersonaId){
   const mvEnt=mv?(((fuente&&fuente[mv.fecha])||[])[mv.idx]||null):null;
   const mesNomCap=ym2=>{const [yy,mm]=ym2.split("-").map(Number);const n=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"][mm-1]||"";return n.charAt(0).toUpperCase()+n.slice(1)+(yy!==a?" "+yy:"");};
   return `<div style="font-size:11px;color:var(--text3);margin-bottom:10px">${soloLectura?"Tocá un día para ver quién tiene franco y quién lo cubre.":"Tocá un día para marcar, ahí mismo, quién tiene franco (hasta 2 por día) y quién lo cubre."}</div>
-    ${francosMesNavHtml()}
-    ${filtroPersonaId?"":`<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-g btn-sm" onclick="francosDescargarPDF('cons'${datosOverride?",true":""})"><i class="ti ti-download"></i> Descargar PDF (Recepción)</button></div>`}
+    ${editable?"":francosMesNavHtml()}
+    ${(filtroPersonaId||editable)?"":`<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="fr-pdf" onclick="francosDescargarPDF('cons'${datosOverride?",true":""})">⬇️ Descargar PDF (Recepción)</button></div>`}
     ${mv&&mvEnt?`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fef3c7;border:1.5px solid #d97706;border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:13px;font-weight:700;color:#7c2d12">↔ Moviendo el franco de ${nombreDe(mvEnt.personId).toUpperCase()}: tocá el día destino (o arrastralo hasta ahí).${UI.cfMoveMsg?`<span style="color:#b91c1c">${UI.cfMoveMsg}</span>`:""}<button class="btn btn-g btn-sm" style="margin-left:auto" onclick="cfMoverCancel()">Cancelar</button></div>`:""}
     ${mesModo?`<div style="background:#ede9fe;border:1.5px solid #7c3aed;border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:13px;font-weight:700;color:#4c1d95">Tocá el franco que pertenece a otro mes.</div>`:""}
     <div class="cf2-grid" style="margin-bottom:${soloLectura?"14px":"0"}">
@@ -37401,7 +37687,7 @@ function conserjeriaFrancosMesHtml(soloLectura,datosOverride,filtroPersonaId){
         const mesLs=(()=>{const cm=entradas.filter(e=>e.mesDe);if(!cm.length)return [];const iguales=cm.length===entradas.length&&cm.every(e=>e.mesDe===cm[0].mesDe);return iguales?["De "+mesNomCap(cm[0].mesDe)]:cm.map(e=>nombreDe(e.personId)+": De "+mesNomCap(e.mesDe));})();
         const notas=entradas.filter(e=>e.nota);
         return `<div class="cf-cell cf2-c${mv?" cf-mv":""}${on?" cf2-on":""}${c.fueraDeMes?" cf2-out":""}${col===6?" cf2-lastc":""}${ultFila?" cf2-lastr":""}" onclick="${soloLectura?`consFrancoDiaSel('${fechaISO}')`:(mv?`cfMoverA('${fechaISO}')`:(mesModo?"":`consFrancoPopToggle('${fechaISO}')`))}" ${editable?`ondragover="event.preventDefault()" ondrop="cfDrop(event,'${fechaISO}')"`:""} style="z-index:${on?250:1};${radios}">
-          ${feriadoDelDia(fechaISO)?`<span class="cf2-ic" style="right:5px" title="${ferEsc(feriadoDelDia(fechaISO).n)}">🎌</span>`:""}
+          ${ferChipHtml(fechaISO,"top:5px;right:4px",col<4?"l":"r")}
           ${etqs.length?`<span class="cf2-ic" style="right:${feriadoDelDia(fechaISO)?22:5}px" title="${etqs.map(e=>e.texto).join(", ").replace(/"/g,"&quot;")}">🏷️</span>`:""}
           <div class="cf2-band${esWe?" cf2-we":""}${fechaISO===hoy?" cf2-hoy":""}" title="${fechaISO===hoy?"Hoy":""}">${c.d}</div>
           <div class="cf2-body">
@@ -37422,7 +37708,6 @@ function conserjeriaFrancosMesHtml(soloLectura,datosOverride,filtroPersonaId){
         </div>`;
       }).join("")}
     </div>
-    ${editable?`<div style="display:flex;justify-content:center;margin-top:12px"><button class="btn ${mesModo?"btn-p":"btn-g"} btn-sm" onclick="cfMesModoToggle()">${mesModo?"Listo":"¿Algún franco pertenece a otro mes?"}</button></div>`:""}
     ${soloLectura?`<div class="card">
       <div style="font-weight:800;margin-bottom:8px;text-transform:capitalize">${new Date(selFecha+"T00:00:00").toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long"})}</div>
       ${entradasSel.length?`<div style="display:flex;flex-direction:column;gap:5px">${entradasSel.map(e=>`<div style="font-size:12px"><strong>${nombreDe(e.personId)}</strong>${e.cubreId?` <span style="color:var(--text3)">-- cubre: ${nombreDe(e.cubreId)}</span>`:""}${(e.cubreId&&e.cubre2Id)?` <span style="color:var(--text3)">-- la ${((REC_PUESTOS[recPuestoFijo(e.cubreId)]||{}).lbl||"").replace("Turno ","").toLowerCase()} la cubre ${nombreDe(e.cubre2Id)}</span>`:""}${e.mesDe?` <span style="color:#6d28d9;font-weight:700">· De ${mesNomCap(e.mesDe)}</span>`:""}${e.nota?` <span style="color:var(--text3)">· 📝 ${String(e.nota).replace(/</g,"&lt;")}</span>`:""}</div>`).join("")}</div>`:`<div style="font-size:12px;color:var(--text3)">Sin francos cargados para este día.</div>`}
@@ -37475,8 +37760,8 @@ function muHorarioMesHtml(soloLectura,datosOverride){
   // horario) y el input ensanchado de 10ch a 13ch (3 caracteres más, pedido explícitamente).
   const colW=140;
   return `<div style="font-size:11px;color:var(--text3);margin-bottom:10px">Para cada mucama y cada día, el horario en que trabaja (editable, ej: "08:00-16:00"). Vacío = franco ese día. Se prellena con el horario semanal ya configurado, si lo tenía.</div>
-    ${francosMesNavHtml()}
-    <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-g btn-sm" onclick="francosDescargarPDF('mu'${datosOverride?",true":""})"><i class="ti ti-download"></i> Descargar PDF (Mucamas)</button></div>
+    ${(soloLectura||datosOverride)?francosMesNavHtml():""}
+    ${(soloLectura||datosOverride)?`<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="fr-pdf" onclick="francosDescargarPDF('mu'${datosOverride?",true":""})">⬇️ Descargar PDF (Mucamas)</button></div>`:""}
     <div style="overflow-x:auto">
     <div class="mu-grid" style="display:grid;grid-template-columns:repeat(7,minmax(${colW}px,1fr));gap:5px;min-width:${7*colW}px">
       ${DOW_LBL.map(l=>`<div class="mu-dow" style="text-align:center;font-size:10px;font-weight:800;color:var(--text3);padding:2px 0">${l}</div>`).join("")}
@@ -37485,7 +37770,7 @@ function muHorarioMesHtml(soloLectura,datosOverride){
         const esHoy=iso===hoyISO();
         const etqs=francoEtiquetasDelDia(iso);
         return `<div class="${c.fueraDeMes?"mu-fuera":""}${esHoy?"":" mu-c2"}" style="position:relative;border:1.5px solid ${esHoy?"#0f766e":"var(--border)"};border-radius:8px;padding:5px;background:${esHoy?"#e6f4f1":(c.fueraDeMes?"var(--sand3)":"var(--white)")}">
-          ${feriadoDelDia(iso)?`<span style="position:absolute;top:2px;left:3px;font-size:9px" title="${ferEsc(feriadoDelDia(iso).n)}">🎌</span>`:""}
+          ${ferChipHtml(iso,"top:2px;left:3px","l")}
           ${etqs.length?`<span style="position:absolute;top:2px;right:3px;font-size:9px" title="${etqs.map(e=>e.texto).join(", ").replace(/"/g,"&quot;")}">🏷️</span>`:""}
           <div class="mu-band2" style="font-weight:800;font-size:11px;margin-bottom:4px;color:${c.fueraDeMes?"var(--text3)":"inherit"}"><span class="mu-dnm">${new Date(iso+"T00:00:00").toLocaleDateString("es-AR",{weekday:"short"}).replace(".","")}</span>${c.d}</div>
           <div style="display:flex;flex-direction:column;gap:2px">
@@ -37560,7 +37845,7 @@ function feriadosMantHtml(soloLectura){
   return `<div style="font-size:11px;color:var(--text3);margin-bottom:10px">Este apartado es para indicar si un día específico (ej. feriados) no le corresponde trabajar.</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">
       <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Persona</div>
-        <select class="fc" onchange="UI.feriadoMantPid=this.value;render()">${personal.map(p=>`<option value="${p.id}" ${pid===p.id?"selected":""}>${nombreMostrar(p)}</option>`).join("")}</select>
+        <select class="fc" onchange="UI.feriadoMantPid=this.value;render()">${personal.map(p=>`<option value="${p.id}" ${pid===p.id?"selected":""}>${(p.nombre||"?").replace(/</g,"&lt;")}</option>`).join("")}</select>
       </div>
       ${soloLectura?"":`<div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Desde</div>
         <input class="fc" type="date" value="${desde}" onchange="UI.feriadoMantDesde=this.value;render()">
@@ -37904,6 +38189,7 @@ window.francosPublicar=(area)=>{
     UI.frNotif={area,items:diff,sel};UI.mod="frNotif";
   }
   render();
+  frToastShow(area);
 };
 // ═══ (Tanda 453) Cambios en francos ya publicados: a quién afectan y aviso a esas personas ═══
 // ═══ (Tanda 464) Aviso a Coordinación: conserjes con muchos días seguidos sin franco ═══
@@ -37912,11 +38198,12 @@ window.francosPublicar=(area)=>{
 // Se mira desde el 1.º del primer mes con francos cargados hasta el último día del último mes cargado, y solo tramos que terminan hoy o después.
 const FR_MAX_SIN_FRANCO=9;
 function frSinFrancoCons(){
-  const data=D.consFrancoDias||{},hoy=hoyISO();
-  const fechas=Object.keys(data).filter(f=>/^\d{4}-\d{2}-\d{2}$/.test(f)&&(data[f]||[]).length).sort();
+  // (Tanda 605) Solo cuenta el mes que se está armando (el visto en Francos): nada anterior ni posterior.
+  const data=D.consFrancoDias||{},hoy=hoyISO(),ymA=francosCalYM();
+  const fechas=Object.keys(data).filter(f=>f.startsWith(ymA)&&/^\d{4}-\d{2}-\d{2}$/.test(f)&&(data[f]||[]).length).sort();
   if(!fechas.length)return [];
-  const ini=fechas[0].slice(0,7)+"-01";
-  const [ya,ma]=fechas[fechas.length-1].slice(0,7).split("-").map(Number);
+  const ini=ymA+"-01";
+  const [ya,ma]=ymA.split("-").map(Number);
   const fin=isoYMD(ya,ma-1,new Date(ya,ma,0).getDate());
   let gente=(D.users||[]).filter(u=>u.area==="rec"&&u.puesto&&REC_PUESTOS[u.puesto]);
   if(!gente.length)gente=(D.users||[]).filter(u=>u.area==="rec");
@@ -38215,6 +38502,39 @@ function fpPanelHtml(area){
     ${open?`<div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">${pend.map(fila).join("")}${hechas.length?`<div style="font-size:11px;font-weight:800;color:var(--text3);margin-top:4px">Resueltas recientemente</div>${hechas.map(fila).join("")}`:""}</div>`:""}
   </div>`;
 }
+
+// ═══ (Tanda 605) Gestión del personal: portada con tarjetas grandes (como Finanzas) y panel exclusivo por sección ═══
+function persCardHtml(tit,ic,hint,act,badge){
+  return `<div class="card fin-card fin-go pers-go" role="button" tabindex="0" onclick="${act}" onkeydown="if(event.target===this&&(event.key==='Enter'||event.key===' ')){event.preventDefault();${act}}" title="Abrir ${tit}"><div class="fin-tt"><span class="fin-ic">${ic}</span><h3>${tit}${badge?`<span class="pers-badge">${badge}</span>`:""}</h3></div><div class="fin-hint">${hint}</div></div>`;
+}
+window.persGo=(k)=>{
+  UI.persSub=k;
+  if(k==="francos")UI.francosOpen=true;
+  if(k==="vac")UI.vacOpen=true;
+  if(k==="cap")UI.capConsOpen=true;
+  if(k==="ficha")UI.fichaOpen=true;
+  if(k==="cv")UI.cvOpen=true;
+  render();
+  try{window.scrollTo({top:0,behavior:"smooth"});}catch(e){}
+};
+window.persBack=()=>{UI.persSub=null;render();};
+function persLandingBodyHtml(kind,cards){
+  const nPend=(()=>{try{return fpPend().length;}catch(e){return 0;}})();
+  const items=[
+    {k:"fich",ic:"⏱️",t:"Registro de fichado",h:"Portal de entradas y salidas del personal (CrossChex Cloud)",act:"window.open('https://us.crosschexcloud.com/#/login','crosschexcloud')"},
+    {k:"francos",ic:"🗓️",t:"Francos",h:kind==="ger"?"Calendarios de francos y horarios (solo lectura) y feriados":"Armado y publicación de francos, horarios y feriados",badge:nPend||"",body:()=>cards.francos()},
+    ...((ROLE==="coord"||ROLE==="ger")?[{k:"vac",ic:"🏖️",t:"Vacaciones del personal",h:"Días habilitados por año, solicitudes y registro de cada integrante",body:()=>vacCardHtml()}]:[]),
+    {k:"cap",ic:"🎓",t:"Capacitaciones conserjería",h:"Capacitaciones y guía «¿Qué hago si?» para conserjería",body:()=>capConsCardHtml()},
+    {k:"ficha",ic:"📋",t:"Ficha de personal",h:"Datos personales, ingreso, uniforme y archivos de cada integrante",body:()=>cards.ficha()},
+    ...(ROLE==="coord"?[{k:"cv",ic:"🗃️",t:"Candidaturas (CVs)",h:"Currículums de posibles candidatos por área",body:()=>cvSeccionHtml()}]:[]),
+  ];
+  const sel=items.find(i=>i.k===UI.persSub&&i.body);
+  if(sel){
+    return `<div class="pers-emb"><div class="pers-bar"><button class="btn btn-g btn-sm" onclick="persBack()">← Volver</button><b>${sel.ic} ${sel.t}</b></div>
+      <div class="pers-body">${sel.body()}</div></div>`;
+  }
+  return `<div class="fin-root fin-intro"><div class="fin-grid">${items.map(i=>persCardHtml(i.t,i.ic,i.h,i.act||`persGo('${i.k}')`,i.badge)).join("")}</div></div>`;
+}
 function personalFrancosSectionHtml(){
   // (Tanda 70 / ítem 2) Se sacó la solapa "Calendario completo" -- si algún dispositivo todavía tiene
   // UI.francosTab="cal" guardado en memoria de una sesión anterior, cae a "cons" en vez de quedar en
@@ -38247,10 +38567,7 @@ function personalFrancosSectionHtml(){
   // primero para encontrarlos. Se suman acá arriba, siempre visibles, mismo lugar/formato que ya usa
   // Gerencia para este mismo par de botones (ver rGer()) -- y se sacan de adentro de Francos para no
   // duplicarlos.
-  return `<div>
-    <div style="display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px">${verRendimientoBtnHtml()}${verEntradasSalidasBtnHtml()}</div>
-    ${registroFichadoCardHtml()}
-    <div class="card" style="margin-bottom:20px">
+  const francosCard=()=>`<div class="card" style="margin-bottom:20px">
       <div style="display:flex;align-items:center;justify-content:space-between;${francosOpen?"margin-bottom:12px":""};cursor:pointer" onclick="UI.francosOpen=${francosOpen?"false":"true"};render()">
         <h3 style="margin:0">🗓️ Francos${fpPend().length?` <span class="pp-badge" title="Solicitudes de día libre pendientes">${fpPend().length}</span>`:""}</h3>
         <span style="pointer-events:none;font-size:15px;color:var(--text3)">${francosOpen?"▴":"▾"}</span>
@@ -38262,6 +38579,7 @@ function personalFrancosSectionHtml(){
             <div class="ft ${tab==="mu"?"on":""}" onclick="UI.francosTab='mu';render()">Mucamas${fpPend("mu").length?` <span class="pp-badge" style="margin-left:4px">${fpPend("mu").length}</span>`:""}</div>
             <div class="ft ${tab==="mant"?"on":""}" onclick="UI.francosTab='mant';render()">Mantenimiento${fpPend("mant").length?` <span class="pp-badge" style="margin-left:4px">${fpPend("mant").length}</span>`:""}</div>
           </div>
+          <button class="fr-fer-btn${UI.feriadosOpen?" on":""}" onclick="UI.feriadosOpen=${UI.feriadosOpen?"false":"true"};render()">🎌 Feriados nacionales y fechas especiales</button>
         </div>
         <!-- (Tanda 104 / ítems 3 y 4) Se saca el emoji "👥" de este botón (solo se veía cuando estaba
         cerrado). (Tanda 148 / ítem 1) "Ver rendimiento de mucamas"/"Entradas y salidas del sistema" se
@@ -38275,11 +38593,12 @@ function personalFrancosSectionHtml(){
       <!-- (Tanda 106 / ítem 3) "Personal en vivo" pasa a flotar POR ENCIMA del contenido (panel fijo,
       position:fixed) en vez de compartir la fila con el calendario de Francos y angostarlo -- el
       calendario ahora ocupa siempre el ancho completo, se abra o no el panel. -->
+      ${feriadosCardHtml(false)}
       <div>
         ${tab==="cons"?recPermisoPanelHtml():""}
         ${fpPanelHtml(tab)}
-        ${francosPublicarBtnHtml(tab)}
-        ${feriadosMesAvisoHtml()}
+        ${francosBarraHtml(tab)}
+        ${tab==="cons"?frSinFrancoBannerHtml():""}
         ${tab==="cons"?conserjeriaFrancosMesHtml():""}
         ${tab==="mu"?muHorarioMesHtml():""}
         ${tab==="mant"?feriadosMantHtml():""}
@@ -38291,11 +38610,8 @@ function personalFrancosSectionHtml(){
         </div>
         ${personalVivoHtml()}
       </div>`:""}`:`<div style="font-size:11px;color:var(--text3)">Calendario de francos y horarios por rol (Conserjería, Mucamas, Mantenimiento).</div>`}
-    </div>
-    ${ROLE==="coord"?vacCardHtml():""}
-    ${capConsCardHtml()}
-    ${feriadosCardHtml(false)}
-    <div class="card" style="margin-top:20px">
+    </div>`;
+  const fichaCard=()=>`<div class="card" style="margin-top:20px">
       <!-- (Tanda 104 / ítem 5) Clickear el título/flotante entero abre o cierra la ficha.
       (Tanda 106 / ítem 4) Se saca el botón/pill "▾ Mostrar"/"▴ Ocultar" (redundante, ya que todo el
       encabezado es clickeable) -- queda solo una flechita chica como indicador visual, sin fondo de
@@ -38305,8 +38621,10 @@ function personalFrancosSectionHtml(){
         <span style="pointer-events:none;font-size:15px;color:var(--text3)">${fichaOpen?"▴":"▾"}</span>
       </div>
       ${fichaOpen?personalFichaTabHtml():`<div style="font-size:11px;color:var(--text3)">Datos personales, fecha de ingreso/entrega de uniforme y archivos (PDF o transcripciones manuales) de cada integrante.</div>`}
-    </div>
-    ${ROLE==="coord"?cvSeccionHtml():""}
+    </div>`;
+  return `<div>
+    <div style="display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px">${verRendimientoBtnHtml()}${verEntradasSalidasBtnHtml()}</div>
+    ${persLandingBodyHtml("ed",{francos:francosCard,ficha:fichaCard})}
   </div>`;
 }
 // (Tanda 76 / ítem 1) Gerencia pidió ver los 3 calendarios de Francos (Conserjería/Mucamas/
@@ -38359,11 +38677,16 @@ function francosSoloLecturaHtml(){
       <span style="pointer-events:none;font-size:15px;color:var(--text3)">${francosOpen?"▴":"▾"}</span>
     </div>
     ${francosOpen?`<div style="font-size:11px;color:var(--text3);margin-bottom:10px">🔒 Modo solo lectura -- para cargar o modificar francos/horarios, contactá a Coordinación o Administración.</div>
-    <div class="ftabs" style="margin-bottom:14px">
-      <div class="ft ${tab==="cons"?"on":""}" onclick="UI.francosTab='cons';render()">Conserjería</div>
-      <div class="ft ${tab==="mu"?"on":""}" onclick="UI.francosTab='mu';render()">Mucamas</div>
-      <div class="ft ${tab==="mant"?"on":""}" onclick="UI.francosTab='mant';render()">Mantenimiento</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+      <div class="ftabs" style="margin-bottom:0">
+        <div class="ft ${tab==="cons"?"on":""}" onclick="UI.francosTab='cons';render()">Conserjería</div>
+        <div class="ft ${tab==="mu"?"on":""}" onclick="UI.francosTab='mu';render()">Mucamas</div>
+        <div class="ft ${tab==="mant"?"on":""}" onclick="UI.francosTab='mant';render()">Mantenimiento</div>
+      </div>
+      <button class="fr-fer-btn${UI.feriadosOpen?" on":""}" onclick="UI.feriadosOpen=${UI.feriadosOpen?"false":"true"};render()">🎌 Feriados nacionales y fechas especiales</button>
     </div>
+    ${feriadosCardHtml(!ferCan())}
+    ${tab!=="mant"?`<div style="margin-bottom:10px">${ferOrbHtml(francosCalYM())}</div>`:""}
     ${tab==="cons"?conserjeriaFrancosMesHtml(true):""}
     ${tab==="mu"?muHorarioMesHtml(true):""}
     ${tab==="mant"?feriadosMantHtml(true):""}`:`<div style="font-size:11px;color:var(--text3)">🔒 Calendario de francos y horarios por rol (Conserjería, Mucamas, Mantenimiento), de solo lectura.</div>`}
@@ -38843,7 +39166,7 @@ function cvSeccionHtml(){
     }).join("");
     body=`<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px">
         <div class="ftabs" style="margin-bottom:0">${tabs}</div>
-        <button class="btn btn-p btn-sm" onclick="cvNuevo('${area}')">➕ Cargar candidato</button>
+        <button class="pers-big-btn" onclick="cvNuevo('${area}')">➕ Cargar candidato</button>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px">
         <input class="fc" style="flex:1;min-width:160px;max-width:300px" placeholder="🔎 Buscar por nombre, dato, nota…" value="${cvEsc(UI.cvQ||"")}" oninput="UI.cvQ=this.value;clearTimeout(window._cvQT);window._cvQT=setTimeout(()=>{render();const el=document.getElementById('cvQ');if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length)}},250)" id="cvQ">
@@ -41490,8 +41813,23 @@ function sbOv(role,key){
   const o=D.sbItemOverrides&&D.sbItemOverrides[role]&&D.sbItemOverrides[role][key];
   return o||null;
 }
-function sbIc(role,key,defIc){const o=sbOv(role,key);return (o&&o.ic)?o.ic:defIc;}
-function sbLbl(role,key,defLbl){const o=sbOv(role,key);if(key==="personal"&&o&&o.lbl&&/^\s*personal\s+y\s+francos\s*$/i.test(o.lbl))return defLbl; /* (Tanda 352) el nombre viejo guardado como personalizacion no pisa el nuevo "Gestión del Personal" */ return (o&&o.lbl)?o.lbl:defLbl;}
+// (Tanda 605) Override POR USUARIO (D.sidebarPrefs[RID].ov[key]={ic,lbl}): cada persona puede renombrar y cambiarle el emoji
+// a cualquier botón de su propio sidebar (nativos, prestados, enlaces del área y propios, "Vacaciones"), sin tocar a los demás.
+function spOv(key){const p=D.sidebarPrefs&&RID&&D.sidebarPrefs[RID];return (p&&p.ov&&p.ov[key])||null;}
+function lkOv(l,key){const o=spOv(key);return o?{...l,label:o.lbl||l.label,icon:o.ic||l.icon}:l;}
+function sbLblFix(t){return /^\s*conserjer[ií]a\s+y\s+reservas\s*$/i.test(t||"")?"Funciones / Personal":t;}
+function sbIc(role,key,defIc){const u=spOv(key);if(u&&u.ic)return u.ic;const o=sbOv(role,key);return (o&&o.ic)?o.ic:defIc;}
+function sbLbl(role,key,defLbl){const u=spOv(key);if(u&&u.lbl)return sbLblFix(u.lbl);const o=sbOv(role,key);if(key==="personal"&&o&&o.lbl&&/^\s*personal\s+y\s+francos\s*$/i.test(o.lbl))return defLbl; /* (Tanda 352) el nombre viejo guardado como personalizacion no pisa el nuevo "Gestión del Personal" */ return sbLblFix((o&&o.lbl)?o.lbl:defLbl);}
+window.spItemOvSet=(key,field,value)=>{
+  if(!RID)return;
+  const p={...((D.sidebarPrefs&&D.sidebarPrefs[RID])||{})};
+  const ov={...(p.ov||{})};const cur={...(ov[key]||{})};
+  const v=(value||"").trim();if(v)cur[field]=v;else delete cur[field];
+  if(Object.keys(cur).length)ov[key]=cur;else delete ov[key];
+  if(Object.keys(ov).length)p.ov=ov;else delete p.ov;
+  D.sidebarPrefs={...(D.sidebarPrefs||{}),[RID]:p};lsS(K.sidebarPrefs,D.sidebarPrefs);render();
+};
+window.spItemOvReset=(key)=>{spItemOvSet(key,"ic","");spItemOvSet(key,"lbl","");};
 // Guarda/borra un override puntual (un solo campo, "ic" o "lbl") -- un valor vacío borra ESE campo
 // (vuelve a mostrar el default para ese campo puntual, sin tocar el otro), y si al borrar no queda
 // ningún campo, se borra el override completo de ese botón.
@@ -41766,8 +42104,8 @@ function itemLabelByKey(role){
   // (Tanda 114) Accesos cruzados de otras áreas -- para que también se puedan reordenar/mover de
   // categoría desde acá, igual que cualquier botón nativo (si no, quedarían siempre en "Sin categoría").
   sbGrantedKeys(role).forEach(k=>{if(CROSS_GRANTABLE_DEF[k]&&!map[k])map[k]={ic:sbIc(role,k,CROSS_GRANTABLE_DEF[k].ic),lbl:sbLbl(role,k,CROSS_GRANTABLE_DEF[k].lbl)};});
-  ((D.customLinks&&D.customLinks[role])||[]).forEach(l=>{map["cl:"+l.id]={ic:l.icon||"🔗",lbl:l.label};});
-  spOwnLinks().forEach(l=>{map["ol:"+l.id]={ic:l.icon||"🔗",lbl:l.label};});
+  ((D.customLinks&&D.customLinks[role])||[]).forEach(l0=>{const l=lkOv(l0,"cl:"+l0.id);map["cl:"+l.id]={ic:l.icon||"🔗",lbl:l.label};});
+  spOwnLinks().forEach(l0=>{const l=lkOv(l0,"ol:"+l0.id);map["ol:"+l.id]={ic:l.icon||"🔗",lbl:l.label};});
   spGrupos().forEach(g=>{map["g:"+g.id]={ic:g.icon||"📁",lbl:"Grupo: "+(g.label||"")};});
   return map;
 }
@@ -41924,10 +42262,18 @@ window.spReset=()=>{
   // (Tanda 106 / ítem 1) Se preserva ownLinks -- restablecer el ORDEN por defecto no tiene por qué
   // borrar los accesos a enlaces externos que el usuario cargó para sí mismo.
   const own=spOwnLinks();
-  D.sidebarPrefs={...D.sidebarPrefs,[RID]:{ownLinks:own,...(spGrupos().length?{grupos:spGrupos()}:{}),...(vistaClasicaOn()?{viewClassic:true}:{}),...(vistaBigFlagOn()?{viewBig:true}:{})}};
+  D.sidebarPrefs={...D.sidebarPrefs,[RID]:{ownLinks:own,...((D.sidebarPrefs&&D.sidebarPrefs[RID]&&D.sidebarPrefs[RID].ov)?{ov:D.sidebarPrefs[RID].ov}:{}),...(spGrupos().length?{grupos:spGrupos()}:{}),...(vistaClasicaOn()?{viewClassic:true}:{}),...(vistaBigFlagOn()?{viewBig:true}:{})}};
   lsS(K.sidebarPrefs,D.sidebarPrefs);
   UI.mod=null;UI.spRole=null;render();
 };
+// (Tanda 605) Emoji + nombre editables de cualquier botón (nada bloqueado). Los grupos ("g:") se renombran en su propia tarjeta.
+function spNameEditHtml(k,info){
+  if(k.indexOf("g:")===0)return `<span style="flex:1;font-size:12px">${info.ic?info.ic+" ":""}${sbGrpEsc(info.lbl||k)}</span>`;
+  const o=spOv(k);
+  return `<input class="fc" style="width:42px;flex-shrink:0;text-align:center;padding:3px 2px;font-size:13px" maxlength="4" value="${sbGrpEsc(info.ic||"")}" onchange="spItemOvSet('${k}','ic',this.value)" title="Emoji del botón">
+      <input class="fc" style="flex:1;min-width:0;font-size:12px;padding:3px 6px" value="${sbGrpEsc(info.lbl||k)}" onchange="spItemOvSet('${k}','lbl',this.value)" title="Nombre del botón">
+      ${o?`<button class="adm-mini" onclick="spItemOvReset('${k}')" title="Volver al nombre original">↺</button>`:""}`;
+}
 function modSidebarPrefs(){
   const role=UI.spRole;
   const cats=spCats();
@@ -41956,7 +42302,7 @@ function modSidebarPrefs(){
   // "Sin categoría" -- la única diferencia es qué opciones ofrece el desplegable de respaldo.
   const dndItemRowHtml=(k,info,ci,ii,c)=>`<div data-dnd-item="${k}" style="display:flex;align-items:center;gap:6px;background:var(--sand);border:1px solid var(--border);border-radius:6px;padding:4px 8px">
       <span data-dnd-handle style="cursor:grab;touch-action:none;color:var(--text3);font-size:14px;padding:0 2px;user-select:none" title="Arrastrar para reordenar">⠿</span>
-      <span style="flex:1;font-size:12px">${info.ic?info.ic+" ":""}${(info.lbl||k).replace(/</g,"&lt;")}</span>
+      ${spNameEditHtml(k,info)}
       <select class="fc" style="font-size:10px;max-width:140px" onchange="spItemMoveTo('${k}',this.value===''?null:this.value,999)">
         <option value="${c?c.key:""}" selected>${c?"Está acá":"Sin categoría"}</option>
         ${cats.filter(o=>!c||o.key!==c.key).map(o=>`<option value="${o.key}">Mover a: ${(o.label||"").replace(/</g,"&lt;")}</option>`).join("")}
@@ -42023,7 +42369,7 @@ function modSidebarPrefs(){
       </div>
       ${UI.emoOpen==="g:"+g.id?emoPicker("g:"+g.id):""}
       ${its.length?`<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:6px">${its.map((k,ii)=>`<div style="display:flex;align-items:center;gap:6px;background:var(--white,#fff);border:1px solid var(--border);border-radius:6px;padding:3px 8px">
-        <span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${labels[k].ic?labels[k].ic+" ":""}${sbGrpEsc(labels[k].lbl||k)}</span>
+        ${spNameEditHtml(k,labels[k])}
         <button class="adm-mini" style="padding:0 6px;${ii===0?"opacity:.3;pointer-events:none":""}" onclick="spGrpItemMove('${g.id}',${(g.items||[]).indexOf(k)},-1)" title="Subir"><i class="ti ti-chevron-up"></i></button>
         <button class="adm-mini" style="padding:0 6px;${ii===its.length-1?"opacity:.3;pointer-events:none":""}" onclick="spGrpItemMove('${g.id}',${(g.items||[]).indexOf(k)},1)" title="Bajar"><i class="ti ti-chevron-down"></i></button>
         <button class="adm-mini" style="color:#b91c1c" onclick="spGrpItemDel('${g.id}','${k}')" title="Sacar del grupo"><i class="ti ti-x"></i></button>
@@ -42317,11 +42663,12 @@ function modSbItemsEdit(){
     // no existiera en el DOM (sin data-dnd-item), dejando a su categoría sin ninguna fila real para
     // engancharse al soltar ahí, y descuadrando el conteo de posición del resto del arrastre.
     if(key==="vacpersonal"){
+      const ov=sbOv(area,key);
       return `<div data-dnd-item="${key}" style="padding:7px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
         ${handleHtml}
-        <span style="width:24px;text-align:center;flex-shrink:0">🏖️</span>
-        <span style="flex:1;font-size:13px">Solicitar vacaciones</span>
-        <span style="font-size:10px;color:var(--text3)">botón fijo</span>
+        <input class="adm-inp" style="width:46px;flex-shrink:0;text-align:center;padding:8px 4px" value="${(sbIc(area,key,"🏖️")||"").replace(/"/g,"&quot;")}" maxlength="4" onchange="sbItemOvSet('${area}','${key}','ic',this.value)" title="Emoji">
+        <input class="adm-inp" style="flex:1;min-width:0" value="${(sbLbl(area,key,"Vacaciones")||"").replace(/"/g,"&quot;")}" onchange="sbItemOvSet('${area}','${key}','lbl',this.value)" title="Título">
+        ${ov?`<button class="btn btn-g btn-sm" style="flex-shrink:0" onclick="sbItemOvReset('${area}','${key}')" title="Restablecer al valor original">↺</button>`:""}
       </div>`;
     }
     return "";
@@ -48461,7 +48808,7 @@ window.agNotify=(title,opts)=>{
 };
 window.pwaNotifPedir=async()=>{try{await Notification.requestPermission();}catch(e){}render();};
 // (Tanda 448) Número de versión visible en Mi cuenta, para comprobar que el sitio publicado tiene la última.
-const APP_BUILD="v604";
+const APP_BUILD="v607";
 setTimeout(()=>{try{accPruneNow();}catch(e){}},8000); // (Tanda 558) borra del historial de accesos lo que pasó de 30 días
 function pwaCuentaHtml(){
   const inst=pwaStandalone();
