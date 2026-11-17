@@ -3237,6 +3237,7 @@ body.dark .cc-main tbody tr.cc-t-prog td{background:rgba(124,92,214,.24)}body.da
 .cc-dif-r{display:flex;align-items:center;gap:8px;margin:6px 0}
 .cc-dif-r .fc{width:170px;box-sizing:border-box}.cc-dif-r .cc-dif-in{width:170px;text-align:right}
 .cc-dif-i{font-weight:800;font-size:14px}
+.cc-dif-t{font-size:13px;margin:2px 0 4px}.cc-dif-t span{color:var(--text3)}
 .cc-dif-f{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:6px}
 /* (Tanda 619) Factura impaga con más de 60 días: relleno rojo más oscuro y texto rojo oscuro (contraste >= 6:1) */
 .cc-main tbody tr.cc-venc td{background:#f0a3a3;color:#5a0606}
@@ -34343,9 +34344,11 @@ function ccPaySelHtml(){
 window.ccPayQ=v=>{UI.ccPay.q=v;const e=document.getElementById("ccPayRes");if(e)e.innerHTML=ccPayResHtml();};
 window.ccPayTog=id=>{
   const p=UI.ccPay;if(!p)return;
+  const t0=p.dif?ccPayTotal(p):0;
   const i=p.sel.indexOf(id);if(i>=0)p.sel.splice(i,1);else p.sel.push(id);
   const e=document.getElementById("ccPayRes"),s=document.getElementById("ccPaySel");
   if(e)e.innerHTML=ccPayResHtml();if(s)s.innerHTML=ccPaySelHtml();
+  if(p.dif)ccDifRetotal(t0); // (Tanda 621) el pago diferido pasa a considerar el total de todas las facturas incluidas
 };
 window.ccPayMulti=v=>{const p=UI.ccPay;if(!p)return;p.multi=!!v;if(!v)p.sel=[];render();setTimeout(()=>{const e=document.getElementById(v?"ccPayQ":"ccPayLink");if(e)e.focus();},30);};
 // (Tanda 620) Pago diferido: edición de las fechas de acreditación dentro de la ventana de pago
@@ -34358,13 +34361,24 @@ function ccDifSumHtml(){
 }
 function ccDifHtml(){
   const p=UI.ccPay;if(!p||!p.dif)return"";
-  const tot=ccPayTotal(p),rows=p.difRows,one=rows.length===1;
+  const tot=ccPayTotal(p),rows=p.difRows,one=rows.length===1,nf=1+(p.multi?p.sel.length:0);
   return `<div class="cc-dif">
     <div class="cc-sel-h">Fechas en que se acreditará el pago (echeq / cheque)</div>
+    <div class="cc-dif-t">Total a diferir: <b>${ccMoney(tot)}</b>${nf>1?` <span>(suma de las ${nf} facturas incluidas)</span>`:""}</div>
     ${rows.map((r,i)=>`<div class="cc-dif-r"><input type="date" class="fc" value="${cnEsc(r.f)}" oninput="ccDifF(${i},this.value)" title="Fecha de acreditación">${one?`<span class="cc-dif-i">${ccMoney(tot)}</span>`:`<input type="text" inputmode="decimal" autocomplete="off" class="fc cc-dif-in" placeholder="Importe" value="${cnEsc(r.i)}" oninput="ccDifI(${i},this.value)" title="Importe que se acredita en esa fecha">`}${rows.length>1?`<button type="button" class="cc-x" onclick="ccDifDel(${i})" title="Quitar esta fecha"><i class="ti ti-x"></i></button>`:""}</div>`).join("")}
     <div class="cc-dif-f"><button type="button" class="btn btn-sm btn-g" onclick="ccDifAdd()"><i class="ti ti-plus"></i> Agregar otra fecha</button><div id="ccDifSum" class="cn-help" style="margin:0">${ccDifSumHtml()}</div></div>
     <div class="cn-help" style="margin-top:6px">Mientras falte alguna fecha, el cargo queda en estado «Programado» y su comentario se va actualizando solo. Al pasar la última fecha pasa a «Ok».</div>
   </div>`;
+}
+// Cambió el total del pago (se sumó o quitó una factura): con varias fechas, si los importes cubrían el total anterior se ajusta la última para cubrir el nuevo
+function ccDifRetotal(t0){
+  const p=UI.ccPay;if(!p||!p.dif)return;
+  const r=p.difRows,t1=ccPayTotal(p);
+  if(r.length>1){
+    const sum=cjR2(r.reduce((t,x)=>t+(cjParseAmount(x.i)||0),0));
+    if(Math.abs(sum-t0)<0.005){const l=r[r.length-1],rest=cjR2((cjParseAmount(l.i)||0)+(t1-t0));l.i=rest>0?String(rest):"";}
+  }
+  ccDifRefresh();
 }
 function ccDifRefresh(){const e=document.getElementById("ccDifBox");if(e)e.innerHTML=ccDifHtml();const f=document.getElementById("ccPayFp");if(f)f.disabled=!!(UI.ccPay&&UI.ccPay.dif);}
 window.ccPayDif=v=>{const p=UI.ccPay;if(!p)return;p.dif=!!v;if(v&&!(p.difRows&&p.difRows.length))p.difRows=[{f:"",i:""}];ccDifRefresh();};
@@ -34455,12 +34469,6 @@ function modCcPay(){
       <input id="ccPayLink" class="fc" style="width:100%;box-sizing:border-box" type="text" autocomplete="off" placeholder="https://drive.google.com/..." value="${cnEsc(p.link||"")}" oninput="UI.ccPay.link=this.value" onkeydown="if(event.key==='Enter')ccPaySave()">
       <label class="fl" style="font-size:12px;font-weight:700;display:block;margin:10px 0 4px">Nombre o nota del comprobante (opcional)</label>
       <input id="ccPayComp" class="fc" style="width:100%;box-sizing:border-box" type="text" autocomplete="off" placeholder="ej. Transferencias Cash Proveedores_2026-10-06.pdf" value="${cnEsc(p.comp||"")}" oninput="UI.ccPay.comp=this.value" onkeydown="if(event.key==='Enter')ccPaySave()">
-      <label class="fl" style="font-size:12px;font-weight:700;display:block;margin:10px 0 4px">Fecha en que se imputó el pago</label>
-      <div class="cc-fprow"><input id="ccPayFp" class="fc" style="width:200px" type="date" value="${cnEsc(p.fp||"")}" oninput="UI.ccPay.fp=this.value"${p.dif?" disabled":""}>
-        <label class="cc-difchk" title="Para pagos con echeq / cheque que se acreditan en una o varias fechas futuras"><input type="checkbox" ${p.dif?"checked":""} onchange="ccPayDif(this.checked)"> Pago diferido <span>(echeq / cheque)</span></label></div>
-      <div id="ccDifBox">${ccDifHtml()}</div>
-      ${p.err?`<div class="cj-warn" style="margin-top:6px;font-size:12px">${cnEsc(p.err)}</div>`:""}
-      <div class="cn-help" style="margin-top:8px">Al guardar con un enlace, la factura se marca sola como pagada (Ok). Si después hace falta, se puede cambiar el estado desde el listado y el comprobante queda cargado igual.</div>
       <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:13px;font-weight:700;cursor:pointer"><input type="checkbox" ${p.multi?"checked":""} onchange="ccPayMulti(this.checked)"> Este pago abarca más de una factura</label>
       ${p.multi?`<div class="cc-multi">
         <div id="ccPaySel">${ccPaySelHtml()}</div>
@@ -34468,6 +34476,12 @@ function modCcPay(){
         <div id="ccPayRes" class="cc-res">${ccPayResHtml()}</div>
         <div class="cn-help" style="margin-top:6px">Al guardar, todas las facturas incluidas comparten este comprobante y cada una recibe un comentario automático con las demás (podés seguir agregando tu propio comentario).</div>
       </div>`:""}
+      <label class="fl" style="font-size:12px;font-weight:700;display:block;margin:14px 0 4px">Fecha en que se imputó el pago</label>
+      <div class="cc-fprow"><input id="ccPayFp" class="fc" style="width:200px" type="date" value="${cnEsc(p.fp||"")}" oninput="UI.ccPay.fp=this.value"${p.dif?" disabled":""}>
+        <label class="cc-difchk" title="Para pagos con echeq / cheque que se acreditan en una o varias fechas futuras"><input type="checkbox" ${p.dif?"checked":""} onchange="ccPayDif(this.checked)"> Pago diferido <span>(echeq / cheque)</span></label></div>
+      <div id="ccDifBox">${ccDifHtml()}</div>
+      ${p.err?`<div class="cj-warn" style="margin-top:6px;font-size:12px">${cnEsc(p.err)}</div>`:""}
+      <div class="cn-help" style="margin-top:8px">Al guardar con un enlace, la factura se marca sola como pagada (Ok). Si después hace falta, se puede cambiar el estado desde el listado y el comprobante queda cargado igual.</div>
       <div class="mf">${(ccLink(c)||ccComp(c)||c.pg)?`<button class="btn btn-sm btn-d" onclick="ccPayClear()" style="margin-right:auto"><i class="ti ti-unlink"></i> Quitar comprobante${c.pg?" y pago agrupado":""}</button>`:""}<button class="btn btn-sm" onclick="UI.ccPay=null;closeMod()">Cancelar</button><button class="btn btn-p btn-sm" onclick="ccPaySave()">Guardar</button></div>
     </div></div></div>`;
 }
@@ -49738,7 +49752,7 @@ window.agNotify=(title,opts)=>{
 };
 window.pwaNotifPedir=async()=>{try{await Notification.requestPermission();}catch(e){}render();};
 // (Tanda 448) Número de versión visible en Mi cuenta, para comprobar que el sitio publicado tiene la última.
-const APP_BUILD="v620";
+const APP_BUILD="v622";
 setTimeout(()=>{try{accPruneNow();}catch(e){}},8000); // (Tanda 558) borra del historial de accesos lo que pasó de 30 días
 function pwaCuentaHtml(){
   const inst=pwaStandalone();
