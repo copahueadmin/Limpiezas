@@ -59,3 +59,9 @@
 # Usa las mismas variables que ya existen (RESEND_API_KEY, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY); no hace falta cargar nada nuevo.
 [functions."backup-sistema"]
   schedule = "59 2 * * *"
+
+# (Tanda 619) send-overdue-invoices.js: avisa por mail a Gerencia y Administración cuando una factura de Cuentas corrientes pasa los 60 días
+# impaga (estado Pendiente) desde su emisión. Un mail por factura, una sola vez (ch_ccvencenviado). Corre cada 3 horas (máx. 20 mails por corrida,
+# así la primera vez, si hay muchas facturas viejas, salen escalonadas). Usa las mismas variables de entorno que send-probation-alerts.js.
+[functions."send-overdue-invoices"]
+  schedule = "17 */3 * * *"

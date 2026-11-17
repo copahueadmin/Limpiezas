@@ -175,6 +175,7 @@ async function run(opts) {
   const key = process.env.RESEND_API_KEY; if (!key) throw new Error("Falta RESEND_API_KEY en las variables de entorno de Netlify.");
   if (!ids.length) { res.aviso = "No hay documentos para respaldar."; return res; }
   const docs = await getDocs(ids, tok), today = dmy(Date.now()), folder = "Copia_sistema_" + ymd(argNow());
+  const ar = argNow(), cuando = opts.manual ? "a pedido del Admin el " + today + " a las " + z(ar.getUTCHours()) + ":" + z(ar.getUTCMinutes()) + " hs (hora de Argentina)" : today + " a las 23:59 hs (hora de Argentina)";
   res.leidos = docs.length;
   docs.sort((a, b) => a.id.localeCompare(b.id));
   const items = docs.map((d) => {
@@ -185,7 +186,7 @@ async function run(opts) {
   items.forEach((it) => { if (cur.length && size + it.json.length > PART_BYTES) { parts.push(cur); cur = []; size = 0; } cur.push(it); size += it.json.length; });
   if (cur.length) parts.push(cur);
   const leeme = "COPIA DE SEGURIDAD DEL SISTEMA — Hotel Copahue Junín\r\n"
-    + "Generada el " + today + " a las 23:59 hs (hora de Argentina). Base: " + PROJECT + ", colección «" + COLL + "».\r\n\r\n"
+    + "Generada " + cuando + ". Base: " + PROJECT + ", colección «" + COLL + "».\r\n\r\n"
     + "Cada archivo de la carpeta «datos» es un documento de la base (habitaciones, usuarios, cocheras, caja, personal, plano, etc.).\r\n"
     + "NO los edites a mano.\r\n\r\n"
     + "PARA RECUPERAR UNA VERSIÓN ANTERIOR: entrá a la app como Admin → «Copias de seguridad» → «Elegir el ZIP» (o «Elegir archivos / carpeta» si ya lo descomprimiste)."
@@ -204,10 +205,10 @@ async function run(opts) {
     files.push({ name: folder + "/INDICE.txt", data: Buffer.from("Documentos de esta copia" + (parts.length > 1 ? " (parte " + (i + 1) + " de " + parts.length + ")" : "") + " — " + today + "\r\n\r\n" + idx.join("\r\n") + "\r\n", "utf8") });
     const zip = buildZip(files), fname = folder + (parts.length > 1 ? "_parte" + (i + 1) + "de" + parts.length : "") + ".zip";
     try {
-      await sendMail(key, "Copia de seguridad del sistema — " + today + (parts.length > 1 ? " (" + (i + 1) + "/" + parts.length + ")" : ""),
-        "Copia de seguridad automática del sistema del Hotel Copahue (" + parts[i].length + " documentos en este envío).\n\nAdjunto: " + fname + " (" + fmtBytes(zip.length) + ")\n\nPara recuperar una versión anterior: en la app, Admin → «Copias de seguridad» → subir este ZIP.\n"
+      await sendMail(key, "Copia de seguridad del sistema — " + today + (opts.manual ? " (a pedido)" : "") + (parts.length > 1 ? " (" + (i + 1) + "/" + parts.length + ")" : ""),
+        (opts.manual ? "Copia de seguridad del sistema del Hotel Copahue, pedida por el Admin desde la app (" : "Copia de seguridad automática del sistema del Hotel Copahue (") + parts[i].length + " documentos en este envío).\n\nAdjunto: " + fname + " (" + fmtBytes(zip.length) + ")\n\nPara recuperar una versión anterior: en la app, Admin → «Copias de seguridad» → subir este ZIP.\n"
         + (parts.length > 1 ? "Esta copia viene en " + parts.length + " partes: para recuperar todo hay que subir todas juntas.\n" : "")
-        + "\nGenerada el " + today + " a las 23:59 hs (hora de Argentina). Los roomings se respaldan aparte." + claveTxt(),
+        + "\nGenerada " + cuando + ". Los roomings se respaldan aparte." + claveTxt(),
         [{ filename: fname, data: zip }]);
       res.enviados++;
     } catch (er) { res.errores.push("ZIP " + (i + 1) + ": " + er.message); }
@@ -239,4 +240,4 @@ exports.handler = async (event) => {
     return { statusCode: 500, body: JSON.stringify({ error: String(er && er.message || er) }) };
   }
 };
-exports._t = { buildZip, aesWrap, run, crc32, esPesado };
+exports._t = { buildZip, aesWrap, run, crc32, esPesado, avisoFalla };
